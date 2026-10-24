@@ -104,3 +104,12 @@ async def test_checker_retries_while_the_instance_is_unavailable() -> None:
     route.mock(return_value=httpx.Response(200, content=(SPECS / "system-spec.yaml").read_bytes()))
     assert (await checker.result()).status == "match"
     assert route.call_count == 2
+
+
+async def test_a_closed_client_is_unavailable_not_a_crash() -> None:
+    """Regression: get_server_info after the lifespan closed the httpx client must not raise."""
+    client = make_client()
+    await client.aclose()
+    result = await check_spec_compatibility(client)
+    assert result.status == "unavailable"
+    assert "closed" in (result.detail or "")

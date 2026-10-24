@@ -62,6 +62,11 @@ async def check_spec_compatibility(client: HaxcmsClient) -> SpecCompatibility:
         )
     except HaxcmsMcpError as exc:
         return SpecCompatibility("unavailable", ref, expected, detail=exc.formatted)
+    except Exception as exc:  # noqa: BLE001 - a best-effort diagnostic must never raise
+        # e.g. the httpx client was already closed by a server shutdown racing this check
+        return SpecCompatibility(
+            "unavailable", ref, expected, detail=f"{type(exc).__name__}: {exc}"
+        )
     if response.status_code != 200:
         return SpecCompatibility(
             "unavailable",

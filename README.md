@@ -65,7 +65,7 @@ working directory.
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |
 
 Test-only variables (`TEST_HAXCMS_DIR`, `TEST_HAXCMS_VERSION`, `TEST_KEEP_RUNTIME`) are documented
-in [PLAN.md Section 4](PLAN.md).
+in [PLAN.md Section 4](PLAN.md) and under [Which HAXcms the tests run against](#which-haxcms-the-tests-run-against).
 
 ## Run
 
@@ -163,6 +163,24 @@ uv run python scripts/gen_tools.py --check         # converter drift (ADR-0002)
 uv run python scripts/gen_tool_docs.py             # regenerate docs/tools.md
 uv run pytest --snapshot-update                    # update regression snapshots deliberately
 ```
+
+### Which HAXcms the tests run against
+
+The live suites (`integration`, `functional`, `e2e`) boot a real HAXcms and target current
+**`haxtheweb/haxcms-nodejs` `main`**, not the npm-published release. The MCP relies on the
+`files.json` datastore, the image file operations and the page-break rejection, none of which
+`@haxtheweb/haxcms-nodejs@26.8.1` on npm has, so against that package 7 file-upload and
+document-import tests fail.
+
+```bash
+git clone https://github.com/haxtheweb/haxcms-nodejs ../haxcms-nodejs
+export HAXCMS_MCP_TEST_HAXCMS_DIR=$PWD/../haxcms-nodejs   # explicit; never picked up implicitly
+uv run pytest -m "integration or functional"
+```
+
+With the variable unset, the harness installs `@haxtheweb/haxcms-nodejs@$HAXCMS_MCP_TEST_HAXCMS_VERSION`
+from npm (default `26.8.1`). CI sets the variable to a fresh `main` checkout; the ref lives in
+`HAXCMS_NODEJS_REF` at the top of `.github/workflows/ci.yml`.
 
 The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generated converters in
 `src/haxcms_mcp/generated/converters.py` are checked for drift in CI.

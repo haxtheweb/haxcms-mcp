@@ -393,13 +393,15 @@ PATCH content/{idOrSlug}  (bearer + site token)
 { "site":{"name":s}, "body":"<page-break ...></page-break><p>...</p>...", "schema":[...optional...], "details":{...optional...} }
 200 -> data = updated item
 400 -> "Content body is required"
+400 -> "body must contain a <page-break> element; only content after it is saved"
 500 -> "failed to write"
 ```
 
 `updateContent` forwards to the legacy `saveNode`, which runs `pageBreakParser(body)`. The parser
-only yields pages for `<page-break ...>...</page-break><content>` segments. **A body with no
-`<page-break>` produces zero segments, nothing is written, and the call still returns 200.** The MCP
-must therefore always send:
+only yields pages for `<page-break ...>...</page-break><content>` segments. **HAXcms `main`
+rejects a body with no `<page-break>` with a 400** (the MCP maps it to `INVALID_ARGUMENT` with a
+hint). Older builds, including the npm-published 26.8.1, produced zero segments, wrote nothing and
+still returned 200 — a silent no-op. Either way the MCP must always send:
 
 ```html
 <page-break item-id="<id>" title="<title>" slug="<slug>" path="<slug>" parent="<parentId or omit>"

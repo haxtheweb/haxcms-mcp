@@ -258,8 +258,9 @@ async def patch_content(
 ) -> dict[str, Any]:
     """PATCH content/{idOrSlug} -> the updated item record (updateContent → saveNode).
 
-    `body` MUST start with the `<page-break>` envelope — without it saveNode parses zero
-    segments and silently writes nothing (still 200). `schema` fills metadata.images/videos;
+    `body` MUST start with the `<page-break>` envelope — HAXcms main rejects a body without it
+    with a 400 (mapped to INVALID_ARGUMENT); older builds parsed zero segments and silently
+    wrote nothing while still answering 200. `schema` fills metadata.images/videos;
     `details` merges node details (configure/advanced shapes).
     """
     payload: dict[str, Any] = {"site": {"name": site}, "body": body}

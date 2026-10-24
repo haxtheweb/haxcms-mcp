@@ -122,6 +122,17 @@ def test_400_maps_to_invalid_argument_including_message() -> None:
         unwrap(make(400, err("Invalid theme supplied for site creation")))
     assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT
     assert "Invalid theme supplied" in excinfo.value.message
+    assert excinfo.value.hint is None
+
+
+def test_400_missing_page_break_gets_an_actionable_hint() -> None:
+    message = "body must contain a <page-break> element; only content after it is saved"
+    with pytest.raises(HaxcmsMcpError) as excinfo:
+        unwrap(make(400, err(message)))
+    assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT
+    assert excinfo.value.message == message
+    assert excinfo.value.hint is not None
+    assert "set_page_content" in excinfo.value.hint
 
 
 def test_405_maps_to_unsupported() -> None:

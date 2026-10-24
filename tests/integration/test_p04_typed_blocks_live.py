@@ -45,7 +45,8 @@ def stored_form(block_html: str) -> str:
 
     * `target="_blank"` on `<a>` is dropped;
     * `preserve-content` on `<template>` (code-sample) is dropped;
-    * the bare boolean `correct` on assessment `<input>`s is dropped;
+    * the bare boolean `correct` on assessment `<input>`s is PRESERVED but re-serialised in
+      the empty-value form `correct=""` (HAXcms main; older builds dropped it);
     * attribute VALUES are entity-decoded and re-escaped with only `&` and `"`: JSON
       attributes (vocab-term links, timeline events) come back double-quoted with
       `&quot;` and raw `<p>` inside, `&lt;` inside plain values becomes raw `<`,
@@ -53,7 +54,7 @@ def stored_form(block_html: str) -> str:
     """
     out = block_html.replace(' target="_blank"', "")
     out = out.replace(' preserve-content="preserve-content"', "")
-    out = re.sub(r" correct(?=>)", "", out)
+    out = re.sub(r" correct(?=>)", ' correct=""', out)
     return _ATTR_RE.sub(_normalise_attr, out)
 
 

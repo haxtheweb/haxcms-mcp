@@ -1,0 +1,68 @@
+{
+  "tag": "flash-card",
+  "title": "Flash card",
+  "description": "Practice concepts with front-and-back flash cards.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "img-source",
+      "type": "string",
+      "required": false,
+      "description": "Image file used for the card. Overrides Image Keyword."
+    },
+    {
+      "name": "type-of-action",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: the type of action this practice involves (e.g. Reading, Writing, Making, Researching, Listening, Watching, Reflecting, Discussing, Observing, Presenting, Assess)."
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: ID or URL of the learning objective this practice supports."
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "Use dark mode."
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "Card accent color."
+    },
+    {
+      "name": "img-keyword",
+      "type": "string",
+      "required": false,
+      "description": "Random image keyword. Overridden by Image Source."
+    },
+    {
+      "name": "speak",
+      "type": "boolean",
+      "required": false,
+      "description": "text-to-speech: speak the card; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "listen",
+      "type": "boolean",
+      "required": false,
+      "description": "text-to-speech: listen mode; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "front",
+      "description": "Front of the Card"
+    },
+    {
+      "name": "back",
+      "description": "Back of the Card"
+    }
+  ],
+  "example_html": "<flash-card speak=\"speak\" img-source=\"https://hips.hearstapps.com/clv.h-cdn.co/assets/15/22/1432664914-strawberry-facts1.jpg\" listen=\"listen\"><p slot='front'>What is strawberry in Spanish</p><p slot='back'>fresa</p></flash-card>",
+  "agent_notes": "front and back go in children with slot=front / slot=back (<p slot='front'>...</p><p slot='back'>...</p>)."
+}

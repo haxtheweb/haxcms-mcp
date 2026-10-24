@@ -1,0 +1,47 @@
+{
+  "tag": "multiple-choice",
+  "title": "Multiple choice",
+  "description": "Multiple-choice self-check question.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question for users to respond to."
+    },
+    {
+      "name": "randomize",
+      "type": "boolean",
+      "required": false,
+      "description": "Randomize answers dynamically."
+    },
+    {
+      "name": "single-option",
+      "type": "boolean",
+      "required": false,
+      "description": "Allow only one answer."
+    },
+    {
+      "name": "grading-format",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion)."
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: learning objective associated with this assessment."
+    },
+    {
+      "name": "for-course",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: course this assessment is intended for."
+    }
+  ],
+  "slots": [],
+  "example_html": "<multiple-choice question=\"Which is correct?\" single-option=\"single-option\" randomize=\"randomize\"><input type=\"checkbox\" value=\"Answer 1\" correct>\n<input type=\"checkbox\" value=\"Another potential answer\"></multiple-choice>",
+  "agent_notes": "answers are child inputs: <input type=checkbox value=...> with a bare `correct` attribute on the right ones; single-option switches to one-answer mode; randomize shuffles; check-label/hide-buttons adjust the UI."
+}

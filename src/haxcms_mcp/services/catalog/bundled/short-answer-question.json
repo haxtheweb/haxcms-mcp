@@ -1,0 +1,17 @@
+{
+  "tag": "short-answer-question",
+  "title": "Short Answer Question",
+  "description": "Have the user answer a basic question",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question for users to respond to."
+    }
+  ],
+  "slots": [],
+  "example_html": "<short-answer-question question=\"Which direction on a compass rose is always pointing up?\"><input type=\"checkbox\" value=\"North\" correct></short-answer-question>",
+  "agent_notes": ""
+}

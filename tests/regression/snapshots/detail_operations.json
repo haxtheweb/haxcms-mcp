@@ -1,0 +1,47 @@
+[
+  {
+    "operation": "setTitle",
+    "title": "New Title"
+  },
+  {
+    "description": "A description",
+    "operation": "setDescription"
+  },
+  {
+    "operation": "setTags",
+    "tags": [
+      "week-1",
+      "intro"
+    ]
+  },
+  {
+    "icon": "hax:lesson",
+    "operation": "setIcon"
+  },
+  {
+    "image": "files/cover.png",
+    "operation": "setImage"
+  },
+  {
+    "operation": "setRelatedItems",
+    "relatedItems": [
+      "item-2"
+    ]
+  },
+  {
+    "locked": true,
+    "operation": "setLocked"
+  },
+  {
+    "operation": "setPublished",
+    "published": false
+  },
+  {
+    "hideInMenu": true,
+    "operation": "setHideInMenu"
+  },
+  {
+    "operation": "setSlug",
+    "slug": "new-title"
+  }
+]

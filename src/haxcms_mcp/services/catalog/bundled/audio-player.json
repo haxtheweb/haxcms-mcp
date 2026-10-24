@@ -1,0 +1,89 @@
+{
+  "tag": "audio-player",
+  "title": "Audio",
+  "description": "This can present video in a highly accessible manner regardless of source.",
+  "category": "media",
+  "attributes": [
+    {
+      "name": "source",
+      "type": "string",
+      "required": true,
+      "description": "audio/video URL or uploaded file (files/<name>)"
+    },
+    {
+      "name": "media-title",
+      "type": "string",
+      "required": false,
+      "description": "accessible title for the player"
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "design-system accent color"
+    },
+    {
+      "name": "track",
+      "type": "string",
+      "required": false,
+      "description": "closed-captions file URL"
+    },
+    {
+      "name": "thumbnail-src",
+      "type": "string",
+      "required": false,
+      "description": "poster image URL"
+    },
+    {
+      "name": "learning-mode",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "hide-youtube-link",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "linkable",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "start-time",
+      "type": "number",
+      "required": false,
+      "description": "inherited: playback start offset"
+    },
+    {
+      "name": "end-time",
+      "type": "number",
+      "required": false,
+      "description": "inherited: playback end offset"
+    },
+    {
+      "name": "hide-transcript",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "hide-timestamps",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [],
+  "example_html": "<audio-player source=\"https://archive.org/download/tvtunes_4710/Jonny%20Quest.mp3\" media-title=\"Jonny Quest Theme\"></audio-player>",
+  "agent_notes": "extends video-player with audioOnly forced; same attribute family."
+}

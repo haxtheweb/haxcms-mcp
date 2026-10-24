@@ -1,0 +1,6838 @@
+{
+  "add_accent_card": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add accent card"
+    },
+    "description": "Add an accent-card block: a colored callout card with slotted heading, optional\nsubheading and trusted-HTML body (`content_html`).\n\n`horizontal` lays image and content side by side; `flat` removes the shadow;\n`accent_color` is a SimpleColors palette name. Heading/subheading are escaped\nplain text. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "accent_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_html": {
+          "type": "string"
+        },
+        "flat": {
+          "default": false,
+          "type": "boolean"
+        },
+        "heading": {
+          "type": "string"
+        },
+        "horizontal": {
+          "default": false,
+          "type": "boolean"
+        },
+        "image_alt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "image_src": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "subheading": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "heading",
+        "content_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_audio": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add audio"
+    },
+    "description": "Add an audio-player block (mp3 or any hosted audio URL); `title` becomes the\naccessible media-title. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "add_block": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add block"
+    },
+    "description": "Add one block (any catalog tag or native HTML element) and save the page.\n\n`tag` is validated against the Block Catalog (list_blocks / get_block_schema):\nunknown tags and attribute names fail with suggestions BEFORE anything is\nfetched or saved. `attributes` maps attribute name → value (pass `{}` for\nnone): `true` becomes the HAX flag form (`card=\"card\"`), `false`/`null` are\nomitted, lists/dicts become JSON.\n`inner_html` carries children — slotted content like\n`<p slot=\"question\">...</p>` or inline markup. Placement: `append`/`prepend`\n(page level, NO anchor) or `after`/`before` (REQUIRE an anchor addressing the\nreference block; `occurrence` picks among matches). Typed tools (add_image,\nadd_self_check, add_paragraph, ...) are the friendlier path for Core Blocks;\nthis generic tool covers everything else. Returns `{site, page_id, page_slug,\noperation, affected, block_count, saved}` — one git revision per call.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "attributes": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "inner_html": {
+          "default": "",
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "tag",
+        "attributes"
+      ],
+      "type": "object"
+    }
+  },
+  "add_blockquote": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add blockquote"
+    },
+    "description": "Add a native <blockquote>; `text` is escaped plain text and `cite` a source\nURL. For the styled HAX pull-quote use add_styled_quote. Anchor/placement work as\nin add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "text"
+      ],
+      "type": "object"
+    }
+  },
+  "add_citation": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add citation"
+    },
+    "description": "Add a citation-element block: a rendered citation with schema.org markup.\n\n`license` is a Creative Commons key (by, by-sa, by-nd, by-nc, by-nc-sa,\nby-nc-nd); `scope` is sibling|parent (how the citation attaches to surrounding\ncontent). Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "creator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "scope": {
+          "default": "sibling",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "title",
+        "source_url"
+      ],
+      "type": "object"
+    }
+  },
+  "add_code_sample": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add code sample"
+    },
+    "description": "Add a code-sample block with syntax highlighting and a copy button.\n\nPass `code` verbatim — it is escaped automatically and stored inside\n`<template preserve-content>` so the sanitizer keeps whitespace and entities.\n`language`: javascript|html|css|xml|json|yaml|php. Anchor/placement work as in\nadd_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "code": {
+          "type": "string"
+        },
+        "copy_button": {
+          "default": true,
+          "type": "boolean"
+        },
+        "language": {
+          "default": "javascript",
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "code"
+      ],
+      "type": "object"
+    }
+  },
+  "add_collapse": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add collapse"
+    },
+    "description": "Add an a11y-collapse block: `heading` is the always-visible toggle text,\n`content_html` the collapsible body (trusted HTML).\n\n`expanded=True` opens it by default — the HAX editor strips that flag from its\nown saves, but content written through this server keeps it. Anchor/placement\nwork as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_html": {
+          "type": "string"
+        },
+        "expanded": {
+          "default": false,
+          "type": "boolean"
+        },
+        "heading": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "heading",
+        "content_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_cta": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add call to action"
+    },
+    "description": "Add a simple-cta block: a call-to-action button; `icon` is an iron-icon name\n(e.g. `link`), `hide_icon` drops it. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hide_icon": {
+          "default": false,
+          "type": "boolean"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "label": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "label",
+        "link"
+      ],
+      "type": "object"
+    }
+  },
+  "add_divider": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add divider"
+    },
+    "description": "Add a native <hr> horizontal rule: a visual section divider. Anchor/placement\nwork as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "add_fill_in_the_blanks": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add fill in the blanks"
+    },
+    "description": "Add a fill-in-the-blanks block; `text_with_blanks` uses the element grammar —\n`[answer]` per blank, `[answer1~answer2]` for accepted alternatives. No title\nattribute in 26.8.1. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text_with_blanks": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "text_with_blanks"
+      ],
+      "type": "object"
+    }
+  },
+  "add_flash_card": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add flash card"
+    },
+    "description": "Add a flash-card block: click (or space) flips between `front` and `back`\n(inline HTML allowed); `image` sets the card's img-source for visual cards.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "back": {
+          "type": "string"
+        },
+        "front": {
+          "type": "string"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "front",
+        "back"
+      ],
+      "type": "object"
+    }
+  },
+  "add_grid": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add grid"
+    },
+    "description": "Add a grid-plate block: `layout` is a column template — 1, 1-1, 2-1, 1-2, 3-1,\n1-3, 1-1-1, 2-1-1, 1-2-1, 1-1-2, 1-1-1-1 — and `columns` carries one trusted-HTML\nstring per column, slotted into col-1...col-N.\n\n`disable_responsive` keeps the layout fixed on small screens. Anchor/placement\nwork as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "disable_responsive": {
+          "default": false,
+          "type": "boolean"
+        },
+        "layout": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "layout",
+        "columns"
+      ],
+      "type": "object"
+    }
+  },
+  "add_heading": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add heading"
+    },
+    "description": "Add a native heading <h1>-<h6>; `level` defaults to 2 (the tutorial's H2).\n`text` is escaped plain text — for headings containing links use add_block or\nreplace_block. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "level": {
+          "default": 2,
+          "type": "integer"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "text"
+      ],
+      "type": "object"
+    }
+  },
+  "add_image": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add image"
+    },
+    "description": "Add a media-image block: the tutorial image, with optional caption/citation.\n\n`source` is a site-relative path (`files/...`) or an absolute URL; `alt` is\nrequired by the element. Flags: `card` (card treatment), `box` (drop shadow),\n`round` (circular crop). `size`: small|wide; `offset`: none|wide|narrow (margin\nbleed); `link` wraps the image in an anchor. Anchor/placement work as in\nadd_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "alt": {
+          "type": "string"
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "box": {
+          "default": false,
+          "type": "boolean"
+        },
+        "caption": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "card": {
+          "default": false,
+          "type": "boolean"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "offset": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "round": {
+          "default": false,
+          "type": "boolean"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "source",
+        "alt"
+      ],
+      "type": "object"
+    }
+  },
+  "add_image_compare": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add image compare slider"
+    },
+    "description": "Add an image-compare-slider block: drag-handle before/after comparison of two\nimages; `title` renders as a heading above the slider. Anchor/placement work as\nin add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "bottom_alt": {
+          "type": "string"
+        },
+        "bottom_src": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "top_alt": {
+          "type": "string"
+        },
+        "top_src": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "top_src",
+        "bottom_src",
+        "top_alt",
+        "bottom_alt"
+      ],
+      "type": "object"
+    }
+  },
+  "add_image_from_file": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add image from file"
+    },
+    "description": "Upload an image AND place it on a page in one step (the tutorial flow).\n\n`source` works like upload_file (path / URL / data: / base64:); the file is\nuploaded, associated with `page`, and a `media-image` block is inserted whose\n`source` is the new site-relative `files/<name>` url — so metadata.images and\nthe body stay consistent. `alt` is required; `caption`/`citation` render under\nthe image; `card`/`box` are the HAX treatments; `size` is small|wide.\nAnchor/placement work as in add_block (append/prepend page-level, after/before\nneed an anchor). Returns `{file: <upload record>, ...block-op result}` — one\ngit revision covers the placement; the upload itself is not revisioned.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "alt": {
+          "type": "string"
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "box": {
+          "default": false,
+          "type": "boolean"
+        },
+        "caption": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "card": {
+          "default": false,
+          "type": "boolean"
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "source",
+        "alt"
+      ],
+      "type": "object"
+    }
+  },
+  "add_image_gallery": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add image gallery"
+    },
+    "description": "Add an image-gallery block: a lightbox gallery of media-image children.\n\n`images` is a list of `{src, alt, caption}` dicts (caption optional); each entry\nbecomes one `<media-image>` child — the gallery root takes no attributes here.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "images": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "images"
+      ],
+      "type": "object"
+    }
+  },
+  "add_learning_component": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add learning component"
+    },
+    "description": "Add a learning-component block: a UDL-aligned wrapper tagging `content_html`\n(trusted HTML) with a learning purpose.\n\n`kind` is one of the element's type values — objectives, connection, knowledge,\nstrategy, discuss, listen, make, observe, present, read, reflect, research,\nwatch, write, content, assessment, quiz, submission, lesson, module, task,\nactivity, project, practice, unit (get_block_schema lists them all). Set `title`\nat creation: the element overwrites title/icon when its type changes later.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_html": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "kind",
+        "title",
+        "content_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_license": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add license"
+    },
+    "description": "Add a license-element block: a Creative Commons badge.\n\n`license`: by|by-sa|by-nd|by-nc|by-nc-sa|by-nc-nd; `author` renders as the\nelement's creator attribute; `more_label` customizes the derived link text.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "license": {
+          "default": "by-sa",
+          "type": "string"
+        },
+        "more_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "add_link": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add link"
+    },
+    "description": "Wrap text INSIDE the anchored block in `<a href>` (e.g. linking \"Watch it\nhere.\" within a paragraph).\n\n`anchor` addresses the containing block; `text` is the exact, CASE-SENSITIVE\nsnippet inside it — the first match in document order is split out and wrapped,\nsurrounding markup stays untouched. `new_tab=true` adds `target=\"_blank\"`.\nRepeating the call wraps the text again (inside the existing link), so check\nthe block first. A miss fails with the block's preview in the error details.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "new_tab": {
+          "default": false,
+          "type": "boolean"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "anchor",
+        "text",
+        "url"
+      ],
+      "type": "object"
+    }
+  },
+  "add_list": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add list"
+    },
+    "description": "Add a native <ul> — or <ol> with `ordered=True`; `items` are inline-HTML\nstrings, one per <li>. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "items": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ordered": {
+          "default": false,
+          "type": "boolean"
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "items"
+      ],
+      "type": "object"
+    }
+  },
+  "add_mark_the_words": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add mark the words"
+    },
+    "description": "Add a mark-the-words block: `text` is the statement (plain text) and\n`correct_words` lists the words that must be selected — each renders as a flagged\ninput the element matches against the statement. No title attribute in 26.8.1.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "correct_words": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "text",
+        "correct_words"
+      ],
+      "type": "object"
+    }
+  },
+  "add_markdown_block": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add markdown block"
+    },
+    "description": "Add an md-block block: Markdown rendered by the element — pass inline\n`markdown` OR a `source_url` to fetch from, exactly one. Anchor/placement work as\nin add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "markdown": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "add_matching_question": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add matching question"
+    },
+    "description": "Add a matching-question block; `pairs` is a list of two-item lists\n`[prompt, match]` — prompts are flagged correct, matches form the shuffle pool.\nNo title attribute in 26.8.1. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "pairs": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "pairs"
+      ],
+      "type": "object"
+    }
+  },
+  "add_multiple_choice": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add multiple choice"
+    },
+    "description": "Add a multiple-choice block: a self-graded checkbox question.\n\n`answers` is a list of `{label, correct}` dicts — each entry with a truthy\n`correct` is a right answer. `single=True` switches to one-answer mode\n(single-option flag); `randomize` shuffles at display time. The element has NO\ntitle attribute in 26.8.1 — passing one fails validation with the known list.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "answers": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "randomize": {
+          "default": false,
+          "type": "boolean"
+        },
+        "single": {
+          "default": false,
+          "type": "boolean"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "answers"
+      ],
+      "type": "object"
+    }
+  },
+  "add_page_section": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add page section"
+    },
+    "description": "Add a page-section block: a full-bleed themed section wrapping `content_html`\n(trusted HTML).\n\n`image` sets a background image; `full` makes the section full-height; `filter`\ndims the background behind content. NOTE: 26.8.1's page-section has no\naccent-color attribute — passing `accent_color` fails validation; style through\n`image`, the site theme, or the preset/bg attributes (see get_block_schema).\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "accent_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_html": {
+          "type": "string"
+        },
+        "filter": {
+          "default": false,
+          "type": "boolean"
+        },
+        "full": {
+          "default": false,
+          "type": "boolean"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "content_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_paragraph": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add paragraph"
+    },
+    "description": "Add a native <p> paragraph; `text_or_html` may carry inline markup (<em>,\n<strong>, <a>, ...) — it is parsed as HTML, not escaped. Anchor/placement work as\nin add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text_or_html": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "text_or_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_placeholder": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add placeholder"
+    },
+    "description": "Add a place-holder block: the dashed stand-in the tutorial drops for media to\ncome.\n\n`kind`: text|document|audio|video|image|math (26.8.1's enum — Appendix B's old\n`code` value no longer exists and fails validation); `text` is the label shown\ninside. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "default": "image",
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "add_self_check": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add self check"
+    },
+    "description": "Add a self-check block: a question whose answer reveals on click — self-\nassessment only, nothing is graded or recorded.\n\n`question_html` goes into the question slot, `answer_html` into the default slot\n(both trusted HTML); `accent_color`: primary|accent|success|warning|error|info.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "accent_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "alt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "answer_html": {
+          "type": "string"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question_html": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "title",
+        "question_html",
+        "answer_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_short_answer": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add short answer question"
+    },
+    "description": "Add a short-answer-question block; `answers` lists every accepted free-text\nanswer (all flagged correct, matched case-sensitively). No title attribute in\n26.8.1. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "answers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "answers"
+      ],
+      "type": "object"
+    }
+  },
+  "add_sorting_question": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add sorting question"
+    },
+    "description": "Add a sorting-question block; `ordered_items` is the list in its CORRECT order\n— the element shuffles them at display time. No title attribute in 26.8.1.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ordered_items": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "ordered_items"
+      ],
+      "type": "object"
+    }
+  },
+  "add_stop_note": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add stop note"
+    },
+    "description": "Add a stop-note block: the red attention banner for must-read warnings.\n\n`content_html` is the trusted-HTML message body (slot=message); `icon` overrides\nthe status-derived icon (e.g. `stopnoteicons:stop-icon`); `url` adds a learn-more\nlink. For softer callouts prefer accent-card or self-check. Anchor/placement work\nas in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "content_html": {
+          "type": "string"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "title",
+        "content_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_styled_quote": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add styled quote"
+    },
+    "description": "Add a block-quote block: the STYLED HAX pull-quote (distinct from the native\nadd_blockquote) — `quote` is the quote text/HTML, `citation` its source, `image`\nan optional speaker portrait. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "quote"
+      ],
+      "type": "object"
+    }
+  },
+  "add_table": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add table"
+    },
+    "description": "Add a native <table>; `rows` are lists of cell inline-HTML strings (keep rows\nequal length). With `header=True` the first row renders as <th> headings inside\n<thead>, the rest as <td> inside <tbody>. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "header": {
+          "default": true,
+          "type": "boolean"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "rows": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "rows"
+      ],
+      "type": "object"
+    }
+  },
+  "add_tagging_question": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add tagging question"
+    },
+    "description": "Add a tagging-question block: `options` is a list of `{label, correct}` dicts —\ncorrect labels are the answer key, all labels render as the tag pool. No title\nattribute in 26.8.1. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "options": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "options"
+      ],
+      "type": "object"
+    }
+  },
+  "add_timeline": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add timeline"
+    },
+    "description": "Add an lrndesign-timeline block: a vertical timeline.\n\n`events` is a list of `{heading, details_html, image}` dicts, serialized to the\nelement's JSON events attribute (as heading/details/imagesrc) — the element\nrenders from the attribute, not from children. Anchor/placement work as in\nadd_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "events": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "title",
+        "events"
+      ],
+      "type": "object"
+    }
+  },
+  "add_true_false": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add true/false question"
+    },
+    "description": "Add a true-false-question block; `answer` is the correct choice — it renders\ntwo checkbox inputs (True/False) with the right one flagged `correct`. No title\nattribute exists in 26.8.1. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "answer": {
+          "type": "boolean"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "question",
+        "answer"
+      ],
+      "type": "object"
+    }
+  },
+  "add_video": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add video"
+    },
+    "description": "Add a video-player block: YouTube/Vimeo/Kaltura watch URLs or direct mp4/webm.\n\n`title` becomes the accessible media-title; `start_time`/`end_time` are seconds;\n`thumbnail` overrides the preview image; `accent_color` is a SimpleColors palette\nname. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "accent_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "end_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hide_transcript": {
+          "default": false,
+          "type": "boolean"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        },
+        "start_time": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "thumbnail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "add_vocab_term": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add vocab term"
+    },
+    "description": "Add a vocab-term block: an inline popover definition for `term`.\n\n`definition_html` lands in the element's information attribute (markup OK);\n`links` is an optional list of `{title, href}` dicts serialized as the element's\nJSON attribute. PLAN spells the default `[]`; None means the same thing and keeps\nthe linter's mutable-default rule. Anchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "definition_html": {
+          "type": "string"
+        },
+        "links": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "term": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "term",
+        "definition_html"
+      ],
+      "type": "object"
+    }
+  },
+  "add_wikipedia_query": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Add Wikipedia query"
+    },
+    "description": "Add a wikipedia-query block: a live Wikipedia result panel for `search`.\nAnchor/placement work as in add_block.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hide_title": {
+          "default": false,
+          "type": "boolean"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "search": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "search"
+      ],
+      "type": "object"
+    }
+  },
+  "archive_site": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Archive site"
+    },
+    "description": "Archive a site (DESTRUCTIVE — confirm with the user first).\n\nThe site leaves list_sites and its folder moves under `_archived/` in the HAXcms root;\nnothing is deleted and an administrator can restore it manually. `site` defaults to the\nconfigured Default Site. Returns `{name, archived_name, detail}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "clone_site": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Clone site"
+    },
+    "description": "Clone an existing site, pages and files included, under a new server-chosen name.\n\n`site` defaults to the configured Default Site. Returns `{name, site}` where `name` is\nthe NEW site's machine name (usually `<site>-1`, `<site>-2`, ...) — use it for all later\ncalls on the copy. The original is untouched.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "configure_site_git": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Configure site git"
+    },
+    "description": "Configure the site's git publishing settings — ALWAYS fails UNSUPPORTED.\n\nHAXcms NodeJS 26.8.1 exposes no API route that persists `metadata.site.git`\n(branch, autoPush, remote url, vendor): the reachable scoped manifest route\nwrites only title/homePageId/sw/forceUpgrade, and the full form route needs a\nform token no reachable endpoint mints. The Operator must edit\n`metadata.site.git` in the site's site.json on the server directly.\nget_site_settings still REPORTS the current git block (read-only).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_push": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "remote_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "vendor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "convert_docx_to_html": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert DOCX to HTML"
+    },
+    "description": "Convert an uploaded .docx or .doc file to clean HTML.\n\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (Word document (.docx or .doc) to convert).\n\nReturns {text, mimetype=text/html}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_docx_to_pdf": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert DOCX to PDF"
+    },
+    "description": "Convert an uploaded DOCX file to a PDF document.\n\nNEEDS CHROME on the HAXcms server (puppeteer-core; PUPPETEER_EXECUTABLE_PATH or a\nsystem Chrome) - without it the conversion fails upstream.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (Word document (.docx) to convert to PDF).\n\nThe binary result is written under the Output Directory; returns {path, bytes,\nmimetype, filename}.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_html_to_docx": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert HTML to DOCX"
+    },
+    "description": "Convert HTML string to a DOCX document (returned as base64).\n\nDEVIATION from the vendored spec (source-verified): the 26.8.1 route accepts ONLY a\nmultipart .html/.htm file upload; the spec's JSON {html} body answers 400 'No file\nuploaded'.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (file to convert).\n\nThe binary result is written under the Output Directory; returns {path, bytes,\nmimetype, filename}.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_html_to_md": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert HTML to Markdown"
+    },
+    "description": "Convert an HTML string to Markdown.\n\nJSON body fields:\n`html` (required): HTML string to convert.\n`type`: If set to 'link', the html value is treated as a URL to fetch.\n\nReturns {text, mimetype=text/markdown}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "html": {
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "html"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_html_to_pdf": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert HTML to PDF"
+    },
+    "description": "Convert HTML string to a PDF document (returned as base64).\n\nDEVIATION from the vendored spec (source-verified): multipart .html/.htm file upload\nonly (like convert_html_to_docx); `base` rides as a FORM field.\nNEEDS CHROME on the HAXcms server (puppeteer-core; PUPPETEER_EXECUTABLE_PATH or a\nsystem Chrome) - without it the conversion fails upstream.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (file to convert).\n`base`: optional base URL for resolving relative links (FORM field; the server wants\nan http(s) URL and defaults to '/').\n\nThe binary result is written under the Output Directory; returns {path, bytes,\nmimetype, filename}.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_json_to_yaml": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert JSON to YAML"
+    },
+    "description": "Convert JSON to YAML.\n\nJSON body fields:\n`json` (required): JSON object or string to convert.\n`type`: If set to 'link', the json value is treated as a URL to fetch.\n\nReturns {text, mimetype=application/yaml}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "json": {
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "json"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_md_to_html": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert Markdown to HTML"
+    },
+    "description": "Convert a Markdown string to HTML.\n\nJSON body fields:\n`md` (required): Markdown string to convert.\n`type`: If set to 'link', the md value is treated as a URL to fetch.\n\nReturns {text, mimetype=text/html}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "md": {
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "md"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_pdf_to_html": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert PDF to HTML"
+    },
+    "description": "Convert an uploaded PDF file to semantic HTML.\n\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (PDF file to convert).\n\nReturns {text, mimetype=text/html}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_pptx_to_html": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert PPTX to HTML"
+    },
+    "description": "Convert an uploaded PPTX file to HTML.\n\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (PowerPoint file (.pptx) to convert).\n\nReturns {text, mimetype=text/html}; the extracted slide images ride along in the\n`files` extra.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_pretty_html": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Pretty-print HTML"
+    },
+    "description": "Pretty-print an HTML string.\n\nJSON body fields:\n`html` (required): HTML string to format.\n`type`: If set to 'link', the html value is treated as a URL to fetch.\n\nReturns {text, mimetype=text/html}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "html": {
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "html"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_xlsx_to_csv": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert XLSX to CSV"
+    },
+    "description": "Convert an uploaded Excel file to CSV.\n\nDEVIATION from the vendored spec (source-verified): the sheet name rides as a QUERY\nparameter (?sheet=); an unknown sheet silently falls back to the first.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (Excel file (.xlsx) to convert).\n`sheet`: optional sheet name to convert (QUERY parameter).\n\nReturns {text, mimetype=text/csv}; the sheetNames/selectedSheet extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "sheet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "convert_yaml_to_json": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Convert YAML to JSON"
+    },
+    "description": "Convert YAML to JSON.\n\nJSON body fields:\n`yaml` (required): YAML string to convert.\n`type`: If set to 'link', the yaml value is treated as a URL to fetch.\n\nReturns {text, mimetype=application/json}; upstream extras ride along.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "yaml": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "yaml"
+      ],
+      "type": "object"
+    }
+  },
+  "create_page": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Create page"
+    },
+    "description": "Create one page and return its record (read the returned `id` and `slug`).\n\nThe tutorial's \"Add > Page\" is `create_page(title=\"page\")` — a page appended under\nthe current parent. `parent` accepts an id or slug (omit for the root level); without\n`order` the page lands after its new siblings. The slug is auto-generated from the\ntitle (Pathauto); pass `slug` to pin an explicit one — that also makes it survive\nlater title changes. `content_html` seeds the body (plain HTML; data-URI images\nbecome site files), `duplicate_of` copies another page's content instead.\n`published=False` creates a draft hidden from anonymous visitors.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "content_html": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "duplicate_of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "order": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "published": {
+          "default": true,
+          "type": "boolean"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "slug": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    }
+  },
+  "create_pages": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Create pages (bulk)"
+    },
+    "description": "Create many pages in ONE request (one git commit) — the fast path for imports.\n\n`items` is a list of page objects: `title` is required; `slug`, `parent`, `order`,\n`indent`, `content`, `description` and `metadata` are optional. Missing ids and slugs\nare generated (slug from title), so later entries can set `parent` to an earlier\nentry's id to build a tree in a single call. Returns `{count, pages}` with every\ncreated record, in input order. For a single page prefer create_page.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "type": "object"
+    }
+  },
+  "create_site": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Create site"
+    },
+    "description": "Create a new blank site with one starting page.\n\n`name` must be a lowercase machine name: a-z, 0-9, - and _ only — names cannot contain\nspaces; use - or _ (for example `first-underscore-course`). If `name` is already taken\nthe server creates `<name>-1` instead and the result carries a warning — always read the\nreturned `name`. `theme` must be a machine name from list_themes (default `clean-one`);\nan unknown theme fails with INVALID_ARGUMENT before anything is written. `license` is a\nCreative Commons code (`by`, `by-sa`, `by-nd`, `by-nc`, `by-nc-sa`, `by-nc-nd`; default\n`by-sa`). Returns the created site's record — use its `name` for all later calls.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "type": "string"
+        },
+        "first_page_content": {
+          "default": "<p></p>",
+          "type": "string"
+        },
+        "first_page_title": {
+          "default": "Home",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "type": "string"
+        },
+        "theme": {
+          "default": "clean-one",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    }
+  },
+  "create_site_from_document": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Create site from document"
+    },
+    "description": "Create a NEW site whose whole outline comes from a document import.\n\n`name` is the machine name (lowercase letters, digits, - and _). `source` is a\npath / URL / data: / base64: document — supported kinds: .docx (Word), .pptx\n(PowerPoint), .html/.htm, .xlsx (Excel), .pdf. The document is imported with\nmethod=site (two-level outline from the highest heading level); embedded images\nare materialized as site files during creation. `theme` must exist in the live\nregistry (list_themes). `license` is a Creative Commons identifier (default\nby-sa). Returns the created site's detail record — read its `name`: on a\nduplicate request the server silently creates `<name>-1`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "theme": {
+          "default": "clean-one",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "create_site_from_platform": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Create site from platform"
+    },
+    "description": "Create a NEW site from a remote platform export the SERVER fetches.\n\n`platform` is one of: haxcms, html, pressbooks, gitbook, notion, wordpress,\nelmsln, drupal-book, plone, openstax, vitepress. `url` is the export's public URL\n(repoUrl) — the HAXcms server downloads it, so it must be publicly reachable: the\nserver's SSRF guard refuses loopback, private, link-local and metadata addresses\n(INVALID_ARGUMENT). For LOCAL HTML use create_site_from_document with the .html\nfile instead. Remote platforms may bring asset download maps which the server\napplies during creation. `theme` must exist in the live registry; `license`\ndefaults to the import's own license, else by-sa. Returns the created site's\ndetail record (read its `name` — duplicates become `<name>-1`).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "theme": {
+          "default": "clean-one",
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "platform",
+        "url"
+      ],
+      "type": "object"
+    }
+  },
+  "create_site_from_skeleton": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Create site from skeleton"
+    },
+    "description": "Create a site pre-populated from an installed skeleton (a site template).\n\nSkeletons are HAXcms's ready-made journeys — grouped by `category` they cover Course,\nWebsite, Portfolio and more; browse them with list_skeletons and inspect one with\nget_skeleton. The skeleton's own theme, description, license and pages WIN over the\narguments here. `name` follows the same machine-name rules as create_site and defaults\nto the skeleton's machine name. Returns the created site's record.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "skeleton": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "skeleton"
+      ],
+      "type": "object"
+    }
+  },
+  "delete_file": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Delete file"
+    },
+    "description": "Delete a file permanently (DESTRUCTIVE — confirm with the user first).\n\nRemoves the disk file and its record. Bodies referencing `files/<name>` are\nNOT rewritten — the media-image blocks pointing at it break visually and must\nbe removed or re-sourced separately.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ],
+      "type": "object"
+    }
+  },
+  "delete_page": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Delete page"
+    },
+    "description": "Delete one page (DESTRUCTIVE — confirm with the user first).\n\nChild pages are NOT deleted: they re-parent to the root level and move to the end of\nthe outline. The deletion is a git commit; an administrator can restore the page from\nthe site's history, but treat this as permanent. `page` is an id or slug. Returns the\ndeleted page's record.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "download_site_skeleton": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Download site skeleton"
+    },
+    "description": "Download the site's skeleton JSON into the Output Directory.\n\nThe skeleton is the site as a reusable template document: `{meta, site, build\n{items: [{id, title, slug, order, parent, indent, content, metadata}]}, theme}`\n— every page's CONTENT is inline. Same artifact as `export_site(format=\n\"skeleton\")` without going through the descriptor route. `site` defaults to\nthe configured Default Site. Returns `{site, format: \"skeleton\", path, bytes,\nmimetype, created_at}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "download_site_zip": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Download site zip"
+    },
+    "description": "Download the whole site as a .zip archive into the Output Directory.\n\nConvenience alias for `export_site(format=\"zip\")`, kept for discoverability.\nThe archive holds the site folder as stored on the server (pages, files,\nsite.json settings; node_modules and .git excluded). `site` defaults to the\nconfigured Default Site. Returns `{site, format: \"zip\", path, bytes, mimetype,\ncreated_at}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "duplicate_file": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Duplicate file"
+    },
+    "description": "Duplicate a file: the copy gets a NEW uuid (and a name like `x-1.png`).\n\nThe safe pre-step before a destructive transform: duplicate, then transform\nthe copy. Returns the raw operation result; find the copy via list_files.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ],
+      "type": "object"
+    }
+  },
+  "export_page": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Export page"
+    },
+    "description": "Export ONE page into the Output Directory and return the file record.\n\n`page` is a page id or slug (nested slugs like `unit-one/lesson-one` work).\n`format`: `md` (markdown), `html`, `json` / `yaml` / `xml` (the page record —\nmetadata plus content — serialized), and `pdf` / `docx` / `epub` (document\nconversions; `pdf` needs Chrome on the HAXcms server, else UNSUPPORTED).\n`site` defaults to the configured Default Site. Returns\n`{site, page_id, format, path, bytes, mimetype, created_at}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "default": "md",
+          "type": "string"
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "export_site": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Export site"
+    },
+    "description": "Export a whole site into the Output Directory and return the file record.\n\n`format`: `zip` (the full site folder as an archive — pages, files, settings),\n`markdown` (every page concatenated into ONE .md, outline order), `skeleton`\n(the reusable HAX skeleton JSON: outline + all page content inline), `html`\n(single-file rendering), and `pdf`/`docx`/`epub` (document conversions — these\nneed Chrome on the HAXcms server; without it the call fails as UNSUPPORTED with\na hint). `site` defaults to the configured Default Site. Returns\n`{site, format, path, bytes, mimetype, created_at}` — `path` is a file on the\nMCP SERVER host, not a URL and not the bytes.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "default": "zip",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "get_block_schema": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get block schema"
+    },
+    "description": "Get one catalog entry: attributes (`name`, `type`, `required`, `description`,\n`enum`), `slots`, `example_html` and `agent_notes`.\n\nThe reference for add_block and the typed block tools. With a site addressed\n(argument or HAXCMS_MCP_DEFAULT_SITE) the entry is merged with the server's\nlive schema for that tag (cached 10 minutes); live failures degrade silently\nto the bundled entry. Unknown tags fail with the closest matches; tags the\nserver's wc-registry knows but the catalog does not resolve through the live\nregistry (category `embed`).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag"
+      ],
+      "type": "object"
+    }
+  },
+  "get_file": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get file"
+    },
+    "description": "Get one file record by `uuid` (from list_files / upload_file).\n\nReturns the full record: `path` (on-disk), `fullUrl` (absolute), `url`\n(site-relative `files/<name>`), `mimetype`, `name`, `size`, `dateCreated`,\nand pixel `width`/`height` for images. Unknown uuids fail with NOT_FOUND.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ],
+      "type": "object"
+    }
+  },
+  "get_outline": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get outline"
+    },
+    "description": "Get the site's full page outline as a tree (unpublished pages included).\n\n`site` defaults to the configured Default Site. Each node is `{item, children}` where\n`item` carries `id`, `title`, `slug`, `parent`, `indent`, `order`, `published`, `tags`\nand `metadata`. This is the map of the site: use the ids and slugs from it for every\nother page tool. Returns `{site, count, outline}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "get_page": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get page"
+    },
+    "description": "Get one page's record by `page` (its id or slug — nested slugs like `unit-1/lesson-1`\nwork).\n\n`include_content=True` adds the page's HTML body; details-only calls stay small.\nA miss fails with NOT_FOUND and suggests the nearest slugs. Page content is authored\nwith the Phase 4 block tools; this read is the entry point to a page's identity,\nmetadata and links.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "include_content": {
+          "default": false,
+          "type": "boolean"
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "get_page_blocks": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get page blocks"
+    },
+    "description": "List a page's top-level blocks: `{count, blocks}` with index/tag/attributes/\ntext/preview per block.\n\nThe cheap orientation read before any anchored operation: pick the `anchor`\n(a text substring or tag selector) and `occurrence` from what you see here.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "get_page_content": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get page content"
+    },
+    "description": "Read a page's stored body: `{item, html, blocks}`.\n\n`html` is the raw stored body (no `<page-break>` envelope — that is managed\nautomatically); `blocks` is the parsed top-level block list with `index`, `tag`,\n`attributes`, `text` and `preview` — the vocabulary for anchors. `page` is an id\nor slug (nested slugs like `unit-1/lesson-1` work). Use get_page_blocks for the\ncompact index without the full HTML.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "get_page_revision": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get page revision"
+    },
+    "description": "Get one historical revision with its full page content.\n\n`revision` is the git `hash` (7-64 hex characters) from list_page_revisions —\nrevision NUMBERS are not accepted. Returns `{node_id, node_slug, node_title,\nrevision, content}`; diff `content` against get_page(include_content=True) to show\nwhat changed before restoring.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "revision"
+      ],
+      "type": "object"
+    }
+  },
+  "get_server_info": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Server info"
+    },
+    "description": "Return identity and configuration of this HAXcms MCP server.\n\nReports which HAXcms instance the server talks to, whether Read-Only Mode is active,\nand — best effort — the instance's own version and status diagnostics (failures appear\nas `version_error` / `status_error` instead of failing the call).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  },
+  "get_site": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get site"
+    },
+    "description": "Get one site's full record: identity, theme, page/file counts and operation links.\n\n`site` defaults to the configured Default Site. Merges the system site info (title,\ndescription, `page_count`, created/updated, links to clone/archive/download operations)\nwith the public summary (`theme`, `language`, `counts` of items/published items/tags/\nregions/files). Fails with NOT_FOUND for an unknown site name.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "get_site_settings": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get site settings"
+    },
+    "description": "Read the site's full settings view (parsed from the public site.json manifest).\n\nReturns: identity (`id`, `name`, `title`, `description`, `license`, `domain`,\n`tags`, `logo`, `home_page_id`, `updated`), `sw`/`force_upgrade`, the `theme`\nblock (`element`, `css_variable`, `palette`, `icon`, banner image fields, raw\n`regions`), the `seo` block (`lang`, `ga_id`, `private`, `canonical`, `pathauto`,\n`publish_pages_on`), the `author` block, the `platform` block (`audience`,\n`allowed_blocks` — null means unrestricted — and the 21 `features` flags), and\nthe read-only `git` block (`vendor`, `branch`, `auto_push`, `url`). Unknown\nupstream keys are preserved as extras on each block; `warnings` collects anything\nnoteworthy. This is the ONLY complete settings read — use it before and after\nany settings change.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "get_skeleton": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Get skeleton"
+    },
+    "description": "Get one skeleton's full detail.\n\nReturns `meta` (title, description, category, tags), `site` (default name/description/\ntheme) and `build` (the page outline it creates). Use it to show what a journey contains\nbefore create_site_from_skeleton. Fails with NOT_FOUND for an unknown machine name.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "skeleton": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "skeleton"
+      ],
+      "type": "object"
+    }
+  },
+  "import_document": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Import document into site"
+    },
+    "description": "Import a document into an EXISTING site, creating its pages in bulk.\n\n`source` is a path / URL / data: / base64: document — supported kinds: .docx\n(Word), .pptx (PowerPoint), .html/.htm, .xlsx (Excel), .pdf. The kind is detected\nfrom the filename extension (or mimetype). `method` shapes the result: `site`\nbuilds a two-level outline from the document's highest heading level (children\nonly below H4), `branch` creates FLAT pages from the top-level headings, `page`\nwraps everything into ONE page. `parent` (page id or slug) attaches the imported\npages under an existing page. `content_type` (`course` or `portfolio`) only picks\nthe placeholder content for headings with no body. Returns the created pages\n(re-fetched, in outline order) plus `skipped` and `warnings`. NOT idempotent:\nimporting twice duplicates the pages.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "content_type": {
+          "default": "",
+          "type": "string"
+        },
+        "method": {
+          "default": "site",
+          "type": "string"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "list_blocks": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List blocks"
+    },
+    "description": "List the Block Catalog: `{count, blocks}` with `{tag, title, description,\ncategory}` per entry.\n\nThe 31 bundled HAX Core Blocks (categories: text, media, layout, assessment,\neducation, reference, embed) plus native HTML available through add_block\n(`p`, `h1`-`h6`, `ul`/`ol`/`li`, `table`, `blockquote`, `hr`, `a`, ...).\nCall get_block_schema(tag) for an entry's attributes, slots and example HTML.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  },
+  "list_files": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List files"
+    },
+    "description": "List the site's Files: `{count, total, page, files, orphans}`.\n\nEach record carries `uuid` (the stable id for get/rename/transform/delete),\n`name`, `url` (site-relative, e.g. `files/Songline_1.png` — use it as a\nmedia-image `source`), `mimetype`, `size`, and pixel `width`/`height` for\nimages. Filters combine: `type` (image|video|audio|document), `extension`\n(e.g. `png`, with or without the dot), `name_contains`. Paginated with\n`limit`/`offset`. `orphans` lists records whose file vanished from disk —\nreporting only, nothing is deleted. The route auto-indexes on-disk files\nmissing from the file store before answering.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "extension": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "limit": {
+          "default": 25,
+          "type": "integer"
+        },
+        "name_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "list_page_revisions": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List page revisions"
+    },
+    "description": "List a page's git-backed revisions, newest first.\n\nEvery save (details, content, outline) is a commit. Each entry carries\n`revision_number`, `hash` (the value get_page_revision / restore_page_revision\nexpect), `short_hash`, `author`, `timestamp`, `date` and the commit `message`.\nReturns `{node_id, node_slug, node_title, count, total, page, revisions}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 25,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "list_pages": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List pages"
+    },
+    "description": "List pages with optional filters, flat (use get_outline for the tree).\n\nAll filters combine: `parent` (direct children of this page id), `ancestor` with\noptional `depth` (a subtree; `depth` needs `ancestor`), `tags` (match ANY tag),\n`published`, `page_type` (e.g. `lesson`, `course`). `include_content=True` embeds\neach page's HTML body — leave it off for long lists. Paginated: returns\n`{count, total, page, items}`; `limit` caps at 200, page further with `offset`.\nUnpublished pages are included unless `published` filters them out.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "ancestor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "depth": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "include_content": {
+          "default": false,
+          "type": "boolean"
+        },
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "page_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "published": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "list_sites": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List sites"
+    },
+    "description": "List every site on the HAXcms instance.\n\nEach entry carries the site's machine `name` (the value every other tool's `site`\nargument expects), `title`, `description`, `page_count` and `location`. Use this first\nwhen the Default Site is not configured or a site name is unknown.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  },
+  "list_skeletons": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List skeletons"
+    },
+    "description": "List installed site skeletons (templates) available to create_site_from_skeleton.\n\nEach record carries `machine_name` (the value create_site_from_skeleton expects),\n`title`, `description`, `category` (Course, Website, Portfolio, ...) and `enabled`.\nTemplates saved from existing sites appear here alongside the bundled ones.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  },
+  "list_tags": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List tags"
+    },
+    "description": "List the site's tags with page frequencies, most used first.\n\nReturns `{count, total, page, tags: [{tag, count}]}` — the vocabulary for\nlist_pages(tags=...) and search_site(tags=...).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "list_themes": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "List themes"
+    },
+    "description": "List the themes installed on the HAXcms instance.\n\n`machine_name` is the value create_site's `theme` argument expects. Records also carry\n`name`, `description`, `category` and flags: avoid themes with `hidden` or `terrible`\nset unless the user asks for one specifically.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  },
+  "login": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Login"
+    },
+    "description": "Log in to the HAXcms instance and start an authenticated session.\n\nReplaces any environment-configured credentials for this process. Call it when other\ntools fail with AUTH_REQUIRED or AUTH_FAILED. Returns the user and the access-token\nlifetime; failures surface as AUTH_FAILED (bad credentials) or RATE_LIMITED (too many\nfailed attempts — wait out the retry-after window).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "username",
+        "password"
+      ],
+      "type": "object"
+    }
+  },
+  "logout": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Logout"
+    },
+    "description": "Log out of the HAXcms instance and discard all cached tokens.\n\nAfter logout, authenticated tools fail with AUTH_REQUIRED until login is called again —\neven when environment credentials are configured.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  },
+  "move_block": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Move block"
+    },
+    "description": "Move the anchored block elsewhere on the same page.\n\n`placement`: `append`/`prepend` move to the page end/start (no\n`target_anchor`); `after`/`before` position relative to `target_anchor`.\nThe target is resolved AFTER the source is lifted out, so target anchors\naddress the page as it looks at insertion time (moving the first of two `h2`s\n\"after the last h2\" lands it after the other one). The source must not match\nits own target anchor.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "placement": {
+          "default": "append",
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_anchor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "anchor"
+      ],
+      "type": "object"
+    }
+  },
+  "move_page": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Move page"
+    },
+    "description": "Move one page a single step within the outline.\n\n`direction` is `up`/`down` (swap order with the adjacent sibling) or `indent`\n(nest under the previous sibling) / `outdent` (lift to the grandparent, right after\nthe parent) — the same four moves as the outline editor's arrow buttons. `page` is an\nid or slug. Calling twice moves two steps. Returns the moved page's record.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "type": "string"
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "direction"
+      ],
+      "type": "object"
+    }
+  },
+  "normalize_slugs": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Normalize slugs"
+    },
+    "description": "Regenerate every page slug from its title, following the site's Pathauto pattern.\n\nUse after bulk title edits when slugs have drifted. Pages with an explicit slug\noverride (`setSlug` / `update_page_details(slug=...)`) are skipped. `preview=True`\nreturns the planned changes WITHOUT writing anything — prefer it first on large\nsites. Returns `{changed, preview, changes: [{id, title, oldSlug, newSlug}],\nskipped: [...]}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "preview": {
+          "default": false,
+          "type": "boolean"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "regenerate_alternate_formats": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Regenerate alternate formats"
+    },
+    "description": "Rebuild the site's alternative-format files; returns {updated, site, format}.\n\n`format` is one of: rss, sitemap, search, llms, service-worker — omit it (null)\nto regenerate ALL of them. These files are normally rebuilt automatically on\npublish; this forces a rebuild (e.g. after editing files behind HAXcms's back).\nNot gated by a feature flag.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "remove_block": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Remove block"
+    },
+    "description": "Delete the anchored block (DESTRUCTIVE — confirm with the user first).\n\nThe media schema is recomputed, so removing the last `<media-image>` also\nclears it from the page's metadata. `affected` reports the removed block at its\nOLD index. An administrator can restore it from the page's revision history.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "anchor"
+      ],
+      "type": "object"
+    }
+  },
+  "rename_file": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Rename file"
+    },
+    "description": "Rename a file (changes its stored name and `files/<name>` URL).\n\nWARNING: pages referencing the OLD url keep pointing at it — HAXcms does not\nrewrite bodies. After renaming an image already placed on a page, update the\nmedia-image `source` with update_block. `new_name` is a plain filename with\nextension. Returns the raw operation result; re-read with get_file.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "new_name": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid",
+        "new_name"
+      ],
+      "type": "object"
+    }
+  },
+  "reorder_pages": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Reorder pages"
+    },
+    "description": "Reorder the children of one parent (DESTRUCTIVE — rewrites the whole outline).\n\n`ordered_ids` must list EVERY current child of `parent` exactly once, in the desired\norder — call get_outline first. `parent` is an id or slug; omit it to reorder the\nroot level. Pages are not deleted by reordering, but the save rewrites the complete\nmanifest (one git commit). Returns the fresh outline tree.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "ordered_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "ordered_ids"
+      ],
+      "type": "object"
+    }
+  },
+  "replace_block": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Replace block"
+    },
+    "description": "Replace the anchored block with new HTML (DESTRUCTIVE for that block).\n\n`html` may contain several top-level elements — they all take the anchored\nblock's place (the tutorial's paragraph → heading conversion is\n`replace_block(page, anchor=\"The First Secret\", html='<h2>The First Secret is\nNoticing</h2>')`). The replacement is NOT catalog-validated (raw HTML escape\nhatch); prefer remove + add_block for validated rebuilds. Returns the standard\nblock-operation result with the new blocks in `affected`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "html": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "anchor",
+        "html"
+      ],
+      "type": "object"
+    }
+  },
+  "restore_page_revision": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Restore page revision"
+    },
+    "description": "Restore a page to a historical revision (DESTRUCTIVE — confirm with the user first).\n\nThe restore itself lands as a NEW commit, so nothing is lost and it can be undone by\nrestoring a later revision. Restores the revision's content AND the details stored\nwith it (title, description, published, locked, image). `revision` is the git `hash`\nfrom list_page_revisions. Returns `{node_id, node_slug, node_title,\nrestored_from_hash, ...}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "page": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "revision"
+      ],
+      "type": "object"
+    }
+  },
+  "save_site_as_template": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Save site as template"
+    },
+    "description": "Save the site SERVER-SIDE as a reusable skeleton template.\n\nGenerates the site's skeleton (outline + page content) and stores it in the\nserver's user skeleton directory — nothing is written to the Output Directory.\nThe template immediately shows up in `list_skeletons` and can seed new sites\nvia `create_site_from_skeleton`. `site` defaults to the configured Default\nSite. Returns `{saved, name, filename, path, link}` (`path` is the SERVER's\nfilesystem path; `link` is its skeletons API route). Re-running overwrites the\nsame template file.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "search_site": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Search site"
+    },
+    "description": "Full-text search across the site's pages, best match first.\n\n`q` is a case-insensitive substring query (max 256 characters) matched against\ntitle, slug, description, tags and content by default — narrow with `fields`\n(e.g. `[\"title\"]`; `id` and `location` are also allowed). Filters (`parent`, `tags`,\n`published`, `page_type`) work like list_pages. Results carry `{id, title, slug,\nscore, snippet, matches}`; `sort` defaults to `-score`. Paginated `{count, total,\npage, results}`.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "limit": {
+          "default": 25,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        },
+        "page_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "published": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "q": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sort": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "q"
+      ],
+      "type": "object"
+    }
+  },
+  "set_allowed_blocks": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set allowed blocks"
+    },
+    "description": "Restrict which blocks the editor offers; returns the fresh settings view.\n\n`tags` is the FULL allow-list (e.g. [\"image\", \"a11y-gif-player\", \"markdown\"]) —\nstored deduped. `tags=null` (omit it) removes the restriction entirely. Dashed\ntags are pre-validated against the instance's web-component registry (an unknown\ntag fails INVALID_ARGUMENT naming it); plain HTML tags (video, img, hr...) pass.\nAn empty list is rejected. Gated by the siteManifest feature flag.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "set_block_text": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set block text"
+    },
+    "description": "Replace the anchored block's text; its tag and attributes are kept.\n\nMarkup in `text` is escaped, not parsed — for rich content use replace_block.\nFor slotted blocks (self-check, grid-plate, ...) only the DEFAULT slot content\nis replaced; children carrying a `slot` attribute survive. Empty `text` clears\nthe text.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "page",
+        "anchor",
+        "text"
+      ],
+      "type": "object"
+    }
+  },
+  "set_editor_audience": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set editor audience"
+    },
+    "description": "Set the editor audience: `novice` (simplified editor UI) or `expert` (full).\n\nStored on metadata.platform.audience. Returns the fresh settings view. Gated by\nthe siteManifest feature flag.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "audience": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "audience"
+      ],
+      "type": "object"
+    }
+  },
+  "set_page_content": {
+    "annotations": {
+      "destructive_hint": true,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set page content"
+    },
+    "description": "Replace a page's ENTIRE body (DESTRUCTIVE — read get_page_content first).\n\n`html` is the new body as top-level elements (`<p>`, `<h2>`, `<media-image>`,\n...); any `<page-break>` tags in it are stripped — the envelope is rebuilt from\nthe page's current record, so title, published flag and other details survive.\nThe media schema (metadata.images/videos) is recomputed from the new body. One\ngit revision is committed; restore_page_revision can undo. Returns the fresh\n`{item, html, blocks}`. For targeted changes prefer the block tools (add_block,\nreplace_block, update_block, ...).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "html": {
+          "type": "string"
+        },
+        "page": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "html"
+      ],
+      "type": "object"
+    }
+  },
+  "set_page_parent": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set page parent"
+    },
+    "description": "Reparent a page: move it under a new `parent`, or to the root level when omitted.\n\n`page` and `parent` are ids or slugs. Without `order` the page is APPENDED after its\nnew siblings; pass `order` to place it at an exact position among them. Descendant\npages move with the page. Returns the moved page's record.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "order": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "set_platform_features": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set platform features"
+    },
+    "description": "Toggle platform feature flags; returns the fresh settings view (check `warnings`).\n\n`features` maps canonical camelCase keys to booleans — e.g. {\"deletePage\": false}.\nValid keys: addPage, saveAndEdit, deletePage, outlineDesigner, styleGuide,\ninsights, siteManifest, themeManifest, authorManifest, seoManifest, pageBreak,\naddBlock, popularGizmos, recentGizmos, contentMap, viewSource, uploadMedia,\nonlineMedia, community, pageTemplates, blockTemplates. Only the flags you pass\nchange (the service merges over the current set). A disabled flag makes the\nmatching tools fail FEATURE_DISABLED (deletePage -> delete_page, uploadMedia ->\nupload_file, seoManifest -> the SEO tools...). WARNING: siteManifest=false also\nlocks the manifest/editor/blocks/platform routes themselves and CANNOT be undone\nthrough the API — the Operator must edit site.json on the server to recover.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "features": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "type": "object"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "features"
+      ],
+      "type": "object"
+    }
+  },
+  "set_site_theme": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set site theme"
+    },
+    "description": "Switch the theme element and set appearance variables in ONE call.\n\n`theme` must exist in the live registry (list_themes; hidden themes work with a\nwarning). WARNING: changing the element REPLACES the whole theme block with the\nregistry theme's defaults — palette, accent_color, icon, banner and REGION\nassignments reset — so pass everything you want to keep in the SAME call.\n`accent_color` accepts a bare simple-colors name (`deep-purple`) or the full\n`--simple-colors-default-theme-<color>-7` form; `palette` \"\" removes the palette;\n`banner_image`/`banner_alt`/`banner_link` set the banner variables. Returns the\nfresh settings view (check its `warnings`).",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "accent_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "banner_alt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "banner_image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "banner_link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "theme": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme"
+      ],
+      "type": "object"
+    }
+  },
+  "set_theme_regions": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Set theme regions"
+    },
+    "description": "Assign pages to one theme region (menus/sidebars/footers); returns fresh settings.\n\n`region` is one of: header, sidebarFirst, sidebarSecond, contentTop, contentBottom,\nfooterPrimary, footerSecondary (exact camelCase). `page_ids` is the FULL replacement\nlist for that region — page ids or slugs (each pre-resolved; unknown pages fail\nNOT_FOUND) — and `page_ids=[]` clears the region. Other regions are untouched, but\nnote set_site_theme resets ALL regions to the registry defaults.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "page_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "region": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "region",
+        "page_ids"
+      ],
+      "type": "object"
+    }
+  },
+  "transform_file": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Transform file"
+    },
+    "description": "Apply one image transform IN PLACE: convert-jpg, scale, sepia,\nblack-and-white, rotate-90, or compress.\n\n`size` rides along for scale (pixel target as a string); `level` for compress\n(light|medium|heavy|maximum, server default medium). Transforms overwrite the\nstored file and repeat calls accumulate (two rotate-90s turn 180 degrees) —\nduplicate_file first to keep the original. Non-image files fail upstream.\nReturns the raw operation result; re-read with get_file for the new record.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "operation": {
+          "type": "string"
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid",
+        "operation"
+      ],
+      "type": "object"
+    }
+  },
+  "update_author_info": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Update author info"
+    },
+    "description": "Update the author block; returns the fresh settings view.\n\nOnly the fields passed are written. `license` is a Creative Commons identifier\n(e.g. `by-sa`, `by-nc`) and lands on the TOP-LEVEL manifest license (shared with\nthe site license). `image` is a path/URL. At least one field is required.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "social_link": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "website": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "update_block": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Update block attributes"
+    },
+    "description": "Set and/or remove attributes on the anchored block; tag, text and children stay.\n\n`set` maps attribute → value (values are stringified; HAX boolean flags want\ntheir own name as the value: `{\"card\": \"card\"}` — stored bodies use that form);\n`unset` lists attribute names to remove (absent names are a silent no-op).\nNames are validated as XML names; for catalog-level checks call\nget_block_schema first. The tutorial's \"set image source, alt, caption\" step is\none update_block with all of them in `set`. At least one of `set`/`unset` is\nrequired.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "occurrence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "set": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unset": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page",
+        "anchor"
+      ],
+      "type": "object"
+    }
+  },
+  "update_page_details": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Update page details"
+    },
+    "description": "Update page-details fields; pass only the ones to change. Returns the final record.\n\nThis is the page \"details\" panel: the tutorial's rename (\"page details → Title\") is\n`update_page_details(page, title=\"...\")`. Renaming regenerates the slug under\nPathauto unless the page has an explicit slug override. `slug` pins an explicit slug\n(applied last, so a title change in the same call cannot overwrite it);\n`published=False` hides the page from anonymous visitors; `locked=True` blocks\ncontent edits; `hide_in_menu` removes it from navigation without unpublishing;\n`tags` REPLACES the tag list; `related_pages` takes page ids.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hide_in_menu": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "locked": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "type": "string"
+        },
+        "published": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "related_pages": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "slug": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "page"
+      ],
+      "type": "object"
+    }
+  },
+  "update_seo_settings": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Update SEO settings"
+    },
+    "description": "Update the SEO block; returns the fresh settings view.\n\nOnly the fields passed are written; at least one is required. `lang` is a BCP-47\ncode (e.g. `en`); `ga_id` a Google Analytics property id; `private` hides the site\nfrom search; `canonical` toggles canonical URLs; `pathauto` auto-derives page slugs\nfrom titles (affects create_page/rename_page); `publish_pages_on` toggles publish\ntimestamps; `description`/`domain`/`logo` overlap with update_site_info (same\nunderlying fields). Gated by the seoManifest feature flag.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ga_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lang": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "logo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pathauto": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "private": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "publish_pages_on": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "update_site_info": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Update site info"
+    },
+    "description": "Update site-info fields; returns the fresh settings view.\n\n`title` (HTML tags are stripped upstream), `description`, `domain`, `logo`\n(site-relative path or URL), and `home_page` — a page id or slug (pre-resolved;\nan unknown page fails NOT_FOUND) or \"\" to CLEAR the home-page setting. At least\none field is required. WARNING: `tags` is NOT writable through the 26.8.1 API —\npassing it fails UNSUPPORTED before any other field is applied; the Operator must\nedit `metadata.site.tags` in site.json on the server.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "home_page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "logo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tags": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    }
+  },
+  "upload_file": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": false,
+      "open_world_hint": false,
+      "read_only_hint": false,
+      "title": "Upload file"
+    },
+    "description": "Upload a file to the site: `{file: {uuid, name, url, mimetype, size, ...}}`.\n\n`source` is an http(s) URL (fetched by this MCP server), a `data:` URL,\n`base64:<filename>:<payload>`, or a local path — relative paths\nresolve inside HAXCMS_MCP_INPUT_ROOTS and anything outside is rejected\n(FILE_SOURCE_ERROR). MIME is sniffed from the bytes. `filename` overrides the\nstored name (a plain name, no directories); `page` (id or slug) associates the\nupload with that page. Uploading the same source twice creates TWO files —\ncheck list_files first. Max 50mb (the instance's HAXCMS_UPLOAD_LIMIT); the\nserver rejects extensions outside its allow-list. To place an image on a page\nin one step, use add_image_from_file.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "filename": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "site": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "whoami": {
+    "annotations": {
+      "destructive_hint": false,
+      "idempotent_hint": true,
+      "open_world_hint": false,
+      "read_only_hint": true,
+      "title": "Who am I"
+    },
+    "description": "Validate the current session and report who is logged in.\n\nReturns the user, access-token age in seconds, outbound-budget statistics, the\nRead-Only Mode flag, and the Default Site. With environment credentials configured but\nno session yet, it logs in automatically. Fails with AUTH_REQUIRED after an explicit\nlogout or when no credentials are available.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    }
+  }
+}

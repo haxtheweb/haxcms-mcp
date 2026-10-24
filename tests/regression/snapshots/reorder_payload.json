@@ -1,0 +1,142 @@
+{
+  "reorder_nested": [
+    {
+      "id": "item-home",
+      "indent": 0,
+      "metadata": {
+        "created": 1750000000
+      },
+      "order": 0,
+      "parent": null,
+      "slug": "welcome",
+      "title": "Welcome"
+    },
+    {
+      "id": "item-unit-1",
+      "indent": 0,
+      "metadata": {
+        "created": 1750000010
+      },
+      "order": 1,
+      "parent": null,
+      "slug": "unit-1",
+      "title": "Unit 1"
+    },
+    {
+      "id": "item-l11",
+      "indent": 1,
+      "metadata": {
+        "overridePathauto": true,
+        "pageType": "lesson"
+      },
+      "order": 3,
+      "parent": "item-unit-1",
+      "slug": "unit-1/lesson-11",
+      "title": "Lesson 1.1"
+    },
+    {
+      "id": "item-l12",
+      "indent": 1,
+      "metadata": {
+        "pageType": "lesson",
+        "tags": [
+          "week-1"
+        ]
+      },
+      "order": 2,
+      "parent": "item-unit-1",
+      "slug": "unit-1/lesson-12",
+      "title": "Lesson 1.2"
+    },
+    {
+      "id": "item-unit-2",
+      "indent": 0,
+      "metadata": {},
+      "order": 4,
+      "parent": null,
+      "slug": "unit-2",
+      "title": "Unit 2"
+    },
+    {
+      "id": "item-l21",
+      "indent": 1,
+      "metadata": {
+        "someFutureKey": "kept"
+      },
+      "order": 5,
+      "parent": "item-unit-2",
+      "slug": "unit-2/lesson-21",
+      "title": "Lesson 2.1"
+    }
+  ],
+  "reorder_root": [
+    {
+      "id": "item-home",
+      "indent": 0,
+      "metadata": {
+        "created": 1750000000
+      },
+      "order": 1,
+      "parent": null,
+      "slug": "welcome",
+      "title": "Welcome"
+    },
+    {
+      "id": "item-unit-1",
+      "indent": 0,
+      "metadata": {
+        "created": 1750000010
+      },
+      "order": 4,
+      "parent": null,
+      "slug": "unit-1",
+      "title": "Unit 1"
+    },
+    {
+      "id": "item-l11",
+      "indent": 1,
+      "metadata": {
+        "overridePathauto": true,
+        "pageType": "lesson"
+      },
+      "order": 2,
+      "parent": "item-unit-1",
+      "slug": "unit-1/lesson-11",
+      "title": "Lesson 1.1"
+    },
+    {
+      "id": "item-l12",
+      "indent": 1,
+      "metadata": {
+        "pageType": "lesson",
+        "tags": [
+          "week-1"
+        ]
+      },
+      "order": 3,
+      "parent": "item-unit-1",
+      "slug": "unit-1/lesson-12",
+      "title": "Lesson 1.2"
+    },
+    {
+      "id": "item-unit-2",
+      "indent": 0,
+      "metadata": {},
+      "order": 0,
+      "parent": null,
+      "slug": "unit-2",
+      "title": "Unit 2"
+    },
+    {
+      "id": "item-l21",
+      "indent": 1,
+      "metadata": {
+        "someFutureKey": "kept"
+      },
+      "order": 5,
+      "parent": "item-unit-2",
+      "slug": "unit-2/lesson-21",
+      "title": "Lesson 2.1"
+    }
+  ]
+}

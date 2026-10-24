@@ -1,0 +1,55 @@
+{
+  "tag": "license-element",
+  "title": "License",
+  "description": "Provide a license for your work.",
+  "category": "reference",
+  "attributes": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "work title shown in the notice"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "required": false,
+      "description": "URL of the work"
+    },
+    {
+      "name": "license",
+      "type": "string",
+      "required": false,
+      "description": "CC license key",
+      "enum": [
+        "by",
+        "by-sa",
+        "by-nd",
+        "by-nc",
+        "by-nc-sa",
+        "by-nc-nd"
+      ]
+    },
+    {
+      "name": "creator",
+      "type": "string",
+      "required": false,
+      "description": "author name (attribute is creator, not author)"
+    },
+    {
+      "name": "more-link",
+      "type": "string",
+      "required": false,
+      "description": "URL of a licensing details page"
+    },
+    {
+      "name": "more-label",
+      "type": "string",
+      "required": false,
+      "description": "label for the more-link (default 'on the licensing details page')"
+    }
+  ],
+  "slots": [],
+  "example_html": "<license-element title=\"Wonderland\" creator=\"Mad Hatter\" source=\"https://haxtheweb.org/\" license=\"by\"></license-element>",
+  "agent_notes": "license-name/license-image/license-link auto-derived; has-more computed from more-link."
+}

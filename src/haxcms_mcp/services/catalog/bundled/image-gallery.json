@@ -1,0 +1,28 @@
+{
+  "tag": "image-gallery",
+  "title": "Image Gallery",
+  "description": "A gallery that presents images in grid, masonry, or slideshow layouts.",
+  "category": "media",
+  "attributes": [
+    {
+      "name": "mode",
+      "type": "string",
+      "required": false,
+      "description": "How to present the images in the gallery.",
+      "enum": [
+        "grid",
+        "masonry",
+        "gallery"
+      ]
+    },
+    {
+      "name": "active-index",
+      "type": "number",
+      "required": false,
+      "description": "Index of the active image to start on in gallery mode."
+    }
+  ],
+  "slots": [],
+  "example_html": "<image-gallery mode=\"masonry\"><media-image source=\"https://dummyimage.com/300x200/000/fff\" alt=\"Sample image 1\"></media-image><media-image source=\"https://dummyimage.com/300x300/111/eee\" alt=\"Sample image 2\"></media-image><media-image source=\"https://dummyimage.com/400x200/222/ddd\" alt=\"Sample image 3\"></media-image></image-gallery>",
+  "agent_notes": ""
+}

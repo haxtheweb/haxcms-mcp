@@ -1,0 +1,35 @@
+{
+  "tag": "vocab-term",
+  "title": "Vocab",
+  "description": "Vocabulary term.",
+  "category": "education",
+  "attributes": [
+    {
+      "name": "term",
+      "type": "string",
+      "required": true,
+      "description": "Term"
+    },
+    {
+      "name": "information",
+      "type": "string",
+      "required": true,
+      "description": "Definition shown when the term is clicked."
+    },
+    {
+      "name": "popover-mode",
+      "type": "boolean",
+      "required": false,
+      "description": "Display the definition in a popover instead of inline."
+    },
+    {
+      "name": "links",
+      "type": "string",
+      "required": false,
+      "description": "List of supplemental links associated with this term."
+    }
+  ],
+  "slots": [],
+  "example_html": "<vocab-term term=\"HAX Camp\" information=\"An event dedicated to spreading web components knowledge person to person.\" popover-mode=\"popover-mode\"></vocab-term>",
+  "agent_notes": ""
+}

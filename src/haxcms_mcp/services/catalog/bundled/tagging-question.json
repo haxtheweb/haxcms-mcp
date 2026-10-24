@@ -1,0 +1,35 @@
+{
+  "tag": "tagging-question",
+  "title": "Tagging Question",
+  "description": "Select tags to answer the question.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question for users to respond to."
+    },
+    {
+      "name": "grading-format",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion)."
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: learning objective associated with this assessment."
+    },
+    {
+      "name": "for-course",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: course this assessment is intended for."
+    }
+  ],
+  "slots": [],
+  "example_html": "<tagging-question question=\"What does the fox say?\" data-accent=\"2\"><input correct value=\"DingDingDing\"/><input correct value=\"PaPaPower\"/><input value=\"Moo\"/></tagging-question>",
+  "agent_notes": ""
+}

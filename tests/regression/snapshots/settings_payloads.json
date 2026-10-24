@@ -1,0 +1,148 @@
+{
+  "fetch_site_manifest": {
+    "method": "GET",
+    "path": "/_sites/demo/site.json"
+  },
+  "update_allowed_blocks_list": {
+    "body": {
+      "platform": {
+        "allowedBlocks": [
+          "a11y-gif-player",
+          "image"
+        ]
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site/blocks"
+  },
+  "update_allowed_blocks_null": {
+    "body": {
+      "platform": {
+        "allowedBlocks": null
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site/blocks"
+  },
+  "update_alternative_formats_all": {
+    "body": {
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "POST",
+    "path": "/_sites/demo/x/api/v1/site/updateAlternativeFormats"
+  },
+  "update_alternative_formats_one": {
+    "body": {
+      "format": "rss",
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "POST",
+    "path": "/_sites/demo/x/api/v1/site/updateAlternativeFormats"
+  },
+  "update_appearance_theme": {
+    "body": {
+      "manifest": {
+        "theme": {
+          "manifest-metadata-theme-element": "learn-two-theme",
+          "manifest-metadata-theme-regions-sidebarFirst": [
+            "item-2",
+            "item-3"
+          ],
+          "manifest-metadata-theme-variables-cssVariable": "deep-purple",
+          "manifest-metadata-theme-variables-icon": "account",
+          "manifest-metadata-theme-variables-image": "files/banner.png",
+          "manifest-metadata-theme-variables-imageAlt": "Banner",
+          "manifest-metadata-theme-variables-imageLink": "https://example.invalid",
+          "manifest-metadata-theme-variables-palette": "learn"
+        }
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site/appearance"
+  },
+  "update_editor": {
+    "body": {
+      "platform": {
+        "audience": "expert"
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site/editor"
+  },
+  "update_manifest_scoped_details": {
+    "body": {
+      "manifest": {
+        "site": {
+          "manifest-metadata-site-homePageId": "item-9",
+          "manifest-title": "New Title"
+        }
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site"
+  },
+  "update_platform_features": {
+    "body": {
+      "platform": {
+        "features": {
+          "addPage": true,
+          "deletePage": false
+        }
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site/platform"
+  },
+  "update_seo_and_author": {
+    "body": {
+      "author": {
+        "email": "ada@example.invalid",
+        "image": "files/ada.png",
+        "license": "by-nc",
+        "location": "London",
+        "name": "Ada Lovelace",
+        "phone": "+44",
+        "socialLink": "https://social.invalid/ada",
+        "website": "https://example.invalid"
+      },
+      "seo": {
+        "canonical": true,
+        "description": "An alpha course.",
+        "domain": "example.invalid",
+        "gaID": "G-TEST",
+        "lang": "es",
+        "logo": "files/logo.png",
+        "pathauto": true,
+        "private": false,
+        "publishPagesOn": false
+      },
+      "site": {
+        "name": "demo"
+      }
+    },
+    "method": "PATCH",
+    "path": "/_sites/demo/x/api/v1/site/seo"
+  }
+}

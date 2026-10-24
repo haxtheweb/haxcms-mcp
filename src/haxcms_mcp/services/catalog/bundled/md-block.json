@@ -1,0 +1,40 @@
+{
+  "tag": "md-block",
+  "title": "Markdown",
+  "description": "A block of markdown content directly or remote loaded",
+  "category": "text",
+  "attributes": [
+    {
+      "name": "markdown",
+      "type": "string",
+      "required": false,
+      "description": "raw markdown string"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "required": false,
+      "description": "remote .md file URL (takes priority over markdown)"
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "inherited design-system accent color"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "description": "markdown source text (moved into the markdown property on load)"
+    }
+  ],
+  "example_html": "<md-block markdown=\"- The first bulleted item in a long list..\"></md-block>",
+  "agent_notes": "tag body content is treated as markdown, not rendered HTML."
+}

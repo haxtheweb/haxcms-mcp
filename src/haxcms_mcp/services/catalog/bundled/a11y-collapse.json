@@ -1,0 +1,58 @@
+{
+  "tag": "a11y-collapse",
+  "title": "Collapsible container",
+  "description": "Single expandable and collapsible container.",
+  "category": "text",
+  "attributes": [
+    {
+      "name": "heading",
+      "type": "string",
+      "required": false,
+      "description": "Text for the collapse."
+    },
+    {
+      "name": "heading-button",
+      "type": "boolean",
+      "required": false,
+      "description": "Make the entire heading clickable instead of only the icon."
+    },
+    {
+      "name": "icon",
+      "type": "string",
+      "required": false,
+      "description": "Icon for the expand/collapse toggle button."
+    },
+    {
+      "name": "icon-expanded",
+      "type": "string",
+      "required": false,
+      "description": "Optional icon for the expanded toggle state."
+    },
+    {
+      "name": "tooltip",
+      "type": "string",
+      "required": false,
+      "description": "Tooltip for the expand/collapse toggle button."
+    },
+    {
+      "name": "tooltip-expanded",
+      "type": "string",
+      "required": false,
+      "description": "Tooltip for the expand/collapse button when expanded."
+    },
+    {
+      "name": "expanded",
+      "type": "boolean",
+      "required": false,
+      "description": "expand by default; the HAX editor strips it from its own saves, direct content writes persist it; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "description": "Content"
+    }
+  ],
+  "example_html": "<a11y-collapse heading=\"Heading\" heading-button=\"heading-button\"><p>Content goes here.</p></a11y-collapse>",
+  "agent_notes": "the trigger is a child with slot=heading; the revealed body is the default slot content."
+}

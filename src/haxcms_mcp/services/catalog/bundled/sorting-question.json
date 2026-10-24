@@ -1,0 +1,35 @@
+{
+  "tag": "sorting-question",
+  "title": "Sorting Question",
+  "description": "Sort items into the correct order.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question Header."
+    },
+    {
+      "name": "grading-format",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion)."
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: learning objective associated with this assessment."
+    },
+    {
+      "name": "for-course",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: course this assessment is intended for."
+    }
+  ],
+  "slots": [],
+  "example_html": "<sorting-question question=\"Sorting these in numerical order\"><p slot=\"evidence\">Self evident, Refer back to 1st grade</p><p slot=\"hint\">Consider that numbers tend to go zero, one, two...</p><input value=\"1\" /><input value=\"2\" /><input value=\"3\" /></sorting-question>",
+  "agent_notes": ""
+}

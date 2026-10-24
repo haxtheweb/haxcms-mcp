@@ -1,0 +1,26 @@
+{
+  "bearer": {
+    "authorization": "Bearer golden-jwt",
+    "cookie": "haxcms_refresh_token=golden-refresh",
+    "x-haxcms-site-token": null,
+    "x-haxcms-user-token": null
+  },
+  "bearer+site": {
+    "authorization": "Bearer golden-jwt",
+    "cookie": "haxcms_refresh_token=golden-refresh",
+    "x-haxcms-site-token": "golden-site",
+    "x-haxcms-user-token": null
+  },
+  "bearer+user": {
+    "authorization": "Bearer golden-jwt",
+    "cookie": "haxcms_refresh_token=golden-refresh",
+    "x-haxcms-site-token": null,
+    "x-haxcms-user-token": "golden-user"
+  },
+  "none": {
+    "authorization": null,
+    "cookie": null,
+    "x-haxcms-site-token": null,
+    "x-haxcms-user-token": null
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "tag": "lrndesign-timeline",
+  "title": "Timeline",
+  "description": "A timeline of events with images and text",
+  "category": "education",
+  "attributes": [
+    {
+      "name": "timeline-title",
+      "type": "string",
+      "required": false,
+      "description": "heading shown above the timeline"
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "design-system accent color"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "events",
+      "type": "string",
+      "required": false,
+      "description": "JSON array of {heading, details, imagesrc, imagealt} — primary way to supply events; when empty, light-DOM <section> children are used instead"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "description": "timeline description shown under the title"
+    }
+  ],
+  "example_html": "<lrndesign-timeline timeline-title=\"Course history\"><section><h2>1855 - Charter</h2><p>Charter signed and in effect.</p></section><section><h2>1953 - Rename</h2><p>The current name became official.</p></section></lrndesign-timeline>",
+  "agent_notes": "Prefer the events attribute (JSON array); the <section>-children fallback takes the first h1-h6 as heading and remaining children as details. timeline-size (xs/sm/md/lg/xl) exists but is unreliable in 26.8.1."
+}

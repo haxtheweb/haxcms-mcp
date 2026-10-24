@@ -1,0 +1,3426 @@
+openapi: 3.0.3
+info:
+  title: HAXcms System API
+  description: Control-plane API for authentication, lifecycle/admin,
+    discovery/meta, and system settings/configuration.
+  version: 1.0.0
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /
+    description: System API base path
+tags:
+  - name: discovery
+    description: System API discovery and OpenAPI document endpoints
+  - name: session
+    description: Authentication, token, and dashboard session bootstrap endpoints
+  - name: lifecycle
+    description: Site lifecycle management operations
+  - name: settings
+    description: System configuration and integration endpoints
+  - name: actions
+    description: Utility action endpoints for file and content conversion
+paths:
+  /system/api/v1:
+    get:
+      tags:
+        - discovery
+      operationId: systemApiDiscovery
+      summary: Discover top-level system API links and capabilities
+      security: []
+      responses:
+        "200":
+          description: Discovery metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/openapi:
+    get:
+      tags:
+        - discovery
+      operationId: systemOpenapi
+      summary: Return the system OpenAPI document (JSON default, YAML supported)
+      security: []
+      responses:
+        "200":
+          description: OpenAPI document
+          content:
+            application/json:
+              schema:
+                type: object
+            application/yaml:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/openapi.json:
+    get:
+      tags:
+        - discovery
+      operationId: systemOpenapiJson
+      summary: Return the system OpenAPI document as JSON
+      security: []
+      responses:
+        "200":
+          description: OpenAPI JSON document
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/openapi.yaml:
+    get:
+      tags:
+        - discovery
+      operationId: systemOpenapiYaml
+      summary: Return the system OpenAPI document as YAML
+      security: []
+      responses:
+        "200":
+          description: OpenAPI YAML document
+          content:
+            application/yaml:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/session/login:
+    post:
+      tags:
+        - session
+      operationId: sessionLogin
+      summary: Authenticate a user and establish a dashboard session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /system/api/v1/session:
+    get:
+      tags:
+        - session
+      operationId: sessionAuthGet
+      summary: Validate a JWT and return authenticated session details
+      description: >
+        Anonymous login probe. Returns session details when a valid JWT is
+        supplied and a minimal unauthenticated response otherwise. No bearer
+        auth is required to reach this endpoint.
+      security: []
+      responses:
+        "200":
+          description: Authenticated session details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - session
+      operationId: sessionAuthPost
+      summary: Validate a JWT and return authenticated session details
+      description: >
+        Anonymous login probe. Returns session details when a valid JWT is
+        supplied (body or query) and a minimal unauthenticated response
+        otherwise. No bearer auth is required to reach this endpoint.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jwt:
+                  type: string
+      responses:
+        "200":
+          description: Authenticated session details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/session/logout:
+    post:
+      tags:
+        - session
+      operationId: sessionLogout
+      summary: Log out the active dashboard session
+      security: []
+      responses:
+        "200":
+          description: Logout response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/session/refresh:
+    get:
+      tags:
+        - session
+      operationId: sessionRefreshGet
+      summary: Refresh dashboard access token
+      security: []
+      responses:
+        "200":
+          description: Refresh response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - session
+      operationId: sessionRefreshPost
+      summary: Refresh dashboard access token
+      security: []
+      responses:
+        "200":
+          description: Refresh response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /system/api/v1/session/user:
+    get:
+      tags:
+        - session
+      operationId: sessionUserGet
+      summary: Return active user profile and dashboard preference data
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Active user profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/UserDataRecord"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - session
+      operationId: sessionUserPost
+      summary: Return active user profile and dashboard preference data
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Active user profile data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/session/connection-settings:
+    get:
+      tags:
+        - session
+      operationId: sessionConnectionSettingsGet
+      summary: Return frontend connection settings bootstrap payload
+      security: []
+      responses:
+        "200":
+          description: Frontend connection settings payload
+          content:
+            application/javascript:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    post:
+      tags:
+        - session
+      operationId: sessionConnectionSettingsPost
+      summary: Return frontend connection settings bootstrap payload
+      security: []
+      responses:
+        "200":
+          description: Frontend connection settings payload
+          content:
+            application/javascript:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/session/connection-test:
+    get:
+      tags:
+        - session
+      operationId: sessionConnectionTestGet
+      summary: Validate current auth state for dashboard bootstrap
+      security: []
+      responses:
+        "200":
+          description: Session validity state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    post:
+      tags:
+        - session
+      operationId: sessionConnectionTestPost
+      summary: Validate current auth state for dashboard bootstrap
+      security: []
+      responses:
+        "200":
+          description: Session validity state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /system/api/v1/sites:
+    get:
+      tags:
+        - lifecycle
+      operationId: listSites
+      summary: List all sites available to the authenticated user
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Site listing payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/SiteListData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - lifecycle
+      operationId: createSite
+      summary: Create a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteActionRequest"
+      responses:
+        "200":
+          description: Site creation response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/SiteCreateData"
+                  id:
+                    type: string
+                  slug:
+                    type: string
+                  link:
+                    type: string
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/sites/{siteName}:
+    parameters:
+      - $ref: "#/components/parameters/SiteName"
+    get:
+      tags:
+        - lifecycle
+      operationId: siteInfoGet
+      summary: Return metadata for a specific site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Site metadata response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags:
+        - lifecycle
+      operationId: siteInfoPost
+      summary: Return metadata for a specific site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Site metadata response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /system/api/v1/sites/{siteName}/clone:
+    parameters:
+      - $ref: "#/components/parameters/SiteName"
+    post:
+      tags:
+        - lifecycle
+      operationId: cloneSite
+      summary: Clone an existing site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteActionRequest"
+      responses:
+        "200":
+          description: Site clone response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/sites/{siteName}/archive:
+    parameters:
+      - $ref: "#/components/parameters/SiteName"
+    post:
+      tags:
+        - lifecycle
+      operationId: archiveSite
+      summary: Archive a site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteActionRequest"
+      responses:
+        "200":
+          description: Site archive response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/sites/{siteName}/download:
+    parameters:
+      - $ref: "#/components/parameters/SiteName"
+    post:
+      tags:
+        - lifecycle
+      operationId: downloadSite
+      summary: Generate and return a downloadable site archive reference
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteActionRequest"
+      responses:
+        "200":
+          description: Site download response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/sites/{siteName}/download-skeleton:
+    parameters:
+      - $ref: "#/components/parameters/SiteName"
+    post:
+      tags:
+        - lifecycle
+      operationId: downloadSiteSkeleton
+      summary: Generate and return a reusable skeleton for a site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteActionRequest"
+      responses:
+        "200":
+          description: Site skeleton response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/sites/{siteName}/save-as-template:
+    parameters:
+      - $ref: "#/components/parameters/SiteName"
+    post:
+      tags:
+        - lifecycle
+      operationId: saveSiteAsTemplate
+      summary: Save a site as a reusable system template
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteActionRequest"
+      responses:
+        "200":
+          description: Save-as-template response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/integrations/app-store:
+    get:
+      tags:
+        - settings
+      operationId: generateAppStore
+      summary: Generate app-store provider manifest for the editor
+      parameters:
+        - name: siteName
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Site machine name used to validate site token scope
+      security:
+        - siteTokenHeader: []
+      responses:
+        "200":
+          description: App-store payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/integrations/app-store/providers/{provider}/search:
+    get:
+      tags:
+        - settings
+      operationId: searchAppStoreProvider
+      summary: Broker a provider search through app-store integrations
+      description: >
+        Proxies a search request to a registered app-store provider (e.g.
+        product-card, media, etc.) and returns the provider's response payload.
+        Moved to the system API in D38; documented here per D57. Requires a
+        valid bearer JWT and site token so only authenticated site contexts
+        can broker upstream provider searches.
+      parameters:
+        - $ref: "#/components/parameters/AppStoreProvider"
+        - name: siteName
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Site machine name used to validate site token scope
+      security:
+        - bearerAuth: []
+          siteTokenHeader: []
+      responses:
+        "200":
+          description: Provider search response payload
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    additionalProperties: true
+                  - type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "502":
+          description: Upstream provider error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/haxiamAddUserAccess:
+    post:
+      tags:
+        - settings
+      operationId: haxiamAddUserAccess
+      summary: Grant a user access to a site (HAXiam managed deployments)
+      description: >
+        PHP-only route exposed by HAXiam-managed deployments to add user access
+        to a site. Documented here per D57 for cross-platform spec parity;
+        NodeJS deployments that do not run HAXiam will return 404.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site:
+                  type: string
+                  description: Site machine name to grant access to
+                user:
+                  type: string
+                  description: User name to grant access for
+              additionalProperties: true
+      responses:
+        "200":
+          description: User access granted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/status:
+    get:
+      tags:
+        - settings
+      operationId: systemStatusGet
+      summary: Return system status and environment diagnostics
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System status data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/SystemStatusData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemStatusPost
+      summary: Return system status and environment diagnostics
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System status data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/system/version:
+    get:
+      tags:
+        - settings
+      operationId: systemVersionGet
+      summary: Return installed system version details
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System version details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/SystemVersionData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemVersionPost
+      summary: Return installed system version details
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System version details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/entities:
+    get:
+      tags:
+        - settings
+      operationId: systemEntitiesGet
+      summary: Return system entity descriptors and links
+      description: >
+        Returns the full merged set of entity descriptors sourced from the
+        single entities.yaml registry (EntityRegistry.getDefinitions()).
+        Both /x/api/v1/entities and /system/api/v1/entities read from the same
+        registry, so the API surface and the in-code object are one shape.
+        Optional ?scope=site|system filters the merged set by scope. Each
+        descriptor mirrors the extended EntityDescriptor schema, including the
+        storage block that declares how the entity is (or will be) persisted.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [site, system]
+          description: Filter the merged descriptor set by scope.
+      responses:
+        "200":
+          description: System entity descriptors
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/EntityCollection"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemEntitiesPost
+      summary: Return system entity descriptors and links
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System entity descriptors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/schemas:
+    get:
+      tags:
+        - settings
+      operationId: systemSchemasGet
+      summary: Return system schema descriptors and links
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System schema descriptors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemSchemasPost
+      summary: Return system schema descriptors and links
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: System schema descriptors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/configuration/api-keys:
+    get:
+      tags:
+        - settings
+      operationId: getApiKeys
+      summary: Return configured API keys and provider statuses
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: API key settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ApiKeysData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: getApiKeysPost
+      summary: Return configured API keys and provider statuses (read alias of GET)
+      description: >
+        Read-only alias of GET /configuration/api-keys. POST is accepted for
+        callers that prefer POST over GET but does not write; use PATCH to
+        update API key settings. Single-user deployment assumption: the
+        NodeJS backend does not model an admin/superUser tier; these settings
+        are written by the single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: API key settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - settings
+      operationId: saveApiKeysPatch
+      summary: Update API key settings
+      description: >
+        Write operation — updates API key settings. Single-user deployment
+        assumption: the NodeJS backend does not model an admin/superUser
+        tier; settings are written by the single authenticated dashboard
+        user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiKeysSettings"
+      responses:
+        "200":
+          description: API key update response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ApiKeysData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/configuration/media:
+    get:
+      tags:
+        - settings
+      operationId: getMediaSettings
+      summary: Return media and upload configuration
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Media settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/MediaSettingsData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: getMediaSettingsPost
+      summary: Return media and upload configuration (read alias of GET)
+      description: >
+        Read-only alias of GET /configuration/media. POST is accepted for
+        callers that prefer POST over GET but does not write; use PATCH to
+        update media settings. Single-user deployment assumption: the
+        NodeJS backend does not model an admin/superUser tier; these settings
+        are written by the single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Media settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - settings
+      operationId: saveMediaSettingsPatch
+      summary: Update media and upload configuration
+      description: >
+        Write operation — updates media and upload configuration. Single-user
+        deployment assumption: the NodeJS backend does not model an
+        admin/superUser tier; settings are written by the single authenticated
+        dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaSettings"
+      responses:
+        "200":
+          description: Media settings update response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/MediaSettingsData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/configuration/localization:
+    get:
+      tags:
+        - settings
+      operationId: getLocalizationSettings
+      summary: Return localization configuration
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Localization settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/LocalizationSettingsData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: getLocalizationSettingsPost
+      summary: Return localization configuration (read alias of GET)
+      description: >
+        Read-only alias of GET /configuration/localization. POST is accepted for
+        callers that prefer POST over GET but does not write; use PATCH to
+        update localization settings. Single-user deployment assumption: the
+        NodeJS backend does not model an admin/superUser tier; these settings
+        are written by the single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Localization settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - settings
+      operationId: saveLocalizationSettingsPatch
+      summary: Update localization configuration
+      description: >
+        Write operation — updates localization configuration (defaultLanguage,
+        a BCP-47 tag). Single-user deployment assumption: the NodeJS backend
+        does not model an admin/superUser tier; settings are written by the
+        single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocalizationSettings"
+      responses:
+        "200":
+          description: Localization settings update response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/LocalizationSettingsData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/configuration/schema-files/operations:
+    post:
+      tags:
+        - settings
+      operationId: schemaFileOperation
+      summary: Perform schema file operation in system configuration storage
+      description: >
+        Write operation — performs schema file operations (rename, delete,
+        upload) in system configuration storage. Single-user deployment
+        assumption: the NodeJS backend does not model an admin/superUser
+        tier; operations are performed by the single authenticated dashboard
+        user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchemaFileOperationRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SkeletonUploadRequest"
+      responses:
+        "200":
+          description: Schema file operation response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/SchemaFileOperationData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/blocks:
+    get:
+      tags:
+        - settings
+      operationId: systemBlocksGet
+      summary: Return available system blocks
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Available block list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BlockRecord"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemBlocksPost
+      summary: Return available system blocks (read alias of GET)
+      description: >
+        Read-only alias of GET /blocks. POST is accepted for callers that
+        prefer POST over GET but does not write; use PATCH to update enabled
+        block configuration. Single-user deployment assumption: the NodeJS
+        backend does not model an admin/superUser tier; these settings are
+        written by the single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Available block list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - settings
+      operationId: saveEnabledBlocksPatch
+      summary: Update enabled block configuration using the blocks collection endpoint
+      description: >
+        Write operation — updates enabled block configuration. Single-user
+        deployment assumption: the NodeJS backend does not model an
+        admin/superUser tier; settings are written by the single authenticated
+        dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnabledCollectionSettings"
+      responses:
+        "200":
+          description: Enabled collection update response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/EnabledCollectionData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/skeletons:
+    get:
+      tags:
+        - settings
+      operationId: systemSkeletonsGet
+      summary: Return available system skeletons
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Available skeleton list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SkeletonRecord"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemSkeletonsPost
+      summary: Return available system skeletons (read alias of GET)
+      description: >
+        Read-only alias of GET /skeletons. POST is accepted for callers that
+        prefer POST over GET but does not write; use PATCH to update enabled
+        skeleton configuration. Single-user deployment assumption: the NodeJS
+        backend does not model an admin/superUser tier; these settings are
+        written by the single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Available skeleton list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - settings
+      operationId: saveEnabledSkeletonsPatch
+      summary: Update enabled skeleton configuration using the skeletons collection
+        endpoint
+      description: >
+        Write operation — updates enabled skeleton configuration. Single-user
+        deployment assumption: the NodeJS backend does not model an
+        admin/superUser tier; settings are written by the single authenticated
+        dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnabledCollectionSettings"
+      responses:
+        "200":
+          description: Enabled collection update response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/EnabledCollectionData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/skeletons/{skeletonName}:
+    parameters:
+      - $ref: "#/components/parameters/SkeletonName"
+    get:
+      tags:
+        - settings
+      operationId: systemSkeletonDetailGet
+      summary: Return details for a named skeleton
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Skeleton details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/SkeletonRecord"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags:
+        - settings
+      operationId: systemSkeletonDetailPatch
+      summary: Rename a named skeleton
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkeletonRenameRequest"
+      responses:
+        "200":
+          description: Skeleton rename response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Target skeleton name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    put:
+      tags:
+        - settings
+      operationId: systemSkeletonDetailPut
+      summary: Rename a named skeleton (compatibility alias for PATCH)
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkeletonRenameRequest"
+      responses:
+        "200":
+          description: Skeleton rename response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Target skeleton name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      tags:
+        - settings
+      operationId: systemSkeletonDetailDelete
+      summary: Delete a named skeleton
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Skeleton delete response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /system/api/v1/themes:
+    get:
+      tags:
+        - settings
+      operationId: systemThemesGet
+      summary: Return available system themes
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Available theme list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ThemeRecord"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags:
+        - settings
+      operationId: systemThemesPost
+      summary: Return available system themes (read alias of GET)
+      description: >
+        Read-only alias of GET /themes. POST is accepted for callers that
+        prefer POST over GET but does not write; use PATCH to update enabled
+        theme configuration. Single-user deployment assumption: the NodeJS
+        backend does not model an admin/superUser tier; these settings are
+        written by the single authenticated dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      responses:
+        "200":
+          description: Available theme list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - settings
+      operationId: saveEnabledThemesPatch
+      summary: Update enabled theme configuration using the themes collection endpoint
+      description: >
+        Write operation — updates enabled theme configuration. Single-user
+        deployment assumption: the NodeJS backend does not model an
+        admin/superUser tier; settings are written by the single authenticated
+        dashboard user.
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnabledCollectionSettings"
+      responses:
+        "200":
+          description: Enabled collection update response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/EnabledCollectionData"
+                additionalProperties: true
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/docx-to-html:
+    post:
+      tags:
+        - actions
+      operationId: docxToHtml
+      summary: Convert an uploaded .docx or .doc file to clean HTML
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Word document (.docx or .doc) to convert
+      responses:
+        "200":
+          description: Converted HTML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/import-docx:
+    post:
+      tags:
+        - actions
+      operationId: importDocx
+      summary: Convert an uploaded .docx or .doc file into a HAXcms site schema
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Word document (.docx or .doc) to convert
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Site schema items from the converted document
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/import-pptx:
+    post:
+      tags:
+        - actions
+      operationId: importPptx
+      summary: Convert an uploaded .pptx file into a HAXcms site schema
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PowerPoint file (.pptx) to convert
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Site schema items from the converted presentation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/import-html:
+    post:
+      tags:
+        - actions
+      operationId: importHtml
+      summary: Convert an uploaded HTML file into a HAXcms site schema
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: HTML file (.html or .htm) to convert
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Site schema items from the converted HTML
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/import-xlsx:
+    post:
+      tags:
+        - actions
+      operationId: importXlsx
+      summary: Convert an uploaded Excel file into a HAXcms site schema
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel file (.xlsx or .xls) to convert
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Site schema items from the converted Excel file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/import-pdf:
+    post:
+      tags:
+        - actions
+      operationId: importPdf
+      summary: Convert an uploaded PDF file into a HAXcms site schema
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file (.pdf) to convert
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Site schema items from the converted PDF
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/html-to-docx:
+    post:
+      tags:
+        - actions
+      operationId: htmlToDocx
+      summary: Convert HTML string to a DOCX document (returned as base64)
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                html:
+                  type: string
+                  description: HTML string to convert to DOCX
+      responses:
+        "200":
+          description: Base64-encoded DOCX document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/md-to-html:
+    post:
+      tags:
+        - actions
+      operationId: mdToHtml
+      summary: Convert a Markdown string to HTML
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                md:
+                  type: string
+                  description: Markdown string to convert
+                type:
+                  type: string
+                  description: If set to 'link', the md value is treated as a URL to fetch
+      responses:
+        "200":
+          description: Converted HTML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/html-to-md:
+    post:
+      tags:
+        - actions
+      operationId: htmlToMd
+      summary: Convert an HTML string to Markdown
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                html:
+                  type: string
+                  description: HTML string to convert
+                type:
+                  type: string
+                  description: If set to 'link', the html value is treated as a URL to fetch
+      responses:
+        "200":
+          description: Converted Markdown content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/pretty-html:
+    post:
+      tags:
+        - actions
+      operationId: prettyHtml
+      summary: Pretty-print an HTML string
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                html:
+                  type: string
+                  description: HTML string to format
+                type:
+                  type: string
+                  description: If set to 'link', the html value is treated as a URL to fetch
+      responses:
+        "200":
+          description: Formatted HTML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/json-to-yaml:
+    post:
+      tags:
+        - actions
+      operationId: jsonToYaml
+      summary: Convert JSON to YAML
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                json:
+                  description: JSON object or string to convert
+                type:
+                  type: string
+                  description: If set to 'link', the json value is treated as a URL to fetch
+      responses:
+        "200":
+          description: Converted YAML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/yaml-to-json:
+    post:
+      tags:
+        - actions
+      operationId: yamlToJson
+      summary: Convert YAML to JSON
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                yaml:
+                  type: string
+                  description: YAML string to convert
+                type:
+                  type: string
+                  description: If set to 'link', the yaml value is treated as a URL to fetch
+      responses:
+        "200":
+          description: Converted JSON content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/html-to-pdf:
+    post:
+      tags:
+        - actions
+      operationId: htmlToPdf
+      summary: Convert HTML string to a PDF document (returned as base64)
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                html:
+                  type: string
+                  description: HTML string to convert to PDF
+                base:
+                  type: string
+                  description: Optional base URL for resolving relative links
+      responses:
+        "200":
+          description: Base64-encoded PDF document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/xlsx-to-csv:
+    post:
+      tags:
+        - actions
+      operationId: xlsxToCsv
+      summary: Convert an uploaded Excel file to CSV
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel file (.xlsx) to convert
+      responses:
+        "200":
+          description: CSV content and sheet metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/pdf-to-html:
+    post:
+      tags:
+        - actions
+      operationId: pdfToHtml
+      summary: Convert an uploaded PDF file to semantic HTML
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file to convert
+      responses:
+        "200":
+          description: Converted semantic HTML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/pptx-to-html:
+    post:
+      tags:
+        - actions
+      operationId: pptxToHtml
+      summary: Convert an uploaded PPTX file to HTML
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PowerPoint file (.pptx) to convert
+      responses:
+        "200":
+          description: Converted HTML content and extracted files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiEnvelope"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/actions/docx-to-pdf:
+    post:
+      tags:
+        - actions
+      operationId: docxToPdf
+      summary: Convert an uploaded DOCX file to a PDF document
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Word document (.docx) to convert to PDF
+      responses:
+        "200":
+          description: PDF document binary download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /system/api/v1/site/import/haxcms:
+    post:
+      tags:
+        - actions
+      operationId: haxcmsToSite
+      summary: Import a HAXcms site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/html:
+    post:
+      tags:
+        - actions
+      operationId: htmlToSite
+      summary: Import an HTML page or site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Uploaded HTML file for import
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/pressbooks:
+    post:
+      tags:
+        - actions
+      operationId: pressbooksToSite
+      summary: Import a Pressbooks site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/gitbook:
+    post:
+      tags:
+        - actions
+      operationId: gitbookToSite
+      summary: Import a GitBook site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/notion:
+    post:
+      tags:
+        - actions
+      operationId: notionToSite
+      summary: Import a Notion site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/wordpress:
+    post:
+      tags:
+        - actions
+      operationId: wordpressToSite
+      summary: Import a WordPress site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/elmsln:
+    post:
+      tags:
+        - actions
+      operationId: elmslnToSite
+      summary: Import an ELMSLN site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/drupal-book:
+    post:
+      tags:
+        - actions
+      operationId: drupalBookToSite
+      summary: Import a Drupal Book site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/plone:
+    post:
+      tags:
+        - actions
+      operationId: ploneToSite
+      summary: Import a Plone site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/vitepress:
+    post:
+      tags:
+        - actions
+      operationId: vitepressToSite
+      summary: Import a VitePress documentation site as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: >-
+                    GitHub repository URL of the VitePress site, optionally
+                    with /tree/<branch>
+              required:
+                - repoUrl
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: The repository is not a readable VitePress site
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/openstax:
+    post:
+      tags:
+        - actions
+      operationId: openstaxToSite
+      summary: Import an OpenStax textbook as a new site
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: >-
+                    OpenStax book URL, either
+                    https://openstax.org/details/books/<slug> or
+                    https://openstax.org/books/<slug>/pages/<page-slug>
+              required:
+                - repoUrl
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /system/api/v1/site/import/{platform}:
+    post:
+      tags:
+        - actions
+      operationId: siteImportByPlatform
+      summary: Import a site from a supported platform by platform name
+      security:
+        - bearerAuth: []
+          userTokenHeader: []
+      parameters:
+        - name: platform
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Platform identifier (haxcms, html, pressbooks, gitbook, notion, wordpress, elmsln, drupal-book, plone)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Uploaded file for import (supported by some platforms)
+                repoUrl:
+                  type: string
+                  description: URL to fetch for remote platform import
+                method:
+                  type: string
+                  description: Import method (site, branch, or page)
+                type:
+                  type: string
+                  description: Fallback content type (course, portfolio, or empty)
+                parentId:
+                  type: string
+                  description: Optional parent ID for imported items
+      responses:
+        "200":
+          description: Imported site schema items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  data:
+                    $ref: "#/components/schemas/ImportData"
+                additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+components:
+  parameters:
+    SiteName:
+      name: siteName
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Machine name of the site
+    SkeletonName:
+      name: skeletonName
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Machine name of the skeleton
+    AppStoreProvider:
+      name: provider
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Registered app-store provider machine name
+  responses:
+    BadRequest:
+      description: Malformed or invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Unauthorized:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Forbidden:
+      description: Authenticated but not permitted to perform this operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    userTokenHeader:
+      type: apiKey
+      in: header
+      name: X-HAXCMS-User-Token
+    siteTokenHeader:
+      type: apiKey
+      in: header
+      name: X-HAXCMS-Site-Token
+  schemas:
+    ApiEnvelope:
+      type: object
+      properties:
+        status:
+          type: integer
+        data: {}
+      additionalProperties: true
+    EntityCollection:
+      type: object
+      description: >
+        Collection of entity descriptors returned by /system/api/v1/entities
+        (and /x/api/v1/entities). Both endpoints read from the single merged
+        entities.yaml registry via EntityRegistry.getDefinitions().
+      properties:
+        count:
+          type: integer
+        entities:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityDescriptor"
+        links:
+          type: object
+          additionalProperties:
+            type: string
+    EntityDescriptor:
+      type: object
+      description: >
+        Describes one entity type in the merged entities.yaml registry. The
+        in-code EntityDefinition mirrors this schema 1:1, and both
+        /x/api/v1/entities and /system/api/v1/entities return descriptors in
+        this shape (optionally filtered by ?scope=site|system).
+      properties:
+        type:
+          type: string
+          description: Canonical entity type identifier (file/item/theme/skeleton/site/system).
+        name:
+          type: string
+          description: Backward-compatible alias of type.
+        scope:
+          type: string
+          enum: [site, system]
+          description: Whether the entity is site-scoped or system-scoped.
+        description:
+          type: string
+        primaryKey:
+          type: string
+        uniqueKeys:
+          type: array
+          items:
+            type: string
+        requiredFields:
+          type: array
+          items:
+            type: string
+        storage:
+          $ref: "#/components/schemas/EntityStorageDescriptor"
+        supportedOperations:
+          type: array
+          items:
+            type: string
+        endpoints:
+          type: array
+          items:
+            type: string
+        filterableFields:
+          type: array
+          items:
+            type: string
+        sortableFields:
+          type: array
+          items:
+            type: string
+        selectableFields:
+          type: array
+          items:
+            type: string
+        formats:
+          type: array
+          items:
+            type: string
+        auth:
+          type: string
+        enabled:
+          type: boolean
+    EntityStorageDescriptor:
+      type: object
+      description: >
+        Declares how an entity type is (or will be) persisted. storage.type
+        vocabulary: datastore (writable file-backed index), jos (JSON Outline
+        Schema manifest), jos.items (nodes in a JOS items[]), webcomponent
+        (theme settings), file (files on disk), config (system configuration).
+        storage.enabled declares whether a real adapter is implemented; only
+        `datastore` entities support save()/delete().
+      properties:
+        type:
+          type: string
+        enabled:
+          type: boolean
+        scope:
+          type: string
+        location:
+          type: string
+        storeSchema:
+          type: string
+        collectionKey:
+          type: string
+        indexKey:
+          type: string
+        source:
+          type: string
+    ErrorEnvelope:
+      type: object
+      required:
+        - status
+        - data
+      properties:
+        status:
+          type: integer
+        data:
+          type: object
+          additionalProperties: true
+          properties:
+            message:
+              type: string
+    LoginRequest:
+      type: object
+      description: >
+        Login credentials or JWT revalidation token. When username/password are
+        supplied the server validates them and issues a fresh JWT. When jwt is
+        supplied (body or query) the server revalidates the existing token and
+        returns it if still valid, enabling a revalidate-without-credentials
+        login flow.
+      properties:
+        username:
+          type: string
+          description: Username (primary field name accepted by v1 handlers)
+        password:
+          type: string
+          description: Password
+        u:
+          type: string
+          description: Legacy username alias (v0 compatibility)
+        p:
+          type: string
+          description: Legacy password alias (v0 compatibility)
+        jwt:
+          type: string
+          description: >
+            Existing JWT to revalidate. When supplied (body or query) the
+            server validates the token and returns it if still valid.
+      additionalProperties: true
+    SiteActionRequest:
+      type: object
+      description: >
+        Payload for site lifecycle operations (create, clone, archive, download,
+        download-skeleton, save-as-template). The front-end (app-hax
+        AppHaxBackendAPI._formatSitePostData) sends a `site` object with the
+        machine name, description, theme, and optional license, plus a `build`
+        object describing how the site should be structured. Back-end handlers
+        (createSite, cloneSite, etc.) read these fields to drive site creation.
+      properties:
+        site:
+          type: object
+          description: Site identity and appearance fields.
+          properties:
+            name:
+              type: string
+              description: Site machine name (used for the directory and X-HAXCMS-Site-Token validation).
+            description:
+              type: string
+              description: Human-readable description shown in the site listing.
+            theme:
+              type: string
+              description: Theme element machine name (e.g. clean-one, learn-two-theme).
+            license:
+              type: string
+              description: Optional Creative Commons license code (by, by-sa, by-nd, by-nc, by-nc-sa, by-nc-nd).
+            domain:
+              type: string
+              description: Optional custom domain for the site.
+          additionalProperties: true
+        build:
+          type: object
+          description: Build instructions describing how to structure the new site.
+          properties:
+            type:
+              type: string
+              description: Build type (course, portfolio, website, import, skeleton, etc.).
+            structure:
+              type: string
+              description: Build structure (from-skeleton, import, docx import, etc.).
+            items:
+              type: array
+              items:
+                type: object
+              description: JSONOutlineSchemaItem array for import / from-skeleton builds.
+            files:
+              type: object
+              additionalProperties: true
+              description: "Map of site file paths (files/...) to their source, either an http(s) URL fetched server-side through the SSRF guard or a file staged under <configDirectory>/tmp/imports. Ingestion is best-effort: an entry that is unsafe, has a disallowed extension, cannot be fetched, or is rejected by the content/size validation is skipped and recorded in data.warnings rather than failing the request. A URL that cannot be fetched is skipped."
+            skeletonMachineName:
+              type: string
+              description: Machine name of a trusted skeleton to build from (structure=from-skeleton).
+            siteFiles:
+              type: object
+              additionalProperties: true
+              description: Map of theme/custom file URLs to download from another HAXcms instance.
+          additionalProperties: true
+      additionalProperties: true
+    ApiKeysSettings:
+      type: object
+      description: API key settings payload
+      additionalProperties: true
+    MediaSettings:
+      type: object
+      description: Media settings payload
+      additionalProperties: true
+    EnabledCollectionSettings:
+      type: object
+      description: Enabled item map payload
+      additionalProperties: true
+    SkeletonUploadRequest:
+      type: object
+      description: Multipart payload for uploading a new skeleton resource
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Skeleton JSON file upload
+        name:
+          type: string
+          description: Optional target skeleton machine name override
+        schema:
+          type: string
+          description: Optional schema selector (defaults to skeleton)
+        action:
+          type: string
+          description: Optional action hint (upload)
+      additionalProperties: true
+    SkeletonMutationRequest:
+      type: object
+      description: JSON mutation payload for skeleton resource operations
+      properties:
+        schema:
+          type: string
+        action:
+          type: string
+        name:
+          type: string
+        oldName:
+          type: string
+        skeletonName:
+          type: string
+        newName:
+          type: string
+        displayName:
+          type: string
+      additionalProperties: true
+    SkeletonRenameRequest:
+      type: object
+      description: Rename payload for skeleton resource detail mutation
+      required:
+        - newName
+      properties:
+        newName:
+          type: string
+        displayName:
+          type: string
+      additionalProperties: true
+    SchemaFileOperationRequest:
+      type: object
+      description: >
+        JSON payload for schema file operations (rename, delete). The back-end
+        reads `schema`, `action`, `name`, `newName`, `oldName`, and
+        `skeletonName` from the body, query, or path params. For uploads, use
+        multipart/form-data with the file under the `file` field name (see
+        SkeletonUploadRequest).
+      properties:
+        schema:
+          type: string
+          description: Schema selector (currently only `skeleton` is supported).
+        action:
+          type: string
+          description: Operation action (upload, rename, delete).
+        name:
+          type: string
+          description: Existing skeleton machine name (for rename / delete).
+        oldName:
+          type: string
+          description: Legacy alias for the existing skeleton name.
+        skeletonName:
+          type: string
+          description: Path-param-style skeleton name (normalized to `name` by the router).
+        newName:
+          type: string
+          description: Target machine name for rename operations.
+      additionalProperties: true
+    UserDataRecord:
+      type: object
+      description: >
+        Active user profile data returned by sessionUserGet. Loaded from
+        userData.json; the front-end (AppHaxBackendAPI._syncUserAfterValidation)
+        reads `data.userName`.
+      properties:
+        userName:
+          type: string
+        fName:
+          type: string
+        lName:
+          type: string
+        userPicture:
+          type: string
+        social:
+          type: object
+          additionalProperties: true
+        integrations:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+    SiteListData:
+      type: object
+      description: >
+        Site listing payload returned by listSites. A top-level JSON Outline
+        Schema wrapper whose `items` array contains per-site manifest summaries.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        license:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true
+    SiteCreateData:
+      type: object
+      description: >
+        Created site schema record returned by createSite. A JSONOutlineSchemaItem
+        with id, title, location, slug, and metadata. When build.files entries
+        are skipped during best-effort ingestion, a `warnings` array of
+        {file, reason} objects is included detailing each skipped entry.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        location:
+          type: string
+        slug:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        warnings:
+          type: array
+          description: >
+            Present only when one or more build.files entries were skipped
+            during best-effort ingestion. Each entry is {file, reason}.
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true
+    SkeletonRecord:
+      type: object
+      description: >
+        Skeleton descriptor returned in the skeletonsList array and as the
+        detail response from systemSkeletonDetailGet. The front-end reads
+        machineName, title, description, image, category, attributes,
+        skeleton-url, demo-url, hidden, terrible, priority, and enabled.
+      properties:
+        machineName:
+          type: string
+        name:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+        category:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        attributes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        skeleton-url:
+          type: string
+        demo-url:
+          type: string
+        hidden:
+          type: boolean
+        terrible:
+          type: boolean
+        priority:
+          type: integer
+        enabled:
+          type: boolean
+      additionalProperties: true
+    ThemeRecord:
+      type: object
+      description: >
+        Theme descriptor returned in the themesList array. The front-end reads
+        machineName, element, name, description, thumbnail/screenshot, category,
+        hidden, terrible, priority, and enabled.
+      properties:
+        machineName:
+          type: string
+        element:
+          type: string
+        name:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        thumbnail:
+          type: string
+        screenshot:
+          type: string
+        preview:
+          type: string
+        category:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        hidden:
+          type: boolean
+        terrible:
+          type: boolean
+        priority:
+          type: integer
+        enabled:
+          type: boolean
+      additionalProperties: true
+    SystemStatusData:
+      type: object
+      description: >
+        System status report returned by systemStatusGet. The front-end
+        (haxcms-system-settings._loadStatusData) reads `data.summary` and
+        `data.rows`.
+      properties:
+        summary:
+          type: object
+          additionalProperties: true
+          properties:
+            programmingLanguage:
+              type: string
+            serverVersion:
+              type: string
+            haxcmsVersionCurrent:
+              type: string
+            haxcmsVersionLatest:
+              type: string
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true
+    SystemVersionData:
+      type: object
+      description: System version details returned by systemVersionGet.
+      properties:
+        version:
+          type: string
+      additionalProperties: true
+    ApiKeysData:
+      type: object
+      description: >
+        API key settings returned by getApiKeys and saveApiKeysPatch. Keys are
+        keyed by provider storage name (youtube, giphy, vimeo, unsplash, flickr,
+        anthropic). The front-end (haxcms-system-settings) reads provider keys
+        from `data`.
+      additionalProperties: true
+    MediaSettingsData:
+      type: object
+      description: >
+        Media settings returned by getMediaSettings and saveMediaSettingsPatch.
+        The front-end reads jpegQuality, maxUploadSizeMb, and acceptedFormats.
+      properties:
+        jpegQuality:
+          type: integer
+        maxUploadSizeMb:
+          type: integer
+        acceptedFormats:
+          type: string
+      additionalProperties: true
+    LocalizationSettings:
+      type: object
+      description: Localization settings payload (defaultLanguage BCP-47 tag)
+      properties:
+        defaultLanguage:
+          type: string
+          description: BCP-47 language tag (e.g. en-US, es-ES, fr-FR)
+      additionalProperties: true
+    LocalizationSettingsData:
+      type: object
+      description: >
+        Localization settings returned by getLocalizationSettings and
+        saveLocalizationSettingsPatch. The front-end reads defaultLanguage.
+      properties:
+        defaultLanguage:
+          type: string
+      additionalProperties: true
+    SchemaFileOperationData:
+      type: object
+      description: >
+        Result of a schema file operation (upload, rename, delete). The
+        front-end (haxcms-system-settings._onSkeletonUploadResponse) reads
+        `data.machineName`.
+      properties:
+        action:
+          type: string
+        schema:
+          type: string
+        machineName:
+          type: string
+        fileName:
+          type: string
+        location:
+          type: string
+        path:
+          type: string
+      additionalProperties: true
+    EnabledCollectionData:
+      type: object
+      description: >
+        Result of saveEnabledSkeletonsPatch / saveEnabledThemesPatch /
+        saveEnabledBlocksPatch. The front-end checks `status === 200` and
+        optionally reads `data.enabledSkeletons` / `data.enabledThemes`.
+      properties:
+        enabledSkeletons:
+          type: array
+          items:
+            type: string
+        enabledThemes:
+          type: array
+          items:
+            type: string
+        enabledBlocks:
+          type: array
+          items:
+            type: string
+        settings:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+    BlockRecord:
+      type: object
+      description: Block descriptor returned in the systemBlocksGet array.
+      properties:
+        machineName:
+          type: string
+        name:
+          type: string
+        enabled:
+          type: boolean
+      additionalProperties: true
+    ImportData:
+      type: object
+      description: >
+        Import result returned by importDocx, importPdf, importPptx, importXlsx,
+        htmlToSite, gitbookToSite, haxcmsToSite, notionToSite, pressbooksToSite,
+        wordpressToSite, drupalBookToSite, ploneToSite. The front-end
+        (processImportTemplate) reads `data.items` (array), `data.filename`
+        (string), `data.files` (optional map), and `data.site.license`
+        (optional string).
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        filename:
+          type: string
+        files:
+          type: object
+          additionalProperties: true
+        siteFiles:
+          type: object
+          additionalProperties: true
+        site:
+          type: object
+          properties:
+            license:
+              type: string
+          additionalProperties: true
+      additionalProperties: true
+    ApiEnvelopeWithData:
+      type: object
+      description: >
+        Convenience base for responses that carry typed `data`. Inherited via
+        allOf by specific response schemas so the `status` and `data` envelope
+        is documented alongside the data shape.
+      properties:
+        status:
+          type: integer
+        data: {}
+      additionalProperties: true

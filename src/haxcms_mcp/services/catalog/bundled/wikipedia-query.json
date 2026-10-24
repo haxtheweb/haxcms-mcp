@@ -1,0 +1,36 @@
+{
+  "tag": "wikipedia-query",
+  "title": "Wikipedia",
+  "description": "This can display a wikipedia article in context in a variety of formats.",
+  "category": "embed",
+  "attributes": [
+    {
+      "name": "search",
+      "type": "string",
+      "required": true,
+      "description": "Word to search wikipedia for."
+    },
+    {
+      "name": "hide-title",
+      "type": "boolean",
+      "required": false,
+      "description": "Whether or not to render the title of the article."
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "required": false,
+      "description": "The language of the article.",
+      "enum": [
+        "en",
+        "es",
+        "fr",
+        "de",
+        "ja"
+      ]
+    }
+  ],
+  "slots": [],
+  "example_html": "<wikipedia-query search=\"Internet\"></wikipedia-query>",
+  "agent_notes": ""
+}

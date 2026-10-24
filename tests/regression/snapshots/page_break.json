@@ -1,0 +1,5 @@
+{
+  "full": "<page-break item-id=\"item-123\" title=\"A &quot;Quoted&quot; &lt;Title&gt; &amp; More\" slug=\"unit-1/song-lines\" path=\"unit-1/song-lines\" parent=\"item-unit-1\" published=\"published\" locked=\"locked\" hide-in-menu=\"hide-in-menu\" page-type=\"lesson\" tags=\"week-1,intro\" related-items=\"item-2,item-3\" image=\"files/cover.png\" icon=\"hax:lesson\" accent-color=\"purple\" link-url=\"https://example.com/x\" link-target=\"_blank\" description=\"A description with &amp; ampersand\" developer-theme=\"clean-one\" depth=\"2\" order=\"7\" override-pathauto=\"true\"></page-break>",
+  "minimal": "<page-break item-id=\"item-1\" title=\"Home\" slug=\"home\" path=\"home\" published=\"published\" depth=\"0\" order=\"0\"></page-break>",
+  "unpublished": "<page-break item-id=\"item-9\" title=\"Draft\" slug=\"draft\" path=\"draft\" depth=\"0\" order=\"0\"></page-break>"
+}

@@ -1,0 +1,41 @@
+{
+  "tag": "fill-in-the-blanks",
+  "title": "Fill in the blanks",
+  "description": "Assessment activity where learners complete missing words in a statement.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question for users to respond to."
+    },
+    {
+      "name": "statement",
+      "type": "string",
+      "required": false,
+      "description": "Statement that will be converted into the mark the words interaction."
+    },
+    {
+      "name": "grading-format",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion)."
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: learning objective associated with this assessment."
+    },
+    {
+      "name": "for-course",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: course this assessment is intended for."
+    }
+  ],
+  "slots": [],
+  "example_html": "<fill-in-the-blanks question=\"Complete this sentence\" statement=\"[hax] is really [good~great] at authoring [content|kittens|kites|moons] which is nice..\"></fill-in-the-blanks>",
+  "agent_notes": ""
+}

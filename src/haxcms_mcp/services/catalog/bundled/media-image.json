@@ -1,0 +1,116 @@
+{
+  "tag": "media-image",
+  "title": "Enhanced Image",
+  "description": "A way of presenting images with various enhancements.",
+  "category": "media",
+  "attributes": [
+    {
+      "name": "source",
+      "type": "string",
+      "required": true,
+      "description": "image file (files/<name> uploaded via add_file, or a full URL)"
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "required": true,
+      "description": "alt text describing the image"
+    },
+    {
+      "name": "link",
+      "type": "string",
+      "required": false,
+      "description": "wrap the image in a link to this URL/file"
+    },
+    {
+      "name": "card",
+      "type": "boolean",
+      "required": false,
+      "description": "card treatment; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "box",
+      "type": "boolean",
+      "required": false,
+      "description": "box treatment; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "offset",
+      "type": "string",
+      "required": false,
+      "description": "pull the image out of the text column",
+      "enum": [
+        "none",
+        "wide",
+        "narrow"
+      ]
+    },
+    {
+      "name": "citation",
+      "type": "string",
+      "required": false,
+      "description": "attribution / credit line"
+    },
+    {
+      "name": "caption",
+      "type": "string",
+      "required": false,
+      "description": "figure caption shown under the image"
+    },
+    {
+      "name": "figure-label-title",
+      "type": "string",
+      "required": false,
+      "description": "label title shown above the caption"
+    },
+    {
+      "name": "figure-label-description",
+      "type": "string",
+      "required": false,
+      "description": "label description text"
+    },
+    {
+      "name": "thumbnail",
+      "type": "string",
+      "required": false,
+      "description": "separate thumbnail image URL"
+    },
+    {
+      "name": "round",
+      "type": "boolean",
+      "required": false,
+      "description": "round the image corners; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "disable-zoom",
+      "type": "boolean",
+      "required": false,
+      "description": "turn off click-to-zoom; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "display width (CSS honors only small; anything else renders at the default wide)",
+      "enum": [
+        "small",
+        "wide"
+      ]
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "inherited design-system accent color"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [],
+  "example_html": "<media-image source=\"https://dummyimage.com/300x200/000/fff\" alt=\"Placeholder image\" card=\"card\" citation=\"This is my citation.\"></media-image>",
+  "agent_notes": "Upload the image first (add_file) and use the returned site-relative url as source. Boolean attributes take their own name as the value (card=card)."
+}

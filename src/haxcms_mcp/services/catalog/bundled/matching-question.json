@@ -1,0 +1,35 @@
+{
+  "tag": "matching-question",
+  "title": "Matching Question",
+  "description": "Drag-and-drop matching activity that pairs prompts with their correct responses.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question for users. Mark drop targets, then list answers until the next target."
+    },
+    {
+      "name": "grading-format",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion)."
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: learning objective associated with this assessment."
+    },
+    {
+      "name": "for-course",
+      "type": "string",
+      "required": false,
+      "description": "OER Schema: course this assessment is intended for."
+    }
+  ],
+  "slots": [],
+  "example_html": "<matching-question question=\"What does the animal say?\" data-accent=\"2\"><input correct value=\"Cow\"/><input value=\"Moo\"/><input correct value=\"Fox\"/><input value=\"PaPaPower\"/></matching-question>",
+  "agent_notes": ""
+}

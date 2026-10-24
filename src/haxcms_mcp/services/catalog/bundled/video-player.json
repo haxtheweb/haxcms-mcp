@@ -1,0 +1,95 @@
+{
+  "tag": "video-player",
+  "title": "Video",
+  "description": "Accessible video playback across multiple sources.",
+  "category": "media",
+  "attributes": [
+    {
+      "name": "source",
+      "type": "string",
+      "required": true,
+      "description": "YouTube/Vimeo/Kaltura/mp4 URL or uploaded file"
+    },
+    {
+      "name": "media-title",
+      "type": "string",
+      "required": false,
+      "description": "accessible title for the player"
+    },
+    {
+      "name": "thumbnail-src",
+      "type": "string",
+      "required": false,
+      "description": "custom poster/thumbnail image URL"
+    },
+    {
+      "name": "tracks",
+      "type": "string",
+      "required": false,
+      "description": "JSON array of caption tracks: [{src, label, srclang, kind}]"
+    },
+    {
+      "name": "start-time",
+      "type": "number",
+      "required": false,
+      "description": "playback start offset in seconds"
+    },
+    {
+      "name": "end-time",
+      "type": "number",
+      "required": false,
+      "description": "playback end offset in seconds"
+    },
+    {
+      "name": "learning-mode",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "hide-youtube-link",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "linkable",
+      "type": "boolean",
+      "required": false,
+      "description": "deep-linkable timestamps; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "hide-timestamps",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "hide-transcript",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "audio-description-source",
+      "type": "string",
+      "required": false,
+      "description": "audio-description media URL"
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "accent color (SimpleColors palette); deprecated developer setting in haxProperties but still rendered by the element"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [],
+  "example_html": "<video-player source=\"https://www.youtube.com/watch?v=LrS7dqokTLE\" data-width=\"75\" data-margin=\"center\"></video-player>",
+  "agent_notes": "source accepts provider watch URLs as well as direct media files; accessible title goes in media-title."
+}

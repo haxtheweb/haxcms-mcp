@@ -1,0 +1,108 @@
+{
+  "tag": "accent-card",
+  "title": "Card",
+  "description": "A card with optional accent styling.",
+  "category": "layout",
+  "attributes": [
+    {
+      "name": "image-src",
+      "type": "string",
+      "required": false,
+      "description": "card image URL (files/... or full URL)"
+    },
+    {
+      "name": "image-alt",
+      "type": "string",
+      "required": false,
+      "description": "alt text for the card image"
+    },
+    {
+      "name": "image-align",
+      "type": "string",
+      "required": false,
+      "description": "horizontal image position",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    {
+      "name": "image-valign",
+      "type": "string",
+      "required": false,
+      "description": "vertical image position",
+      "enum": [
+        "top",
+        "center",
+        "bottom"
+      ]
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "design-system accent color"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "horizontal",
+      "type": "boolean",
+      "required": false,
+      "description": "image beside content; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "accent-heading",
+      "type": "boolean",
+      "required": false,
+      "description": "accent the heading area; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "accent-background",
+      "type": "boolean",
+      "required": false,
+      "description": "accent the background; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "no-border",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "flat",
+      "type": "boolean",
+      "required": false,
+      "description": "no shadow; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "heading",
+      "description": "card heading (wrapper h3-h6)"
+    },
+    {
+      "name": "subheading",
+      "description": "line under the heading (wrapper div/p/h4-h6)"
+    },
+    {
+      "name": "content",
+      "description": "card body (wrapper p)"
+    },
+    {
+      "name": "footer",
+      "description": "card footer (wrapper div/p)"
+    },
+    {
+      "name": "corner",
+      "description": "corner decoration (advanced; wrapper div/p)"
+    }
+  ],
+  "example_html": "<accent-card accent-color=\"red\" accent-heading=\"accent-heading\" horizontal=\"horizontal\" image-src=\"https://placehold.co/500x300\"><h3 slot=\"heading\">Accent Card</h3><h4 slot=\"subheading\">A card with optional accent stylings.</h4><div slot=\"content\"><p>This card is highly customizable to contain any content you'd like</p></div></accent-card>",
+  "agent_notes": ""
+}

@@ -1,0 +1,73 @@
+{
+  "tag": "grid-plate",
+  "title": "Column layout",
+  "description": "Layout material in simple columns",
+  "category": "layout",
+  "attributes": [
+    {
+      "name": "layout",
+      "type": "string",
+      "required": true,
+      "description": "column template (name = relative widths)",
+      "enum": [
+        "1",
+        "1-1",
+        "2-1",
+        "1-2",
+        "3-1",
+        "1-3",
+        "1-1-1",
+        "2-1-1",
+        "1-2-1",
+        "1-1-2",
+        "1-1-1-1"
+      ]
+    },
+    {
+      "name": "disable-responsive",
+      "type": "boolean",
+      "required": false,
+      "description": "keep columns side-by-side on small screens; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "item-padding",
+      "type": "number",
+      "required": false,
+      "description": "padding inside each column, px (0-120, step 4)"
+    },
+    {
+      "name": "item-margin",
+      "type": "number",
+      "required": false,
+      "description": "margin around each column, px (0-120, step 4)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "col-1",
+      "description": "first column"
+    },
+    {
+      "name": "col-2",
+      "description": "second column"
+    },
+    {
+      "name": "col-3",
+      "description": "third column"
+    },
+    {
+      "name": "col-4",
+      "description": "fourth column"
+    },
+    {
+      "name": "col-5",
+      "description": "fifth column"
+    },
+    {
+      "name": "col-6",
+      "description": "sixth column"
+    }
+  ],
+  "example_html": "<grid-plate layout=\"1-1\" item-margin=\"16\" item-padding=\"16\"><p slot=\"col-1\">Column one content</p><p slot=\"col-2\">Column two content</p></grid-plate>",
+  "agent_notes": "layout lists relative column widths (1-1 = two equal columns); every child must carry slot=col-N matching the layout's column count. Legacy numeric aliases (12, 8, 6/6, 4/4/4, 3/3/3/3) are accepted at runtime."
+}

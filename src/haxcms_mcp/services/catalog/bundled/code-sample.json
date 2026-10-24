@@ -1,0 +1,44 @@
+{
+  "tag": "code-sample",
+  "title": "Code sample",
+  "description": "A sample of code highlighted in the page",
+  "category": "text",
+  "attributes": [
+    {
+      "name": "type",
+      "type": "string",
+      "required": false,
+      "description": "language of the code (default html)",
+      "enum": [
+        "javascript",
+        "html",
+        "css",
+        "xml",
+        "json",
+        "yaml",
+        "php"
+      ]
+    },
+    {
+      "name": "copy-clipboard-button",
+      "type": "boolean",
+      "required": false,
+      "description": "show a copy button; boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "highlight-start",
+      "type": "number",
+      "required": false,
+      "description": "first line number to highlight"
+    },
+    {
+      "name": "highlight-end",
+      "type": "number",
+      "required": false,
+      "description": "last line number to highlight"
+    }
+  ],
+  "slots": [],
+  "example_html": "<code-sample type=\"javascript\" copy-clipboard-button=\"copy-clipboard-button\"><template preserve-content=\"preserve-content\">const great = \"example\";\nconst great2 = great;</template></code-sample>",
+  "agent_notes": "the code MUST live inside <template preserve-content=...> and be HTML-escaped (<, >, &); the save-time sanitizer keeps template content."
+}

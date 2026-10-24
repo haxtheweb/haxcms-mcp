@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Project runtime artifacts
+.haxcms-runtime/
+haxcms-mcp-output/
+
+# Environment
+.env
+
+# OS / editor
+.DS_Store
+Thumbs.db

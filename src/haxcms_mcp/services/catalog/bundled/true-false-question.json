@@ -1,0 +1,17 @@
+{
+  "tag": "true-false-question",
+  "title": "True / False Question",
+  "description": "True false question",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "question",
+      "type": "string",
+      "required": false,
+      "description": "Question for users to respond to."
+    }
+  ],
+  "slots": [],
+  "example_html": "<true-false-question question=\"HAX is game changing.\"><input type=\"checkbox\" value=\"True\" correct>\n<input type=\"checkbox\" value=\"False\"></true-false-question>",
+  "agent_notes": "the correct answer is a child <input type=checkbox value=True|False> carrying a bare `correct` attribute; the editor-only _tfanswer property is stripped on save (saveOptions.unsetAttributes)."
+}

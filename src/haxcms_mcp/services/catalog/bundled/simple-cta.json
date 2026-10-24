@@ -1,0 +1,35 @@
+{
+  "tag": "simple-cta",
+  "title": "Call to action",
+  "description": "A simple button with a link to take action.",
+  "category": "layout",
+  "attributes": [
+    {
+      "name": "label",
+      "type": "string",
+      "required": true,
+      "description": "button text"
+    },
+    {
+      "name": "link",
+      "type": "string",
+      "required": true,
+      "description": "destination URL"
+    },
+    {
+      "name": "hide-icon",
+      "type": "boolean",
+      "required": false,
+      "description": "boolean flag: emit name=name (presence is truth)"
+    },
+    {
+      "name": "icon",
+      "type": "string",
+      "required": false,
+      "description": "simple-icons name as iconset:icon (default icons:chevron-right)"
+    }
+  ],
+  "slots": [],
+  "example_html": "<simple-cta label=\"Click to learn more\" link=\"https://haxtheweb.org/\"></simple-cta>",
+  "agent_notes": ""
+}

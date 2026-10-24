@@ -1,0 +1,46 @@
+{
+  "tag": "stop-note",
+  "title": "Stop Note",
+  "description": "A message to alert readers to specific directions.",
+  "category": "text",
+  "attributes": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Enter title for stop-note."
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": true,
+      "description": "Enter an external url."
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "required": false,
+      "description": "Setting status changes the colors and icons to match",
+      "enum": [
+        "stop",
+        "warning",
+        "success",
+        "info"
+      ]
+    },
+    {
+      "name": "icon",
+      "type": "string",
+      "required": false,
+      "description": "icon override, e.g. stopnoteicons:stop-icon; derived from status when omitted"
+    }
+  ],
+  "slots": [
+    {
+      "name": "message",
+      "description": "Note Text"
+    }
+  ],
+  "example_html": "<stop-note title=\"Hold up there\"><p slot=\"message\"><strong>Read these important things!</strong>\n</p>\n</stop-note>",
+  "agent_notes": "the message body goes in a child with slot=message."
+}

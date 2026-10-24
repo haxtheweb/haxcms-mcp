@@ -1,0 +1,29 @@
+{
+  "tag": "block-quote",
+  "title": "Block quote",
+  "description": "Styled quote block.",
+  "category": "reference",
+  "attributes": [
+    {
+      "name": "citation",
+      "type": "string",
+      "required": false,
+      "description": "Citation text."
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "required": false,
+      "description": "Alternative text for the image."
+    },
+    {
+      "name": "image",
+      "type": "string",
+      "required": false,
+      "description": "Image shown with the quote."
+    }
+  ],
+  "slots": [],
+  "example_html": "<block-quote citation=\"Padmé Amidala: Star wars, Episode II\"><p>So this is how liberty dies... with thunderous applause</p></block-quote>",
+  "agent_notes": ""
+}

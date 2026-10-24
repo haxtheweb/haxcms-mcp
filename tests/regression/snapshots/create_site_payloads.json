@@ -1,0 +1,74 @@
+{
+  "blank_custom": {
+    "build": {
+      "items": [
+        {
+          "content": "<p>Welcome to the course.</p>",
+          "id": "item-home-golden",
+          "indent": 0,
+          "metadata": {
+            "hideInMenu": false,
+            "published": true,
+            "tags": []
+          },
+          "order": 0,
+          "parent": null,
+          "slug": "welcome",
+          "title": "Welcome"
+        }
+      ],
+      "structure": "from-skeleton",
+      "type": "skeleton"
+    },
+    "site": {
+      "description": "An online course",
+      "domain": null,
+      "license": "by-nc",
+      "name": "my-course",
+      "theme": "clean-portfolio"
+    }
+  },
+  "blank_defaults": {
+    "build": {
+      "items": [
+        {
+          "content": "<p></p>",
+          "id": "item-home-golden",
+          "indent": 0,
+          "metadata": {
+            "hideInMenu": false,
+            "published": true,
+            "tags": []
+          },
+          "order": 0,
+          "parent": null,
+          "slug": "home",
+          "title": "Home"
+        }
+      ],
+      "structure": "from-skeleton",
+      "type": "skeleton"
+    },
+    "site": {
+      "description": "",
+      "domain": null,
+      "license": "by-sa",
+      "name": "my-course",
+      "theme": "clean-one"
+    }
+  },
+  "from_skeleton": {
+    "build": {
+      "skeletonMachineName": "online-course-clean-one",
+      "structure": "from-skeleton",
+      "type": "skeleton"
+    },
+    "site": {
+      "description": "",
+      "domain": null,
+      "license": "by-sa",
+      "name": "my-course",
+      "theme": "clean-one"
+    }
+  }
+}

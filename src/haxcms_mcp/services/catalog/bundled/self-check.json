@@ -1,0 +1,70 @@
+{
+  "tag": "self-check",
+  "title": "Self Check",
+  "description": "Users can complete a self-check.",
+  "category": "assessment",
+  "attributes": [
+    {
+      "name": "image",
+      "type": "string",
+      "required": false,
+      "description": "Image for the self-check."
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "Title of the self-check."
+    },
+    {
+      "name": "alt",
+      "type": "string",
+      "required": false,
+      "description": "Alt text for the image."
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "Choose a theme color from the design system.",
+      "enum": [
+        "primary",
+        "accent",
+        "success",
+        "warning",
+        "error",
+        "info"
+      ]
+    },
+    {
+      "name": "has-learning-objective",
+      "type": "string",
+      "required": false,
+      "description": "Learning objective reference emitted as oer:hasLearningObjective."
+    },
+    {
+      "name": "assessing",
+      "type": "string",
+      "required": false,
+      "description": "Activity reference emitted as oer:assessing."
+    },
+    {
+      "name": "link",
+      "type": "string",
+      "required": false,
+      "description": "Link to additional information."
+    }
+  ],
+  "slots": [
+    {
+      "name": "question",
+      "description": "Question"
+    },
+    {
+      "name": "default",
+      "description": "Answer"
+    }
+  ],
+  "example_html": "<self-check accent-color=\"primary\" title=\"Sharks Self Check\" image=\"https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/White_shark.jpg/480px-White_shark.jpg\" alt=\"Great White Shark\"><p slot=\"question\">How large can the average great white shark grow to be?</p><p>The Great White shark can grow to be 15 ft to more than 20 ft in length and weigh 2.5 tons or more.</p></self-check>",
+  "agent_notes": "the question goes in a child with slot=question (<p slot=question>...</p>); the answer is the default slot content."
+}

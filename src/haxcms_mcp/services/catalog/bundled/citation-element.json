@@ -1,0 +1,65 @@
+{
+  "tag": "citation-element",
+  "title": "Citation",
+  "description": "Citation element with three presentation modes.",
+  "category": "reference",
+  "attributes": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "title of the cited work"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "required": false,
+      "description": "URL of the cited work"
+    },
+    {
+      "name": "date",
+      "type": "string",
+      "required": false,
+      "description": "date accessed, as shown"
+    },
+    {
+      "name": "scope",
+      "type": "string",
+      "required": false,
+      "description": "what the citation applies to (default sibling)",
+      "enum": [
+        "sibling",
+        "parent"
+      ]
+    },
+    {
+      "name": "license",
+      "type": "string",
+      "required": false,
+      "description": "CC license key",
+      "enum": [
+        "by",
+        "by-sa",
+        "by-nd",
+        "by-nc",
+        "by-nc-sa",
+        "by-nc-nd"
+      ]
+    },
+    {
+      "name": "creator",
+      "type": "string",
+      "required": false,
+      "description": "author / creator name (attribute is creator, not author)"
+    },
+    {
+      "name": "typeof",
+      "type": "string",
+      "required": false,
+      "description": "schema.org type (default oer:ReferencedMaterial)"
+    }
+  ],
+  "slots": [],
+  "example_html": "<citation-element creator=\"Cool Joe\" license=\"by\" title=\"Te Futr Da Biz\" source=\"https://duckduckgo.com/\" date=\"03/07/2020\"></citation-element>",
+  "agent_notes": "license-name/license-link/license-image are auto-derived from the license key; an incoming author value is mapped to creator."
+}

@@ -1,0 +1,65 @@
+{
+  "tag": "image-compare-slider",
+  "title": "Image compare",
+  "description": "Swipe one image over another for comparison.",
+  "category": "media",
+  "attributes": [
+    {
+      "name": "top-src",
+      "type": "string",
+      "required": true,
+      "description": "Top image to swipe over the bottom image."
+    },
+    {
+      "name": "top-alt",
+      "type": "string",
+      "required": true,
+      "description": "Required alt text for accessibility."
+    },
+    {
+      "name": "bottom-src",
+      "type": "string",
+      "required": true,
+      "description": "Bottom image shown under the top image."
+    },
+    {
+      "name": "bottom-alt",
+      "type": "string",
+      "required": true,
+      "description": "Required alt text for accessibility."
+    },
+    {
+      "name": "opacity",
+      "type": "boolean",
+      "required": false,
+      "description": "Choose wipe mode (default) or top-image opacity mode."
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "Slider bar color."
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "Invert the slider bar color."
+    },
+    {
+      "name": "position",
+      "type": "number",
+      "required": false,
+      "description": "Starting position from 0 to 100."
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "optional heading rendered above the slider"
+    }
+  ],
+  "slots": [],
+  "example_html": "<image-compare-slider opacity=\"opacity\" top-src=\"https://cdn2.thecatapi.com/images/bjj.jpg\" top-alt=\"\" bottom-src=\"https://cdn2.thecatapi.com/images/9j5.jpg\" bottom-alt=\"\"></image-compare-slider>",
+  "agent_notes": ""
+}

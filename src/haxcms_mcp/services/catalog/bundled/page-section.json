@@ -1,0 +1,72 @@
+{
+  "tag": "page-section",
+  "title": "Page section",
+  "description": "Section container for page content and screen-based layouts.",
+  "category": "layout",
+  "attributes": [
+    {
+      "name": "preset",
+      "type": "string",
+      "required": false,
+      "description": "Preset style that updates related settings.",
+      "enum": [
+        "custom",
+        "antihero",
+        "antihero-light",
+        "video"
+      ]
+    },
+    {
+      "name": "image",
+      "type": "string",
+      "required": false,
+      "description": "Background media for the section."
+    },
+    {
+      "name": "bg",
+      "type": "string",
+      "required": false,
+      "description": "Background color when no image is set."
+    },
+    {
+      "name": "scroller",
+      "type": "boolean",
+      "required": false,
+      "description": "Show a button that scrolls to the next section."
+    },
+    {
+      "name": "fold",
+      "type": "boolean",
+      "required": false,
+      "description": "Show a visual fold at the bottom of the section."
+    },
+    {
+      "name": "full",
+      "type": "boolean",
+      "required": false,
+      "description": "Fill the viewer's screen height."
+    },
+    {
+      "name": "filter",
+      "type": "boolean",
+      "required": false,
+      "description": "Apply a visual filter to the background image."
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "description": "Content"
+    },
+    {
+      "name": "entice",
+      "description": "Entice"
+    },
+    {
+      "name": "buttons",
+      "description": "Buttons"
+    }
+  ],
+  "example_html": "<page-section preset=\"antihero\" filter=\"filter\" bg=\"light-blue\" full=\"full\" fold=\"fold\" scroller=\"scroller\"><h2>Sharp looking section</h2><hr/><p>This is some sharp looking, well presented content</p><simple-cta hotline filled outlined slot=\"buttons\">Really sharp</simple-cta></page-section>",
+  "agent_notes": ""
+}

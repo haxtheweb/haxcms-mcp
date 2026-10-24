@@ -1,0 +1,1817 @@
+{
+  "a11y-collapse": {
+    "agent_notes": "the trigger is a child with slot=heading; the revealed body is the default slot content.",
+    "attributes": [
+      {
+        "description": "Text for the collapse.",
+        "enum": null,
+        "name": "heading",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Make the entire heading clickable instead of only the icon.",
+        "enum": null,
+        "name": "heading-button",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Icon for the expand/collapse toggle button.",
+        "enum": null,
+        "name": "icon",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Optional icon for the expanded toggle state.",
+        "enum": null,
+        "name": "icon-expanded",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Tooltip for the expand/collapse toggle button.",
+        "enum": null,
+        "name": "tooltip",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Tooltip for the expand/collapse button when expanded.",
+        "enum": null,
+        "name": "tooltip-expanded",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "expand by default; the HAX editor strips it from its own saves, direct content writes persist it; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "expanded",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "text",
+    "description": "Single expandable and collapsible container.",
+    "example_html": "<a11y-collapse heading=\"Heading\" heading-button=\"heading-button\"><p>Content goes here.</p></a11y-collapse>",
+    "slots": [
+      {
+        "description": "Content",
+        "name": "default"
+      }
+    ],
+    "tag": "a11y-collapse",
+    "title": "Collapsible container"
+  },
+  "accent-card": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "card image URL (files/... or full URL)",
+        "enum": null,
+        "name": "image-src",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "alt text for the card image",
+        "enum": null,
+        "name": "image-alt",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "horizontal image position",
+        "enum": [
+          "left",
+          "center",
+          "right"
+        ],
+        "name": "image-align",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "vertical image position",
+        "enum": [
+          "top",
+          "center",
+          "bottom"
+        ],
+        "name": "image-valign",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "design-system accent color",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "image beside content; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "horizontal",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "accent the heading area; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "accent-heading",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "accent the background; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "accent-background",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "no-border",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "no shadow; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "flat",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "layout",
+    "description": "A card with optional accent styling.",
+    "example_html": "<accent-card accent-color=\"red\" accent-heading=\"accent-heading\" horizontal=\"horizontal\" image-src=\"https://placehold.co/500x300\"><h3 slot=\"heading\">Accent Card</h3><h4 slot=\"subheading\">A card with optional accent stylings.</h4><div slot=\"content\"><p>This card is highly customizable to contain any content you'd like</p></div></accent-card>",
+    "slots": [
+      {
+        "description": "card heading (wrapper h3-h6)",
+        "name": "heading"
+      },
+      {
+        "description": "line under the heading (wrapper div/p/h4-h6)",
+        "name": "subheading"
+      },
+      {
+        "description": "card body (wrapper p)",
+        "name": "content"
+      },
+      {
+        "description": "card footer (wrapper div/p)",
+        "name": "footer"
+      },
+      {
+        "description": "corner decoration (advanced; wrapper div/p)",
+        "name": "corner"
+      }
+    ],
+    "tag": "accent-card",
+    "title": "Card"
+  },
+  "audio-player": {
+    "agent_notes": "extends video-player with audioOnly forced; same attribute family.",
+    "attributes": [
+      {
+        "description": "audio/video URL or uploaded file (files/<name>)",
+        "enum": null,
+        "name": "source",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "accessible title for the player",
+        "enum": null,
+        "name": "media-title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "design-system accent color",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "closed-captions file URL",
+        "enum": null,
+        "name": "track",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "poster image URL",
+        "enum": null,
+        "name": "thumbnail-src",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "learning-mode",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-youtube-link",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "linkable",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "inherited: playback start offset",
+        "enum": null,
+        "name": "start-time",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "inherited: playback end offset",
+        "enum": null,
+        "name": "end-time",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "inherited; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-transcript",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "inherited; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-timestamps",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "media",
+    "description": "This can present video in a highly accessible manner regardless of source.",
+    "example_html": "<audio-player source=\"https://archive.org/download/tvtunes_4710/Jonny%20Quest.mp3\" media-title=\"Jonny Quest Theme\"></audio-player>",
+    "slots": [],
+    "tag": "audio-player",
+    "title": "Audio"
+  },
+  "block-quote": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Citation text.",
+        "enum": null,
+        "name": "citation",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Alternative text for the image.",
+        "enum": null,
+        "name": "alt",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Image shown with the quote.",
+        "enum": null,
+        "name": "image",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "reference",
+    "description": "Styled quote block.",
+    "example_html": "<block-quote citation=\"Padmé Amidala: Star wars, Episode II\"><p>So this is how liberty dies... with thunderous applause</p></block-quote>",
+    "slots": [],
+    "tag": "block-quote",
+    "title": "Block quote"
+  },
+  "citation-element": {
+    "agent_notes": "license-name/license-link/license-image are auto-derived from the license key; an incoming author value is mapped to creator.",
+    "attributes": [
+      {
+        "description": "title of the cited work",
+        "enum": null,
+        "name": "title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "URL of the cited work",
+        "enum": null,
+        "name": "source",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "date accessed, as shown",
+        "enum": null,
+        "name": "date",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "what the citation applies to (default sibling)",
+        "enum": [
+          "sibling",
+          "parent"
+        ],
+        "name": "scope",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "CC license key",
+        "enum": [
+          "by",
+          "by-sa",
+          "by-nd",
+          "by-nc",
+          "by-nc-sa",
+          "by-nc-nd"
+        ],
+        "name": "license",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "author / creator name (attribute is creator, not author)",
+        "enum": null,
+        "name": "creator",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "schema.org type (default oer:ReferencedMaterial)",
+        "enum": null,
+        "name": "typeof",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "reference",
+    "description": "Citation element with three presentation modes.",
+    "example_html": "<citation-element creator=\"Cool Joe\" license=\"by\" title=\"Te Futr Da Biz\" source=\"https://duckduckgo.com/\" date=\"03/07/2020\"></citation-element>",
+    "slots": [],
+    "tag": "citation-element",
+    "title": "Citation"
+  },
+  "code-sample": {
+    "agent_notes": "the code MUST live inside <template preserve-content=...> and be HTML-escaped (<, >, &); the save-time sanitizer keeps template content.",
+    "attributes": [
+      {
+        "description": "language of the code (default html)",
+        "enum": [
+          "javascript",
+          "html",
+          "css",
+          "xml",
+          "json",
+          "yaml",
+          "php"
+        ],
+        "name": "type",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "show a copy button; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "copy-clipboard-button",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "first line number to highlight",
+        "enum": null,
+        "name": "highlight-start",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "last line number to highlight",
+        "enum": null,
+        "name": "highlight-end",
+        "required": false,
+        "type": "number"
+      }
+    ],
+    "category": "text",
+    "description": "A sample of code highlighted in the page",
+    "example_html": "<code-sample type=\"javascript\" copy-clipboard-button=\"copy-clipboard-button\"><template preserve-content=\"preserve-content\">const great = \"example\";\nconst great2 = great;</template></code-sample>",
+    "slots": [],
+    "tag": "code-sample",
+    "title": "Code sample"
+  },
+  "fill-in-the-blanks": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Question for users to respond to.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Statement that will be converted into the mark the words interaction.",
+        "enum": null,
+        "name": "statement",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion).",
+        "enum": null,
+        "name": "grading-format",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: learning objective associated with this assessment.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: course this assessment is intended for.",
+        "enum": null,
+        "name": "for-course",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Assessment activity where learners complete missing words in a statement.",
+    "example_html": "<fill-in-the-blanks question=\"Complete this sentence\" statement=\"[hax] is really [good~great] at authoring [content|kittens|kites|moons] which is nice..\"></fill-in-the-blanks>",
+    "slots": [],
+    "tag": "fill-in-the-blanks",
+    "title": "Fill in the blanks"
+  },
+  "flash-card": {
+    "agent_notes": "front and back go in children with slot=front / slot=back (<p slot='front'>...</p><p slot='back'>...</p>).",
+    "attributes": [
+      {
+        "description": "Image file used for the card. Overrides Image Keyword.",
+        "enum": null,
+        "name": "img-source",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: the type of action this practice involves (e.g. Reading, Writing, Making, Researching, Listening, Watching, Reflecting, Discussing, Observing, Presenting, Assess).",
+        "enum": null,
+        "name": "type-of-action",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: ID or URL of the learning objective this practice supports.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Use dark mode.",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Card accent color.",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Random image keyword. Overridden by Image Source.",
+        "enum": null,
+        "name": "img-keyword",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "text-to-speech: speak the card; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "speak",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "text-to-speech: listen mode; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "listen",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "assessment",
+    "description": "Practice concepts with front-and-back flash cards.",
+    "example_html": "<flash-card speak=\"speak\" img-source=\"https://hips.hearstapps.com/clv.h-cdn.co/assets/15/22/1432664914-strawberry-facts1.jpg\" listen=\"listen\"><p slot='front'>What is strawberry in Spanish</p><p slot='back'>fresa</p></flash-card>",
+    "slots": [
+      {
+        "description": "Front of the Card",
+        "name": "front"
+      },
+      {
+        "description": "Back of the Card",
+        "name": "back"
+      }
+    ],
+    "tag": "flash-card",
+    "title": "Flash card"
+  },
+  "grid-plate": {
+    "agent_notes": "layout lists relative column widths (1-1 = two equal columns); every child must carry slot=col-N matching the layout's column count. Legacy numeric aliases (12, 8, 6/6, 4/4/4, 3/3/3/3) are accepted at runtime.",
+    "attributes": [
+      {
+        "description": "column template (name = relative widths)",
+        "enum": [
+          "1",
+          "1-1",
+          "2-1",
+          "1-2",
+          "3-1",
+          "1-3",
+          "1-1-1",
+          "2-1-1",
+          "1-2-1",
+          "1-1-2",
+          "1-1-1-1"
+        ],
+        "name": "layout",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "keep columns side-by-side on small screens; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "disable-responsive",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "padding inside each column, px (0-120, step 4)",
+        "enum": null,
+        "name": "item-padding",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "margin around each column, px (0-120, step 4)",
+        "enum": null,
+        "name": "item-margin",
+        "required": false,
+        "type": "number"
+      }
+    ],
+    "category": "layout",
+    "description": "Layout material in simple columns",
+    "example_html": "<grid-plate layout=\"1-1\" item-margin=\"16\" item-padding=\"16\"><p slot=\"col-1\">Column one content</p><p slot=\"col-2\">Column two content</p></grid-plate>",
+    "slots": [
+      {
+        "description": "first column",
+        "name": "col-1"
+      },
+      {
+        "description": "second column",
+        "name": "col-2"
+      },
+      {
+        "description": "third column",
+        "name": "col-3"
+      },
+      {
+        "description": "fourth column",
+        "name": "col-4"
+      },
+      {
+        "description": "fifth column",
+        "name": "col-5"
+      },
+      {
+        "description": "sixth column",
+        "name": "col-6"
+      }
+    ],
+    "tag": "grid-plate",
+    "title": "Column layout"
+  },
+  "image-compare-slider": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Top image to swipe over the bottom image.",
+        "enum": null,
+        "name": "top-src",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Required alt text for accessibility.",
+        "enum": null,
+        "name": "top-alt",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Bottom image shown under the top image.",
+        "enum": null,
+        "name": "bottom-src",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Required alt text for accessibility.",
+        "enum": null,
+        "name": "bottom-alt",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Choose wipe mode (default) or top-image opacity mode.",
+        "enum": null,
+        "name": "opacity",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Slider bar color.",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Invert the slider bar color.",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Starting position from 0 to 100.",
+        "enum": null,
+        "name": "position",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "optional heading rendered above the slider",
+        "enum": null,
+        "name": "title",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "media",
+    "description": "Swipe one image over another for comparison.",
+    "example_html": "<image-compare-slider opacity=\"opacity\" top-src=\"https://cdn2.thecatapi.com/images/bjj.jpg\" top-alt=\"\" bottom-src=\"https://cdn2.thecatapi.com/images/9j5.jpg\" bottom-alt=\"\"></image-compare-slider>",
+    "slots": [],
+    "tag": "image-compare-slider",
+    "title": "Image compare"
+  },
+  "image-gallery": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "How to present the images in the gallery.",
+        "enum": [
+          "grid",
+          "masonry",
+          "gallery"
+        ],
+        "name": "mode",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Index of the active image to start on in gallery mode.",
+        "enum": null,
+        "name": "active-index",
+        "required": false,
+        "type": "number"
+      }
+    ],
+    "category": "media",
+    "description": "A gallery that presents images in grid, masonry, or slideshow layouts.",
+    "example_html": "<image-gallery mode=\"masonry\"><media-image source=\"https://dummyimage.com/300x200/000/fff\" alt=\"Sample image 1\"></media-image><media-image source=\"https://dummyimage.com/300x300/111/eee\" alt=\"Sample image 2\"></media-image><media-image source=\"https://dummyimage.com/400x200/222/ddd\" alt=\"Sample image 3\"></media-image></image-gallery>",
+    "slots": [],
+    "tag": "image-gallery",
+    "title": "Image Gallery"
+  },
+  "learning-component": {
+    "agent_notes": "changing type overwrites title/icon on update — set explicit overrides only together with (or after) type, or omit type.",
+    "attributes": [
+      {
+        "description": "component kind; auto-derives title, icon and accent-color",
+        "enum": [
+          "objectives",
+          "connection",
+          "knowledge",
+          "strategy",
+          "discuss",
+          "listen",
+          "make",
+          "observe",
+          "present",
+          "read",
+          "reflect",
+          "research",
+          "watch",
+          "write",
+          "content",
+          "assessment",
+          "quiz",
+          "submission",
+          "lesson",
+          "module",
+          "task",
+          "activity",
+          "project",
+          "practice",
+          "unit"
+        ],
+        "name": "type",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "line under the component heading",
+        "enum": null,
+        "name": "subtitle",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "linked resource URL",
+        "enum": null,
+        "name": "url",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "overrides the type-based title",
+        "enum": null,
+        "name": "title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "overrides the type-based icon (iconify name)",
+        "enum": null,
+        "name": "icon",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "overrides the type-based color",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "education",
+    "description": "A card for instructors to communicate pedagogy and instructional strategies.",
+    "example_html": "<learning-component type=\"objectives\" subtitle=\"Unit 1\"><p>By the end of this lesson, you should be able to...</p></learning-component>",
+    "slots": [
+      {
+        "description": "component body content",
+        "name": "default"
+      }
+    ],
+    "tag": "learning-component",
+    "title": "Learning Component"
+  },
+  "license-element": {
+    "agent_notes": "license-name/license-image/license-link auto-derived; has-more computed from more-link.",
+    "attributes": [
+      {
+        "description": "work title shown in the notice",
+        "enum": null,
+        "name": "title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "URL of the work",
+        "enum": null,
+        "name": "source",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "CC license key",
+        "enum": [
+          "by",
+          "by-sa",
+          "by-nd",
+          "by-nc",
+          "by-nc-sa",
+          "by-nc-nd"
+        ],
+        "name": "license",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "author name (attribute is creator, not author)",
+        "enum": null,
+        "name": "creator",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "URL of a licensing details page",
+        "enum": null,
+        "name": "more-link",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "label for the more-link (default 'on the licensing details page')",
+        "enum": null,
+        "name": "more-label",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "reference",
+    "description": "Provide a license for your work.",
+    "example_html": "<license-element title=\"Wonderland\" creator=\"Mad Hatter\" source=\"https://haxtheweb.org/\" license=\"by\"></license-element>",
+    "slots": [],
+    "tag": "license-element",
+    "title": "License"
+  },
+  "lrndesign-timeline": {
+    "agent_notes": "Prefer the events attribute (JSON array); the <section>-children fallback takes the first h1-h6 as heading and remaining children as details. timeline-size (xs/sm/md/lg/xl) exists but is unreliable in 26.8.1.",
+    "attributes": [
+      {
+        "description": "heading shown above the timeline",
+        "enum": null,
+        "name": "timeline-title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "design-system accent color",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "JSON array of {heading, details, imagesrc, imagealt} — primary way to supply events; when empty, light-DOM <section> children are used instead",
+        "enum": null,
+        "name": "events",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "education",
+    "description": "A timeline of events with images and text",
+    "example_html": "<lrndesign-timeline timeline-title=\"Course history\"><section><h2>1855 - Charter</h2><p>Charter signed and in effect.</p></section><section><h2>1953 - Rename</h2><p>The current name became official.</p></section></lrndesign-timeline>",
+    "slots": [
+      {
+        "description": "timeline description shown under the title",
+        "name": "default"
+      }
+    ],
+    "tag": "lrndesign-timeline",
+    "title": "Timeline"
+  },
+  "mark-the-words": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Question for users to respond to.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Statement that will be converted into the mark the words interaction.",
+        "enum": null,
+        "name": "statement",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion).",
+        "enum": null,
+        "name": "grading-format",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: learning objective associated with this assessment.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: course this assessment is intended for.",
+        "enum": null,
+        "name": "for-course",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Identify concepts via words by clicking within a body of text.",
+    "example_html": "<mark-the-words question=\"Select all of the contractions\" statement=\"I have not been to the farm-house, however; it&#x27;ll be fun to attend!\"><input correct value=\"it'll\" /></mark-the-words>",
+    "slots": [],
+    "tag": "mark-the-words",
+    "title": "Mark the words"
+  },
+  "matching-question": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Question for users. Mark drop targets, then list answers until the next target.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion).",
+        "enum": null,
+        "name": "grading-format",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: learning objective associated with this assessment.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: course this assessment is intended for.",
+        "enum": null,
+        "name": "for-course",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Drag-and-drop matching activity that pairs prompts with their correct responses.",
+    "example_html": "<matching-question question=\"What does the animal say?\" data-accent=\"2\"><input correct value=\"Cow\"/><input value=\"Moo\"/><input correct value=\"Fox\"/><input value=\"PaPaPower\"/></matching-question>",
+    "slots": [],
+    "tag": "matching-question",
+    "title": "Matching Question"
+  },
+  "md-block": {
+    "agent_notes": "tag body content is treated as markdown, not rendered HTML.",
+    "attributes": [
+      {
+        "description": "raw markdown string",
+        "enum": null,
+        "name": "markdown",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "remote .md file URL (takes priority over markdown)",
+        "enum": null,
+        "name": "source",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "inherited design-system accent color",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "text",
+    "description": "A block of markdown content directly or remote loaded",
+    "example_html": "<md-block markdown=\"- The first bulleted item in a long list..\"></md-block>",
+    "slots": [
+      {
+        "description": "markdown source text (moved into the markdown property on load)",
+        "name": "default"
+      }
+    ],
+    "tag": "md-block",
+    "title": "Markdown"
+  },
+  "media-image": {
+    "agent_notes": "Upload the image first (add_file) and use the returned site-relative url as source. Boolean attributes take their own name as the value (card=card).",
+    "attributes": [
+      {
+        "description": "image file (files/<name> uploaded via add_file, or a full URL)",
+        "enum": null,
+        "name": "source",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "alt text describing the image",
+        "enum": null,
+        "name": "alt",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "wrap the image in a link to this URL/file",
+        "enum": null,
+        "name": "link",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "card treatment; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "card",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "box treatment; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "box",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "pull the image out of the text column",
+        "enum": [
+          "none",
+          "wide",
+          "narrow"
+        ],
+        "name": "offset",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "attribution / credit line",
+        "enum": null,
+        "name": "citation",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "figure caption shown under the image",
+        "enum": null,
+        "name": "caption",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "label title shown above the caption",
+        "enum": null,
+        "name": "figure-label-title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "label description text",
+        "enum": null,
+        "name": "figure-label-description",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "separate thumbnail image URL",
+        "enum": null,
+        "name": "thumbnail",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "round the image corners; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "round",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "turn off click-to-zoom; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "disable-zoom",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "display width (CSS honors only small; anything else renders at the default wide)",
+        "enum": [
+          "small",
+          "wide"
+        ],
+        "name": "size",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "inherited design-system accent color",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "media",
+    "description": "A way of presenting images with various enhancements.",
+    "example_html": "<media-image source=\"https://dummyimage.com/300x200/000/fff\" alt=\"Placeholder image\" card=\"card\" citation=\"This is my citation.\"></media-image>",
+    "slots": [],
+    "tag": "media-image",
+    "title": "Enhanced Image"
+  },
+  "multiple-choice": {
+    "agent_notes": "answers are child inputs: <input type=checkbox value=...> with a bare `correct` attribute on the right ones; single-option switches to one-answer mode; randomize shuffles; check-label/hide-buttons adjust the UI.",
+    "attributes": [
+      {
+        "description": "Question for users to respond to.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Randomize answers dynamically.",
+        "enum": null,
+        "name": "randomize",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Allow only one answer.",
+        "enum": null,
+        "name": "single-option",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion).",
+        "enum": null,
+        "name": "grading-format",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: learning objective associated with this assessment.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: course this assessment is intended for.",
+        "enum": null,
+        "name": "for-course",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Multiple-choice self-check question.",
+    "example_html": "<multiple-choice question=\"Which is correct?\" single-option=\"single-option\" randomize=\"randomize\"><input type=\"checkbox\" value=\"Answer 1\" correct>\n<input type=\"checkbox\" value=\"Another potential answer\"></multiple-choice>",
+    "slots": [],
+    "tag": "multiple-choice",
+    "title": "Multiple choice"
+  },
+  "page-section": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Preset style that updates related settings.",
+        "enum": [
+          "custom",
+          "antihero",
+          "antihero-light",
+          "video"
+        ],
+        "name": "preset",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Background media for the section.",
+        "enum": null,
+        "name": "image",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Background color when no image is set.",
+        "enum": null,
+        "name": "bg",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Show a button that scrolls to the next section.",
+        "enum": null,
+        "name": "scroller",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Show a visual fold at the bottom of the section.",
+        "enum": null,
+        "name": "fold",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Fill the viewer's screen height.",
+        "enum": null,
+        "name": "full",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "Apply a visual filter to the background image.",
+        "enum": null,
+        "name": "filter",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "layout",
+    "description": "Section container for page content and screen-based layouts.",
+    "example_html": "<page-section preset=\"antihero\" filter=\"filter\" bg=\"light-blue\" full=\"full\" fold=\"fold\" scroller=\"scroller\"><h2>Sharp looking section</h2><hr/><p>This is some sharp looking, well presented content</p><simple-cta hotline filled outlined slot=\"buttons\">Really sharp</simple-cta></page-section>",
+    "slots": [
+      {
+        "description": "Content",
+        "name": "default"
+      },
+      {
+        "description": "Entice",
+        "name": "entice"
+      },
+      {
+        "description": "Buttons",
+        "name": "buttons"
+      }
+    ],
+    "tag": "page-section",
+    "title": "Page section"
+  },
+  "place-holder": {
+    "agent_notes": "the icon is auto-derived from type; save wipes slot and derived attributes.",
+    "attributes": [
+      {
+        "description": "kind of media it stands in for (default text)",
+        "enum": [
+          "text",
+          "document",
+          "audio",
+          "video",
+          "image",
+          "math"
+        ],
+        "name": "type",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "message shown inside the placeholder",
+        "enum": null,
+        "name": "text",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "layout",
+    "description": "A place holder that can be converted into the media type that's been selected",
+    "example_html": "<place-holder type=\"image\" text=\"Figure coming soon\"></place-holder>",
+    "slots": [],
+    "tag": "place-holder",
+    "title": "Placeholder"
+  },
+  "self-check": {
+    "agent_notes": "the question goes in a child with slot=question (<p slot=question>...</p>); the answer is the default slot content.",
+    "attributes": [
+      {
+        "description": "Image for the self-check.",
+        "enum": null,
+        "name": "image",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Title of the self-check.",
+        "enum": null,
+        "name": "title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Alt text for the image.",
+        "enum": null,
+        "name": "alt",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Choose a theme color from the design system.",
+        "enum": [
+          "primary",
+          "accent",
+          "success",
+          "warning",
+          "error",
+          "info"
+        ],
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Learning objective reference emitted as oer:hasLearningObjective.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Activity reference emitted as oer:assessing.",
+        "enum": null,
+        "name": "assessing",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "Link to additional information.",
+        "enum": null,
+        "name": "link",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Users can complete a self-check.",
+    "example_html": "<self-check accent-color=\"primary\" title=\"Sharks Self Check\" image=\"https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/White_shark.jpg/480px-White_shark.jpg\" alt=\"Great White Shark\"><p slot=\"question\">How large can the average great white shark grow to be?</p><p>The Great White shark can grow to be 15 ft to more than 20 ft in length and weigh 2.5 tons or more.</p></self-check>",
+    "slots": [
+      {
+        "description": "Question",
+        "name": "question"
+      },
+      {
+        "description": "Answer",
+        "name": "default"
+      }
+    ],
+    "tag": "self-check",
+    "title": "Self Check"
+  },
+  "short-answer-question": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Question for users to respond to.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Have the user answer a basic question",
+    "example_html": "<short-answer-question question=\"Which direction on a compass rose is always pointing up?\"><input type=\"checkbox\" value=\"North\" correct></short-answer-question>",
+    "slots": [],
+    "tag": "short-answer-question",
+    "title": "Short Answer Question"
+  },
+  "simple-cta": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "button text",
+        "enum": null,
+        "name": "label",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "destination URL",
+        "enum": null,
+        "name": "link",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-icon",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "simple-icons name as iconset:icon (default icons:chevron-right)",
+        "enum": null,
+        "name": "icon",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "layout",
+    "description": "A simple button with a link to take action.",
+    "example_html": "<simple-cta label=\"Click to learn more\" link=\"https://haxtheweb.org/\"></simple-cta>",
+    "slots": [],
+    "tag": "simple-cta",
+    "title": "Call to action"
+  },
+  "sorting-question": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Question Header.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion).",
+        "enum": null,
+        "name": "grading-format",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: learning objective associated with this assessment.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: course this assessment is intended for.",
+        "enum": null,
+        "name": "for-course",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Sort items into the correct order.",
+    "example_html": "<sorting-question question=\"Sorting these in numerical order\"><p slot=\"evidence\">Self evident, Refer back to 1st grade</p><p slot=\"hint\">Consider that numbers tend to go zero, one, two...</p><input value=\"1\" /><input value=\"2\" /><input value=\"3\" /></sorting-question>",
+    "slots": [],
+    "tag": "sorting-question",
+    "title": "Sorting Question"
+  },
+  "stop-note": {
+    "agent_notes": "the message body goes in a child with slot=message.",
+    "attributes": [
+      {
+        "description": "Enter title for stop-note.",
+        "enum": null,
+        "name": "title",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Enter an external url.",
+        "enum": null,
+        "name": "url",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Setting status changes the colors and icons to match",
+        "enum": [
+          "stop",
+          "warning",
+          "success",
+          "info"
+        ],
+        "name": "status",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "icon override, e.g. stopnoteicons:stop-icon; derived from status when omitted",
+        "enum": null,
+        "name": "icon",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "text",
+    "description": "A message to alert readers to specific directions.",
+    "example_html": "<stop-note title=\"Hold up there\"><p slot=\"message\"><strong>Read these important things!</strong>\n</p>\n</stop-note>",
+    "slots": [
+      {
+        "description": "Note Text",
+        "name": "message"
+      }
+    ],
+    "tag": "stop-note",
+    "title": "Stop Note"
+  },
+  "tagging-question": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Question for users to respond to.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: grading format for this assessment (e.g. points, letter, percent, completion).",
+        "enum": null,
+        "name": "grading-format",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: learning objective associated with this assessment.",
+        "enum": null,
+        "name": "has-learning-objective",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "OER Schema: course this assessment is intended for.",
+        "enum": null,
+        "name": "for-course",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "Select tags to answer the question.",
+    "example_html": "<tagging-question question=\"What does the fox say?\" data-accent=\"2\"><input correct value=\"DingDingDing\"/><input correct value=\"PaPaPower\"/><input value=\"Moo\"/></tagging-question>",
+    "slots": [],
+    "tag": "tagging-question",
+    "title": "Tagging Question"
+  },
+  "true-false-question": {
+    "agent_notes": "the correct answer is a child <input type=checkbox value=True|False> carrying a bare `correct` attribute; the editor-only _tfanswer property is stripped on save (saveOptions.unsetAttributes).",
+    "attributes": [
+      {
+        "description": "Question for users to respond to.",
+        "enum": null,
+        "name": "question",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "assessment",
+    "description": "True false question",
+    "example_html": "<true-false-question question=\"HAX is game changing.\"><input type=\"checkbox\" value=\"True\" correct>\n<input type=\"checkbox\" value=\"False\"></true-false-question>",
+    "slots": [],
+    "tag": "true-false-question",
+    "title": "True / False Question"
+  },
+  "video-player": {
+    "agent_notes": "source accepts provider watch URLs as well as direct media files; accessible title goes in media-title.",
+    "attributes": [
+      {
+        "description": "YouTube/Vimeo/Kaltura/mp4 URL or uploaded file",
+        "enum": null,
+        "name": "source",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "accessible title for the player",
+        "enum": null,
+        "name": "media-title",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "custom poster/thumbnail image URL",
+        "enum": null,
+        "name": "thumbnail-src",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "JSON array of caption tracks: [{src, label, srclang, kind}]",
+        "enum": null,
+        "name": "tracks",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "playback start offset in seconds",
+        "enum": null,
+        "name": "start-time",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "playback end offset in seconds",
+        "enum": null,
+        "name": "end-time",
+        "required": false,
+        "type": "number"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "learning-mode",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-youtube-link",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "deep-linkable timestamps; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "linkable",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-timestamps",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "hide-transcript",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "audio-description media URL",
+        "enum": null,
+        "name": "audio-description-source",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "accent color (SimpleColors palette); deprecated developer setting in haxProperties but still rendered by the element",
+        "enum": null,
+        "name": "accent-color",
+        "required": false,
+        "type": "string"
+      },
+      {
+        "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)",
+        "enum": null,
+        "name": "dark",
+        "required": false,
+        "type": "boolean"
+      }
+    ],
+    "category": "media",
+    "description": "Accessible video playback across multiple sources.",
+    "example_html": "<video-player source=\"https://www.youtube.com/watch?v=LrS7dqokTLE\" data-width=\"75\" data-margin=\"center\"></video-player>",
+    "slots": [],
+    "tag": "video-player",
+    "title": "Video"
+  },
+  "vocab-term": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Term",
+        "enum": null,
+        "name": "term",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Definition shown when the term is clicked.",
+        "enum": null,
+        "name": "information",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Display the definition in a popover instead of inline.",
+        "enum": null,
+        "name": "popover-mode",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "List of supplemental links associated with this term.",
+        "enum": null,
+        "name": "links",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "education",
+    "description": "Vocabulary term.",
+    "example_html": "<vocab-term term=\"HAX Camp\" information=\"An event dedicated to spreading web components knowledge person to person.\" popover-mode=\"popover-mode\"></vocab-term>",
+    "slots": [],
+    "tag": "vocab-term",
+    "title": "Vocab"
+  },
+  "wikipedia-query": {
+    "agent_notes": "",
+    "attributes": [
+      {
+        "description": "Word to search wikipedia for.",
+        "enum": null,
+        "name": "search",
+        "required": true,
+        "type": "string"
+      },
+      {
+        "description": "Whether or not to render the title of the article.",
+        "enum": null,
+        "name": "hide-title",
+        "required": false,
+        "type": "boolean"
+      },
+      {
+        "description": "The language of the article.",
+        "enum": [
+          "en",
+          "es",
+          "fr",
+          "de",
+          "ja"
+        ],
+        "name": "language",
+        "required": false,
+        "type": "string"
+      }
+    ],
+    "category": "embed",
+    "description": "This can display a wikipedia article in context in a variety of formats.",
+    "example_html": "<wikipedia-query search=\"Internet\"></wikipedia-query>",
+    "slots": [],
+    "tag": "wikipedia-query",
+    "title": "Wikipedia"
+  }
+}

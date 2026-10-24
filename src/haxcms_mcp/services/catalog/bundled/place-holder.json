@@ -1,0 +1,31 @@
+{
+  "tag": "place-holder",
+  "title": "Placeholder",
+  "description": "A place holder that can be converted into the media type that's been selected",
+  "category": "layout",
+  "attributes": [
+    {
+      "name": "type",
+      "type": "string",
+      "required": false,
+      "description": "kind of media it stands in for (default text)",
+      "enum": [
+        "text",
+        "document",
+        "audio",
+        "video",
+        "image",
+        "math"
+      ]
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "required": false,
+      "description": "message shown inside the placeholder"
+    }
+  ],
+  "slots": [],
+  "example_html": "<place-holder type=\"image\" text=\"Figure coming soon\"></place-holder>",
+  "agent_notes": "the icon is auto-derived from type; save wipes slot and derived attributes."
+}

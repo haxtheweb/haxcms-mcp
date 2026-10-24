@@ -1,0 +1,85 @@
+{
+  "tag": "learning-component",
+  "title": "Learning Component",
+  "description": "A card for instructors to communicate pedagogy and instructional strategies.",
+  "category": "education",
+  "attributes": [
+    {
+      "name": "type",
+      "type": "string",
+      "required": false,
+      "description": "component kind; auto-derives title, icon and accent-color",
+      "enum": [
+        "objectives",
+        "connection",
+        "knowledge",
+        "strategy",
+        "discuss",
+        "listen",
+        "make",
+        "observe",
+        "present",
+        "read",
+        "reflect",
+        "research",
+        "watch",
+        "write",
+        "content",
+        "assessment",
+        "quiz",
+        "submission",
+        "lesson",
+        "module",
+        "task",
+        "activity",
+        "project",
+        "practice",
+        "unit"
+      ]
+    },
+    {
+      "name": "subtitle",
+      "type": "string",
+      "required": false,
+      "description": "line under the component heading"
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": false,
+      "description": "linked resource URL"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "overrides the type-based title"
+    },
+    {
+      "name": "icon",
+      "type": "string",
+      "required": false,
+      "description": "overrides the type-based icon (iconify name)"
+    },
+    {
+      "name": "accent-color",
+      "type": "string",
+      "required": false,
+      "description": "overrides the type-based color"
+    },
+    {
+      "name": "dark",
+      "type": "boolean",
+      "required": false,
+      "description": "inherited dark-mode toggle; boolean flag: emit name=name (presence is truth)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "description": "component body content"
+    }
+  ],
+  "example_html": "<learning-component type=\"objectives\" subtitle=\"Unit 1\"><p>By the end of this lesson, you should be able to...</p></learning-component>",
+  "agent_notes": "changing type overwrites title/icon on update — set explicit overrides only together with (or after) type, or omit type."
+}

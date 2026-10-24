@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file. The format is b
 [Conventional Commits](https://www.conventionalcommits.org/). This changelog was
 hand-written from `git log` for the initial release (PLAN T9.6).
 
+## [Unreleased]
+
+### Added
+
+- Nightly `upstream-drift` workflow: vendored specs vs `haxcms-nodejs` `main`, plus the live
+  suites against a fresh `main` checkout ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)).
+- `scripts/sync_specs.py --check --from <checkout>` prints a unified diff and exits 1 on drift;
+  syncing also generates `src/haxcms_mcp/generated/spec_info.py` (spec hashes).
+- Startup compatibility check: the instance's `GET system/api/v1/openapi` is hashed and compared
+  with the vendored spec; a mismatch is logged once and reported by `get_server_info` as
+  `spec_compatibility`. README documents the supported HAXcms range.
+- `create_site_from_platform` accepts the `quarto` platform.
+
+### Changed
+
+- Vendored specs refreshed to HAXcms NodeJS `main` @ `ad82de48` (new `languages` routes, `idMap` on
+  save responses, md site export, auth notes on exports).
+- The Drupal importer id is `drupal` (HAXcms renamed it from `drupal-book`); the old name is still
+  accepted and mapped.
+
 ## [0.1.0] - 2026-10-01
 
 Initial release. An MCP server for a self-hosted HAXcms instance (NodeJS 26.8.1), built

@@ -4163,7 +4163,7 @@
       "read_only_hint": false,
       "title": "Create site from platform"
     },
-    "description": "Create a NEW site from a remote platform export the SERVER fetches.\n\n`platform` is one of: haxcms, html, pressbooks, gitbook, notion, wordpress,\nelmsln, drupal-book, plone, openstax, vitepress. `url` is the export's public URL\n(repoUrl) — the HAXcms server downloads it, so it must be publicly reachable: the\nserver's SSRF guard refuses loopback, private, link-local and metadata addresses\n(INVALID_ARGUMENT). For LOCAL HTML use create_site_from_document with the .html\nfile instead. Remote platforms may bring asset download maps which the server\napplies during creation. `theme` must exist in the live registry; `license`\ndefaults to the import's own license, else by-sa. Returns the created site's\ndetail record (read its `name` — duplicates become `<name>-1`).",
+    "description": "Create a NEW site from a remote platform export the SERVER fetches.\n\n`platform` is one of: haxcms, html, pressbooks, gitbook, notion, wordpress,\nelmsln, drupal, plone, openstax, vitepress, quarto. `url` is the export's public URL\n(repoUrl) — the HAXcms server downloads it, so it must be publicly reachable: the\nserver's SSRF guard refuses loopback, private, link-local and metadata addresses\n(INVALID_ARGUMENT). For LOCAL HTML use create_site_from_document with the .html\nfile instead. Remote platforms may bring asset download maps which the server\napplies during creation. `theme` must exist in the live registry; `license`\ndefaults to the import's own license, else by-sa. Returns the created site's\ndetail record (read its `name` — duplicates become `<name>-1`).",
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -4714,7 +4714,7 @@
       "read_only_hint": true,
       "title": "Server info"
     },
-    "description": "Return identity and configuration of this HAXcms MCP server.\n\nReports which HAXcms instance the server talks to, whether Read-Only Mode is active,\nand — best effort — the instance's own version and status diagnostics (failures appear\nas `version_error` / `status_error` instead of failing the call).",
+    "description": "Return identity and configuration of this HAXcms MCP server.\n\nReports which HAXcms instance the server talks to, whether Read-Only Mode is active,\nand — best effort — the instance's own version and status diagnostics (failures appear\nas `version_error` / `status_error` instead of failing the call). `spec_compatibility`\nsays whether the instance serves the same HAXcms API spec this server was built against\n(`match`, `mismatch` — tools may misbehave — or `unavailable`).",
     "parameters": {
       "additionalProperties": false,
       "properties": {},

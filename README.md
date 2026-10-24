@@ -119,6 +119,38 @@ Add to `claude_desktop_config.json` (stdio; env carries the credentials):
 If `haxcms-mcp` is not on the PATH Desktop sees, use the absolute path (`uv tool dir` shows where
 tools live) or `"command": "uvx", "args": ["--from", "git+<repo-url>", "haxcms-mcp"]`.
 
+## Supported HAXcms
+
+This server is a typed client of the HAXcms NodeJS HTTP API and is built against the OpenAPI
+specs vendored in [`specs/`](specs) (identity in [`specs/VERSION`](specs/VERSION), currently
+**26.8.1 @ `ad82de48`**, i.e. `haxtheweb/haxcms-nodejs` `main` rather than the npm-published
+26.8.1, which predates the file API).
+
+| HAXcms NodeJS | Status |
+|---|---|
+| `main` at or after the vendored commit (spec hash matches) | supported, tested nightly |
+| npm `@haxtheweb/haxcms-nodejs@26.8.1` | partly works: file upload and image-writing document imports fail |
+| anything else (older builds, newer builds with API changes) | best effort; you will get a warning |
+| HAXcms PHP | not supported yet ([haxtheweb/issues#3139](https://github.com/haxtheweb/issues/issues/3139)) |
+
+On startup the server fetches the instance's `GET /system/api/v1/openapi` and compares its hash
+with the vendored spec. A difference is logged once as a warning (stderr) and reported by
+`get_server_info` under `spec_compatibility` (`match`, `mismatch` or `unavailable`). It never
+blocks startup and never disables a tool: most upstream spec edits are descriptions and examples.
+
+### Keeping up with HAXcms
+
+A nightly workflow ([`upstream-drift.yml`](.github/workflows/upstream-drift.yml)) fails when the
+vendored specs differ from `haxcms-nodejs` `main` or when the live suites fail against it. To
+reconcile:
+
+```bash
+uv run python scripts/sync_specs.py --from ../haxcms-nodejs   # specs/, VERSION, generated spec_info.py
+uv run python scripts/gen_tools.py                            # converters
+uv run python scripts/gen_tool_docs.py                        # docs/tools.md
+uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the nightly runs
+```
+
 ## Security notes
 
 - **Credentials live in the environment only** — never in tool arguments or results.

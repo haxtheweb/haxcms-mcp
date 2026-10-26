@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections import OrderedDict
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
@@ -17,6 +19,7 @@ import httpx
 from haxcms_mcp.client.auth import AuthManager
 from haxcms_mcp.client.budget import OutboundBudget
 from haxcms_mcp.client.envelope import error_from_response, is_invalid_bearer, unwrap, unwrap_full
+from haxcms_mcp.client.principal import current_principal
 from haxcms_mcp.client.retry import RetryPolicy, with_retry
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 from haxcms_mcp.logging import get_logger
@@ -34,6 +37,17 @@ AuthMode = Literal["none", "bearer", "bearer+user", "bearer+site"]
 SYSTEM_API_PREFIX = "/system/api/v1"
 SITE_API_TEMPLATE = "/_sites/{site}/x/api/v1"
 
+# Per-caller sessions kept at once in authenticated HTTP mode (#3140); least recently used
+# sessions are closed first. HAXcms access tokens live 15 minutes, so a caller whose session
+# was evicted simply gets a fresh one (new User/Site Token fetch) on their next request.
+MAX_CALLER_SESSIONS = 256
+
+
+@dataclass
+class _CallerSession:
+    http: httpx.AsyncClient
+    auth: AuthManager
+
 
 class HaxcmsClient:
     """Async HTTP client for the HAXcms system and site APIs."""
@@ -48,11 +62,60 @@ class HaxcmsClient:
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
     ) -> None:
         self.settings = settings
-        self.http = httpx.AsyncClient(base_url=settings.base_url, timeout=settings.timeout_s)
+        self._clock = clock
+        self._default_http = self._new_http()
         self.budget = budget if budget is not None else OutboundBudget.from_settings(settings)
         self.policy = policy if policy is not None else RetryPolicy.from_settings(settings)
         self._sleep = sleep
-        self.auth = AuthManager(settings, self, clock=clock)
+        self._default_auth = AuthManager(settings, self, clock=clock)
+        self._sessions: OrderedDict[str, _CallerSession] = OrderedDict()
+        self._closing: set[asyncio.Task[None]] = set()
+
+    def _new_http(self) -> httpx.AsyncClient:
+        return httpx.AsyncClient(base_url=self.settings.base_url, timeout=self.settings.timeout_s)
+
+    # --- per-caller routing (#3140) ---------------------------------------------------
+    def _caller_session(self) -> _CallerSession | None:
+        """The current caller's session in authenticated HTTP mode, else None (process-wide)."""
+        if not self.settings.per_caller_auth:
+            return None
+        principal = current_principal.get()
+        if principal is None:
+            return None
+        key = principal.key
+        session = self._sessions.get(key)
+        if session is not None:
+            self._sessions.move_to_end(key)
+            return session
+        session = _CallerSession(
+            http=self._new_http(),
+            auth=AuthManager(self.settings, self, clock=self._clock, principal=principal),
+        )
+        self._sessions[key] = session
+        while len(self._sessions) > MAX_CALLER_SESSIONS:
+            _, evicted = self._sessions.popitem(last=False)
+            self._close_later(evicted.http)
+        return session
+
+    def _close_later(self, http: httpx.AsyncClient) -> None:
+        try:
+            task = asyncio.get_running_loop().create_task(http.aclose())
+        except RuntimeError:  # no running loop: nothing in flight can be using it
+            return
+        self._closing.add(task)
+        task.add_done_callback(self._closing.discard)
+
+    @property
+    def http(self) -> httpx.AsyncClient:
+        """The httpx client (cookie jar) of the current caller, or the process-wide one."""
+        session = self._caller_session()
+        return session.http if session is not None else self._default_http
+
+    @property
+    def auth(self) -> AuthManager:
+        """The token lifecycle of the current caller, or the process-wide one."""
+        session = self._caller_session()
+        return session.auth if session is not None else self._default_auth
 
     # --- path helpers -----------------------------------------------------------
     def sys(self, path: str = "") -> str:
@@ -191,7 +254,11 @@ class HaxcmsClient:
 
     # --- lifecycle -------------------------------------------------------------------
     async def aclose(self) -> None:
-        await self.http.aclose()
+        sessions = list(self._sessions.values())
+        self._sessions.clear()
+        for session in sessions:
+            await session.http.aclose()
+        await self._default_http.aclose()
 
     async def __aenter__(self) -> HaxcmsClient:
         return self

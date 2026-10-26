@@ -61,6 +61,11 @@ working directory.
 | `MAX_INLINE_BASE64_MB` | `10` | Cap for inline `base64:` sources |
 | `TRANSPORT` | `stdio` | `stdio` or `http` (CLI flags override) |
 | `HTTP_HOST`, `HTTP_PORT`, `HTTP_PATH` | `127.0.0.1`, `8765`, `/mcp` | HTTP transport bind address |
+| `HTTP_AUTH` | `none` | `haxcms`: every HTTP caller must send their own HAXcms access token (see [Serving over HTTP to other people](#serving-over-http-to-other-people)); required to bind beyond loopback |
+| `PUBLIC_URL` | `http://<host>:<port>` | Public origin of this server, used in the OAuth protected-resource metadata |
+| `AUTHORIZATION_SERVER_URL` | `BASE_URL` | OAuth authorization server advertised to clients |
+| `ALLOW_PRIVATE_URL_SOURCES` | off over HTTP | Allow URL sources that resolve to loopback/private/link-local addresses |
+| `ALLOW_LOCAL_SOURCES` | off over HTTP | Allow local-path sources (read from the server's disk) |
 | `LOG_LEVEL` | `INFO` | stderr logging (stdout belongs to the stdio transport) |
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |
 
@@ -96,6 +101,34 @@ or against a server already running in HTTP mode:
 ```bash
 claude mcp add --transport http haxcms http://127.0.0.1:8765/mcp
 ```
+
+### Serving over HTTP to other people
+
+Bound to loopback, the HTTP transport behaves like stdio: one HAXcms identity for the whole
+process. To serve anyone else, turn on per-caller auth. The server refuses to bind a
+non-loopback host without it:
+
+```bash
+export HAXCMS_MCP_BASE_URL=https://haxcms.example.org
+export HAXCMS_MCP_HTTP_AUTH=haxcms
+export HAXCMS_MCP_PUBLIC_URL=https://mcp.example.org
+haxcms-mcp --transport http --host 0.0.0.0 --port 8765 --path /mcp   # no USERNAME/PASSWORD
+```
+
+Each request must carry `Authorization: Bearer <HAXcms access token>`. The server checks the
+token with HAXcms and then acts as that user, with that user's permissions. Unauthenticated
+requests get `401` plus OAuth protected-resource metadata naming HAXcms as the authorization
+server ([ADR-0004](docs/adr/0004-haxcms-is-the-oauth-authorization-server.md)). Over HTTP:
+
+- URL sources must resolve to public addresses (SSRF guard, redirects re-checked).
+- Local-path sources are refused.
+- `login` and `logout` are unavailable.
+- Read-Only Mode still applies.
+
+The browser sign-in flow (OAuth authorize/token endpoints) has to land in HAXcms first. Until
+then, only clients that can send a static header (`claude mcp add --transport http --header
+"Authorization: Bearer <jwt>" ...`) can connect, and HAXcms tokens expire after 15 minutes.
+Any valid HAXcms token is accepted; tokens are not yet audience-bound to this server.
 
 ### Claude Desktop
 
@@ -227,6 +260,7 @@ The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generat
 - ADRs: [0001 HTTP wrapper](docs/adr/0001-http-wrapper-over-running-haxcms.md),
   [0002 generated converters](docs/adr/0002-build-time-generated-converter-tools.md),
   [0003 text anchors](docs/adr/0003-text-anchor-block-addressing.md),
+  [0004 OAuth via HAXcms](docs/adr/0004-haxcms-is-the-oauth-authorization-server.md) (proposed),
   [0005 generated routes](docs/adr/0005-generate-the-route-layer-not-the-client.md)
 - [HAXcms NodeJS](https://github.com/haxtheweb/haxcms-nodejs) — the instance this operates
 - [Model Context Protocol](https://modelcontextprotocol.io/) — the protocol it speaks

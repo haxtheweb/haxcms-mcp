@@ -15,6 +15,16 @@ hand-written from `git log` for the initial release (PLAN T9.6).
   `site_api.py` take method, path and required auth from them through `client.call()`. CI
   checks drift, and the nightly workflow regenerates from `haxcms-nodejs` `main` and
   type-checks the client.
+- Per-caller auth for the HTTP transport ([haxtheweb/issues#3140](https://github.com/haxtheweb/issues/issues/3140),
+  ADR-0004, proposed):
+  - `HAXCMS_MCP_HTTP_AUTH=haxcms` requires each caller's own HAXcms access token. Tokens are
+    verified against HAXcms, and each caller gets an isolated session.
+  - OAuth protected-resource metadata names HAXcms as the authorization server.
+  - `login`/`logout` answer `UNSUPPORTED` in this mode.
+- The HTTP transport refuses to bind beyond loopback without auth (fail closed).
+- SSRF guard for URL sources over HTTP: public addresses only, DNS pinning, redirects
+  re-validated, streamed size cap. Local-path sources are refused over HTTP. Both have
+  operator overrides.
 
 - Nightly `upstream-drift` workflow: vendored specs vs `haxcms-nodejs` `main`, plus the live
   suites against a fresh `main` checkout ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)).

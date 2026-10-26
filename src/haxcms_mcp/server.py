@@ -16,6 +16,7 @@ from fastmcp import FastMCP
 from haxcms_mcp.client import HaxcmsClient
 from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
+from haxcms_mcp.http_auth import PrincipalMiddleware, build_auth_provider
 from haxcms_mcp.middleware import (
     ErrorTranslationMiddleware,
     ReadOnlyMiddleware,
@@ -56,8 +57,14 @@ def build_server(settings: Settings) -> FastMCP:
                 await check
             await client.aclose()
 
-    mcp = FastMCP("haxcms-mcp", lifespan=_lifespan)
+    # Authenticated HTTP transport (#3140, ADR-0004): every request must carry the caller's
+    # own HAXcms access token; FastMCP rejects the rest with 401 before any tool runs.
+    auth = build_auth_provider(settings, client) if settings.per_caller_auth else None
+    mcp = FastMCP("haxcms-mcp", lifespan=_lifespan, auth=auth)
 
+    if settings.per_caller_auth:
+        # first, so every later middleware and tool sees the caller's identity
+        mcp.add_middleware(PrincipalMiddleware())
     # Order matters: read-only gate outermost, then logging, then error translation
     # closest to the tool functions.
     mcp.add_middleware(ReadOnlyMiddleware(settings))

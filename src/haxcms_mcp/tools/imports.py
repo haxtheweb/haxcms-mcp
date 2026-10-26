@@ -98,7 +98,7 @@ def register_import_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient
         """Create a NEW site from a remote platform export the SERVER fetches.
 
         `platform` is one of: haxcms, html, pressbooks, gitbook, notion, wordpress,
-        elmsln, drupal-book, plone, openstax, vitepress. `url` is the export's public URL
+        elmsln, drupal, plone, openstax, vitepress, quarto. `url` is the export's public URL
         (repoUrl) — the HAXcms server downloads it, so it must be publicly reachable: the
         server's SSRF guard refuses loopback, private, link-local and metadata addresses
         (INVALID_ARGUMENT). For LOCAL HTML use create_site_from_document with the .html

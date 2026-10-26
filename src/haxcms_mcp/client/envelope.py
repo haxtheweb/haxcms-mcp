@@ -28,6 +28,9 @@ MSG_TOO_MANY_LOGINS = "Too many failed login attempts"
 MSG_DISABLED_FOR_SITE = "disabled for this site"
 MSG_FAILED_TO_WRITE = "failed to write"
 MSG_SITE_NOT_FOUND = "Site not found"
+# HAXcms main rejects a content PATCH without a <page-break> envelope (older builds silently
+# wrote nothing and still answered 200).
+MSG_PAGE_BREAK_REQUIRED = "must contain a <page-break>"
 
 _TOKEN_MESSAGE_FRAGMENTS = (
     MSG_INVALID_BEARER,
@@ -123,9 +126,16 @@ def error_from_response(response: httpx.Response) -> HaxcmsMcpError:
         )
 
     if status == 400:
+        hint = None
+        if MSG_PAGE_BREAK_REQUIRED in message:
+            hint = (
+                "a content save must start with the page's <page-break> envelope; "
+                "use set_page_content or the block tools, which build it from the page's details"
+            )
         return HaxcmsMcpError(
             ErrorCode.INVALID_ARGUMENT,
             message or "invalid request",
+            hint=hint,
             details=details,
         )
 

@@ -3,8 +3,9 @@
 PLAN Phase 4 integration list: `test_p04_content_roundtrip.py` (set content → get content
 equals modulo sanitisation; page title unchanged after save; unpublished page stays
 unpublished after save; disk file matches) plus the T4.7 verify items that belong to the
-write path, live-probed: a raw PATCH without the Page Break envelope is a silent no-op
-(still 200, body untouched), an envelope WITHOUT `published` clears the flag, and
+write path, live-probed: a raw PATCH without the Page Break envelope is rejected (400 on
+HAXcms main, body untouched; older builds answered a silent 200 no-op), an envelope
+WITHOUT `published` clears the flag, and
 `card="card"` is stored byte-identical (no sanitisation rewrite).
 """
 
@@ -13,6 +14,7 @@ from __future__ import annotations
 import pytest
 
 from haxcms_mcp.client import HaxcmsClient, site_api
+from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 from haxcms_mcp.models.item import Item
 from haxcms_mcp.services.content.page_break import build_page_break
 from tests.harness.haxcms_runtime import HaxcmsRuntime
@@ -91,7 +93,8 @@ SANITISATION_INPUT = (
 
 # the live saveNode rewrite of SANITISATION_INPUT (T4.7, byte-exact from the instance):
 # target="_blank" dropped, <template preserve-content> dropped, the bare boolean
-# `correct` on assessment inputs dropped, single-quoted JSON attributes re-quoted.
+# `correct` on assessment inputs preserved as `correct=""` (HAXcms main; older builds
+# dropped it), single-quoted JSON attributes re-quoted.
 SANITISED_STORED = (
     '<p>Link <a href="https://example.com/notes">Watch it here.</a></p>\n'
     '<code-sample type="javascript" copy-clipboard-button="copy-clipboard-button">'
@@ -99,7 +102,7 @@ SANITISED_STORED = (
     '<vocab-term term="T" information="I"'
     ' links="[{&quot;title&quot;: &quot;S&quot;, &quot;href&quot;: &quot;https://x&quot;}]">'
     "</vocab-term>\n"
-    '<multiple-choice question="Q?"><input type="checkbox" value="A">\n'
+    '<multiple-choice question="Q?"><input type="checkbox" value="A" correct="">\n'
     '<input type="checkbox" value="B"></multiple-choice>'
 )
 
@@ -109,8 +112,9 @@ async def test_sanitisation_rewrites_are_exactly_the_documented_ones(
 ) -> None:
     """T4.7 verify: which parts of a save survive sanitisation unchanged.
 
-    Every TAG survives; four attribute forms are rewritten (golden captured live —
-    GET body and the on-disk pages/<id>/index.html agree byte-for-byte).
+    Every TAG survives; the attribute forms below are rewritten (golden captured live
+    against HAXcms main — GET body and the on-disk pages/<id>/index.html agree
+    byte-for-byte). `correct` is no longer stripped: it is kept as `correct=""`.
     """
     result = await mcp.call("set_page_content", page=page.id, html=SANITISATION_INPUT, site=site)
     assert result["html"] == SANITISED_STORED
@@ -118,23 +122,29 @@ async def test_sanitisation_rewrites_are_exactly_the_documented_ones(
     assert got["html"] == SANITISED_STORED
 
 
-async def test_raw_patch_without_envelope_is_silent_noop(
+async def test_raw_patch_without_envelope_is_rejected(
     client: HaxcmsClient, site: str, page: Item
 ) -> None:
-    """T4.7 verify: a content PATCH whose body lacks `<page-break>` writes NOTHING
-    (still 200) — the fact that justifies the envelope guard in set_page_content."""
+    """A content PATCH whose body lacks `<page-break>` is rejected (HAXcms main).
+
+    Older HAXcms builds answered 200 and wrote nothing; main answers 400, which the client
+    surfaces as INVALID_ARGUMENT with a hint. The stored body must stay untouched.
+    """
     record = await site_api.get_item(client, site, page.id, include_content=True)
     item = Item.from_api(record)
     await site_api.patch_content(client, site, page.id, build_page_break(item) + "<p>Seeded.</p>")
     before = await site_api.get_content(client, site, page.id)
     assert before["body"] == "<p>Seeded.</p>"
 
-    # the silent no-op: no envelope, still a 200 item record
-    response = await site_api.patch_content(client, site, page.id, "<p>Ignored.</p>")
-    assert response.get("id") == page.id
+    with pytest.raises(HaxcmsMcpError) as excinfo:
+        await site_api.patch_content(client, site, page.id, "<p>Ignored.</p>")
+    assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT
+    assert "page-break" in excinfo.value.formatted
+    assert excinfo.value.hint is not None
+    assert "set_page_content" in excinfo.value.hint
 
     after = await site_api.get_content(client, site, page.id)
-    assert after["body"] == "<p>Seeded.</p>"  # unchanged, NOT the ignored body
+    assert after["body"] == "<p>Seeded.</p>"  # unchanged, NOT the rejected body
 
 
 async def test_envelope_without_published_clears_flag(

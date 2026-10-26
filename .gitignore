@@ -21,3 +21,4 @@ haxcms-mcp-output/
 # OS / editor
 .DS_Store
 Thumbs.db
+.haxcms-nodejs/

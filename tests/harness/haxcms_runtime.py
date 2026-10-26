@@ -65,22 +65,17 @@ def _node() -> str:
 
 
 def _test_haxcms_dir() -> Path | None:
+    """The HAXcms checkout to test against, or None to use the published npm package.
+
+    The target is EXPLICIT: set `HAXCMS_MCP_TEST_HAXCMS_DIR` to a `haxtheweb/haxcms-nodejs`
+    checkout. The MCP targets current HAXcms `main` (the files.json datastore, file
+    operations and the page-break rejection all post-date the npm-published 26.8.1), so CI
+    checks `main` out and points this variable at it. A sibling `../haxcms-nodejs` is NOT
+    picked up implicitly any more: that hid the npm-dist failures locally while CI was red.
+    """
     value = os.environ.get("HAXCMS_MCP_TEST_HAXCMS_DIR")
     if value:
         return Path(value).resolve()
-    # The npm-published @haxtheweb/haxcms-nodejs@26.8.1 dist is OLDER than the API this
-    # project targets: specs/VERSION pins "26.8.1 e969655c" and specs/site-spec.yaml (the
-    # source of truth) documents the files.json datastore, width/height on file records and
-    # the compress + duplicate operations that PLAN Phase 5 requires — none of which the
-    # published dist has (verified by reading both builds). When the optional sibling
-    # checkout (PLAN §0.4) is present, prefer it so the live runtime matches the committed
-    # spec; ensure_haxcms() npm-installs its dependencies (node_modules only, no source
-    # edits). Falls back to the npm dist when there is no sibling (e.g. CI). This deviation
-    # from the npm-dist default, and the user's approval to install into the sibling
-    # checkout, are recorded in PROGRESS.md under Phase 5.
-    sibling = REPO_ROOT.parent / "haxcms-nodejs"
-    if (sibling / "src" / "app.js").is_file():
-        return sibling.resolve()
     return None
 
 

@@ -65,7 +65,7 @@ working directory.
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |
 
 Test-only variables (`TEST_HAXCMS_DIR`, `TEST_HAXCMS_VERSION`, `TEST_KEEP_RUNTIME`) are documented
-in [PLAN.md Section 4](PLAN.md).
+in [PLAN.md Section 4](PLAN.md) and under [Which HAXcms the tests run against](#which-haxcms-the-tests-run-against).
 
 ## Run
 
@@ -119,6 +119,38 @@ Add to `claude_desktop_config.json` (stdio; env carries the credentials):
 If `haxcms-mcp` is not on the PATH Desktop sees, use the absolute path (`uv tool dir` shows where
 tools live) or `"command": "uvx", "args": ["--from", "git+<repo-url>", "haxcms-mcp"]`.
 
+## Supported HAXcms
+
+This server is a typed client of the HAXcms NodeJS HTTP API and is built against the OpenAPI
+specs vendored in [`specs/`](specs) (identity in [`specs/VERSION`](specs/VERSION), currently
+**26.8.1 @ `ad82de48`**, i.e. `haxtheweb/haxcms-nodejs` `main` rather than the npm-published
+26.8.1, which predates the file API).
+
+| HAXcms NodeJS | Status |
+|---|---|
+| `main` at or after the vendored commit (spec hash matches) | supported, tested nightly |
+| npm `@haxtheweb/haxcms-nodejs@26.8.1` | partly works: file upload and image-writing document imports fail |
+| anything else (older builds, newer builds with API changes) | best effort; you will get a warning |
+| HAXcms PHP | not supported yet ([haxtheweb/issues#3139](https://github.com/haxtheweb/issues/issues/3139)) |
+
+On startup the server fetches the instance's `GET /system/api/v1/openapi` and compares its hash
+with the vendored spec. A difference is logged once as a warning (stderr) and reported by
+`get_server_info` under `spec_compatibility` (`match`, `mismatch` or `unavailable`). It never
+blocks startup and never disables a tool: most upstream spec edits are descriptions and examples.
+
+### Keeping up with HAXcms
+
+A nightly workflow ([`upstream-drift.yml`](.github/workflows/upstream-drift.yml)) fails when the
+vendored specs differ from `haxcms-nodejs` `main` or when the live suites fail against it. To
+reconcile:
+
+```bash
+uv run python scripts/sync_specs.py --from ../haxcms-nodejs   # specs/, VERSION, generated spec_info.py
+uv run python scripts/gen_tools.py                            # converters
+uv run python scripts/gen_tool_docs.py                        # docs/tools.md
+uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the nightly runs
+```
+
 ## Security notes
 
 - **Credentials live in the environment only** — never in tool arguments or results.
@@ -163,6 +195,24 @@ uv run python scripts/gen_tools.py --check         # converter drift (ADR-0002)
 uv run python scripts/gen_tool_docs.py             # regenerate docs/tools.md
 uv run pytest --snapshot-update                    # update regression snapshots deliberately
 ```
+
+### Which HAXcms the tests run against
+
+The live suites (`integration`, `functional`, `e2e`) boot a real HAXcms and target current
+**`haxtheweb/haxcms-nodejs` `main`**, not the npm-published release. The MCP relies on the
+`files.json` datastore, the image file operations and the page-break rejection, none of which
+`@haxtheweb/haxcms-nodejs@26.8.1` on npm has, so against that package 7 file-upload and
+document-import tests fail.
+
+```bash
+git clone https://github.com/haxtheweb/haxcms-nodejs ../haxcms-nodejs
+export HAXCMS_MCP_TEST_HAXCMS_DIR=$PWD/../haxcms-nodejs   # explicit; never picked up implicitly
+uv run pytest -m "integration or functional"
+```
+
+With the variable unset, the harness installs `@haxtheweb/haxcms-nodejs@$HAXCMS_MCP_TEST_HAXCMS_VERSION`
+from npm (default `26.8.1`). CI sets the variable to a fresh `main` checkout; the ref lives in
+`HAXCMS_NODEJS_REF` at the top of `.github/workflows/ci.yml`.
 
 The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generated converters in
 `src/haxcms_mcp/generated/converters.py` are checked for drift in CI.

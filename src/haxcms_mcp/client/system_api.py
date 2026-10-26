@@ -235,7 +235,7 @@ async def import_platform(
     accepts one, with the field name restricted to upload|file|file-upload and the
     extension to .html/.htm — or JSON `{repoUrl, method?, type?, parentId?}` for the
     remote platforms (haxcms, pressbooks, gitbook, notion, wordpress, elmsln,
-    drupal-book, plone, openstax, vitepress). The dispatcher lowercases/trims the
+    drupal, plone, openstax, vitepress, quarto). The dispatcher lowercases/trims the
     platform (unknown -> 400 'Unsupported import platform'). `repoUrl` passes the
     safeFetch SSRF guard: private, loopback and link-local addresses are refused with
     400 `data.error`, and fetch failures are 400 too.

@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+# The live suites target current HAXcms `main`, NOT the npm-published release: the MCP uses the
+# files.json datastore / file operations and the page-break rejection, which the published
+# @haxtheweb/haxcms-nodejs@26.8.1 does not have. Bump HAXCMS_NODEJS_REF to a tag or SHA to pin.
+env:
+  HAXCMS_NODEJS_REPO: haxtheweb/haxcms-nodejs
+  HAXCMS_NODEJS_REF: main
+
 jobs:
   lint-unit:
     name: Lint + typecheck + unit (Python ${{ matrix.python-version }})
@@ -58,17 +65,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Cache HAXcms runtime
-        uses: actions/cache@v4
+      - name: Check out HAXcms (${{ env.HAXCMS_NODEJS_REF }})
+        uses: actions/checkout@v4
         with:
-          path: .haxcms-runtime
-          key: haxcms-runtime-${{ hashFiles('specs/VERSION') }}-${{ hashFiles('pyproject.toml') }}
+          repository: ${{ env.HAXCMS_NODEJS_REPO }}
+          ref: ${{ env.HAXCMS_NODEJS_REF }}
+          path: .haxcms-nodejs
       - name: Install dependencies
         run: uv sync
       - name: Run non-unit, non-e2e suites against a live HAXcms
         run: uv run pytest -m "not e2e and not unit" --cov --cov-report=xml:coverage-integration.xml
         env:
-          HAXCMS_MCP_TEST_HAXCMS_VERSION: "26.8.1"
+          HAXCMS_MCP_TEST_HAXCMS_DIR: ${{ github.workspace }}/.haxcms-nodejs
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
@@ -92,15 +100,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Cache HAXcms runtime
-        uses: actions/cache@v4
+      - name: Check out HAXcms (${{ env.HAXCMS_NODEJS_REF }})
+        uses: actions/checkout@v4
         with:
-          path: .haxcms-runtime
-          key: haxcms-runtime-${{ hashFiles('specs/VERSION') }}-${{ hashFiles('pyproject.toml') }}
+          repository: ${{ env.HAXCMS_NODEJS_REPO }}
+          ref: ${{ env.HAXCMS_NODEJS_REF }}
+          path: .haxcms-nodejs
       - name: Install dependencies
         run: uv sync
       - name: Run e2e suite
         run: uv run pytest -m e2e --cov --cov-report=xml:coverage-e2e.xml
+        env:
+          HAXCMS_MCP_TEST_HAXCMS_DIR: ${{ github.workspace }}/.haxcms-nodejs
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:

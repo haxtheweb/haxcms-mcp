@@ -51,7 +51,18 @@ if (strpos($path, '/system/api/v1/') === 0 || $path === '/system/api/v1') {
     require $entry;
     return true;
 }
-// everything else (site API under /_sites/<site>/x/api/v1/..., site pages) -> root index.php
+// per-site routing (system/boilerplate/site/.htaccess: "not a file or directory -> ."): anything
+// under /_sites/<name>/ runs that site's own index.php with SCRIPT_NAME set to it, so the
+// route parser sees /x/api/v1/... relative to the site
+if (preg_match('#^/(_sites|_published|_archived)/([^/]+)(/|$)#', $path, $m)
+    && is_file($root . '/' . $m[1] . '/' . $m[2] . '/index.php')) {
+    $siteIndex = $root . '/' . $m[1] . '/' . $m[2] . '/index.php';
+    $_SERVER['SCRIPT_NAME'] = '/' . $m[1] . '/' . $m[2] . '/index.php';
+    chdir(dirname($siteIndex));
+    require $siteIndex;
+    return true;
+}
+// everything else -> root index.php
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 chdir($root);
 require $root . '/index.php';

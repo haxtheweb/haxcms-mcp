@@ -12,6 +12,8 @@ on:
 env:
   HAXCMS_NODEJS_REPO: haxtheweb/haxcms-nodejs
   HAXCMS_NODEJS_REF: main
+  HAXCMS_PHP_REPO: haxtheweb/haxcms-php
+  HAXCMS_PHP_REF: master  # haxcms-php's default branch is master, not main
 
 jobs:
   lint-unit:
@@ -85,6 +87,40 @@ jobs:
           name: coverage-integration
           path: coverage-integration.xml
           if-no-files-found: ignore
+
+  integration-php:
+    name: Integration + functional against HAXcms PHP (non-blocking)
+    runs-on: ubuntu-latest
+    needs: lint-unit
+    # Non-blocking until HAXcms PHP master can create pages through the API again
+    # (HAXCMSSite::itemFromParams metadata bug, fixed by haxtheweb/haxcms-php#704).
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: gd, curl, mbstring, dom, zip
+          tools: none
+      - name: Check out HAXcms PHP (${{ env.HAXCMS_PHP_REF }})
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HAXCMS_PHP_REPO }}
+          ref: ${{ env.HAXCMS_PHP_REF }}
+          path: .haxcms-php
+      - name: Install dependencies
+        run: uv sync
+      - name: Run integration + functional suites against a live HAXcms PHP
+        run: uv run pytest -m "integration or functional"
+        env:
+          HAXCMS_MCP_TEST_BACKEND: php
+          HAXCMS_MCP_TEST_HAXCMS_PHP_DIR: ${{ github.workspace }}/.haxcms-php
 
   e2e:
     name: End-to-end over stdio (PRs only)

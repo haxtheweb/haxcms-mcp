@@ -154,7 +154,7 @@ tools live) or `"command": "uvx", "args": ["--from", "git+<repo-url>", "haxcms-m
 
 ## Supported HAXcms
 
-This server is a typed client of the HAXcms NodeJS HTTP API and is built against the OpenAPI
+This server is a typed client of the HAXcms HTTP API (NodeJS and PHP) and is built against the OpenAPI
 specs vendored in [`specs/`](specs) (identity in [`specs/VERSION`](specs/VERSION), currently
 **26.8.1 @ `ad82de48`**, i.e. `haxtheweb/haxcms-nodejs` `main` rather than the npm-published
 26.8.1, which predates the file API).
@@ -164,12 +164,40 @@ specs vendored in [`specs/`](specs) (identity in [`specs/VERSION`](specs/VERSION
 | `main` at or after the vendored commit (spec hash matches) | supported, tested nightly |
 | npm `@haxtheweb/haxcms-nodejs@26.8.1` | partly works: file upload and image-writing document imports fail |
 | anything else (older builds, newer builds with API changes) | best effort; you will get a warning |
-| HAXcms PHP | not supported yet ([haxtheweb/issues#3139](https://github.com/haxtheweb/issues/issues/3139)) |
+| HAXcms PHP `master` (same API contract) | supported with known gaps, see below ([haxtheweb/issues#3139](https://github.com/haxtheweb/issues/issues/3139)) |
 
 On startup the server fetches the instance's `GET /system/api/v1/openapi` and compares its hash
 with the vendored spec. A difference is logged once as a warning (stderr) and reported by
 `get_server_info` under `spec_compatibility` (`match`, `mismatch` or `unavailable`). It never
 blocks startup and never disables a tool: most upstream spec edits are descriptions and examples.
+
+### HAXcms PHP
+
+[HAXcms PHP](https://github.com/haxtheweb/haxcms-php) implements the same OpenAPI contract and
+stable error codes (`data.code`), so the same tools work against it. The compatibility hash is
+taken over the parsed spec, so PHP's JSON rendering (with its own `info.version` and `servers`)
+compares equal to the vendored YAML. Errors are mapped by `data.code` first and the English
+message second, because PHP words some errors differently (a failed login is a generic
+`Access denied`, still reported as `AUTH_FAILED`).
+
+Known differences (upstream parity gaps, not MCP behavior; the PHP test leg skips these):
+
+- creating a page fails with HTTP 500 on PHP `master` until
+  [haxtheweb/haxcms-php#704](https://github.com/haxtheweb/haxcms-php/pull/704) lands
+  (`HAXCMSSite::itemFromParams` metadata bug); the PHP CI leg is non-blocking until then
+- no login rate limiting (repeated wrong passwords never answer 429)
+- content is stored as sent: the NodeJS sanitiser's rewrites (`target`, `preserve-content`,
+  attribute re-quoting) do not happen
+- converters and document imports produce different HTML/Markdown (heading style,
+  pretty-printing, PDF/PPTX/DOCX structure), and file records carry no `uuid`
+
+To run the live suites against PHP locally (needs only the `php` 8.3 binary with gd, curl,
+mbstring, dom and zip; no Apache or Docker):
+
+```bash
+HAXCMS_MCP_TEST_BACKEND=php HAXCMS_MCP_TEST_HAXCMS_PHP_DIR=/path/to/haxcms-php \
+  uv run pytest -m "integration or functional"
+```
 
 ### Keeping up with HAXcms
 

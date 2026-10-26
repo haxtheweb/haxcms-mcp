@@ -62,6 +62,24 @@ def response_message(response: httpx.Response) -> str:
     return response.text.strip()[:500] or f"HTTP {response.status_code}"
 
 
+def response_code(response: httpx.Response) -> str | None:
+    """The stable `data.code` both HAXcms backends attach (haxcms-api-codes.json), if any."""
+    try:
+        body = response.json()
+    except (json.JSONDecodeError, ValueError):
+        return None
+    data = body.get("data") if isinstance(body, dict) else None
+    if isinstance(data, dict) and isinstance(data.get("code"), str):
+        return str(data["code"])
+    return None
+
+
+# Stable codes win over English messages (the PHP backend words some errors differently).
+CODE_INVALID_CREDENTIALS = "AUTH_INVALID_CREDENTIALS"
+CODE_RATE_LIMITED = "AUTH_RATE_LIMITED"
+_LOGIN_PATH_SUFFIX = "/session/login"
+
+
 def is_invalid_bearer(response: httpx.Response) -> bool:
     """True for the 403 that should trigger one reactive refresh (API-REF §2.2)."""
     return response.status_code == 403 and MSG_INVALID_BEARER in response_message(response)
@@ -84,8 +102,16 @@ def error_from_response(response: httpx.Response) -> HaxcmsMcpError:
     message = response_message(response)
     details = _details(response)
 
+    code = response_code(response)
+    path = str(details.get("path") or "")
     if status == 401:
-        if MSG_INVALID_CREDENTIALS in message:
+        # HAXcms PHP answers every failed login with a generic 401 "Access denied"
+        # (code ACCESS_DENIED), so a 401 on the login route itself is a credentials failure.
+        if (
+            MSG_INVALID_CREDENTIALS in message
+            or code == CODE_INVALID_CREDENTIALS
+            or path.endswith(_LOGIN_PATH_SUFFIX)
+        ):
             return HaxcmsMcpError(
                 ErrorCode.AUTH_FAILED,
                 message,
@@ -157,7 +183,7 @@ def error_from_response(response: httpx.Response) -> HaxcmsMcpError:
 
     if status == 429:
         hint = "retry after the indicated delay"
-        if MSG_TOO_MANY_LOGINS in message:
+        if MSG_TOO_MANY_LOGINS in message or code == CODE_RATE_LIMITED:
             hint = "too many failed logins; wait out the Retry-After window before trying again"
         text = message or "too many requests"
         retry_after = response.headers.get("Retry-After")

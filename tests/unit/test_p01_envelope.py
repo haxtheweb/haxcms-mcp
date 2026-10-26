@@ -63,6 +63,28 @@ def test_401_invalid_credentials_maps_to_auth_failed() -> None:
     assert "Invalid username or password" in excinfo.value.message
 
 
+def test_401_on_login_route_with_generic_php_body_is_auth_failed() -> None:
+    body = {"status": 401, "data": {"message": "Access denied", "code": "ACCESS_DENIED"}}
+    response = httpx.Response(
+        401,
+        json=body,
+        request=httpx.Request("POST", "http://x.invalid/system/api/v1/session/login"),
+    )
+    assert error_from_response(response).code is ErrorCode.AUTH_FAILED
+
+
+def test_401_stable_code_maps_to_auth_failed_even_with_other_wording() -> None:
+    body = {"status": 401, "data": {"message": "Nope", "code": "AUTH_INVALID_CREDENTIALS"}}
+    assert error_from_response(make(401, body)).code is ErrorCode.AUTH_FAILED
+
+
+def test_429_stable_code_gets_login_hint() -> None:
+    body = {"status": 429, "data": {"message": "Slow down", "code": "AUTH_RATE_LIMITED"}}
+    error = error_from_response(make(429, body))
+    assert error.code is ErrorCode.RATE_LIMITED
+    assert "wait out the Retry-After" in (error.hint or "")
+
+
 def test_401_other_maps_to_auth_required() -> None:
     with pytest.raises(HaxcmsMcpError) as excinfo:
         unwrap(make(401, err("Authentication required")))

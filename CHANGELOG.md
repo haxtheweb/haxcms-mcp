@@ -25,7 +25,14 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 - SSRF guard for URL sources over HTTP: public addresses only, DNS pinning, redirects
   re-validated, streamed size cap. Local-path sources are refused over HTTP. Both have
   operator overrides.
-
+- HAXcms PHP support ([haxtheweb/issues#3139](https://github.com/haxtheweb/issues/issues/3139)):
+  the live suites run against a PHP checkout with `HAXCMS_MCP_TEST_BACKEND=php` (PHP built-in
+  server plus a router standing in for `.htaccess`, installed through the real `install.php`),
+  and CI has a non-blocking PHP leg. Known upstream parity gaps are listed in the README.
+- Errors are mapped by the stable `data.code` first (`AUTH_INVALID_CREDENTIALS`,
+  `AUTH_RATE_LIMITED`); a 401 on `session/login` is always `AUTH_FAILED`.
+- The spec compatibility hash is computed over the parsed document (minus `info.version` and
+  `servers`), so PHP's JSON rendering of the spec matches the vendored YAML.
 - Nightly `upstream-drift` workflow: vendored specs vs `haxcms-nodejs` `main`, plus the live
   suites against a fresh `main` checkout ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)).
 - `scripts/sync_specs.py --check --from <checkout>` prints a unified diff and exits 1 on drift;

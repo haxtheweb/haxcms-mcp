@@ -151,6 +151,7 @@ class HaxcmsRuntime:
     boot_seconds: float = field(default=0.0, init=False)
     _log_files: list[Any] = field(default_factory=list, init=False)
     _home_dir: Path | None = field(default=None, init=False)
+    backend: str = field(default="node", init=False)  # "php" in HaxcmsPhpRuntime (#3139)
 
     def _keep_runtime(self) -> bool:
         if self.keep is not None:

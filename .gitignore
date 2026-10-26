@@ -22,3 +22,4 @@ haxcms-mcp-output/
 .DS_Store
 Thumbs.db
 .haxcms-nodejs/
+.haxcms-php/

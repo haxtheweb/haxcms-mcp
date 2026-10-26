@@ -56,7 +56,7 @@ async def check_spec_compatibility(client: HaxcmsClient) -> SpecCompatibility:
             "GET",
             client.sys("openapi"),
             auth="none",
-            accept="application/yaml",
+            accept="application/yaml",  # NodeJS: raw YAML; PHP answers JSON either way
             timeout=CHECK_TIMEOUT_S,
             no_retry=True,
         )

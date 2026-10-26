@@ -113,3 +113,26 @@ async def test_a_closed_client_is_unavailable_not_a_crash() -> None:
     result = await check_spec_compatibility(client)
     assert result.status == "unavailable"
     assert "closed" in (result.detail or "")
+
+
+def test_hash_is_the_same_for_the_php_json_rendering_of_the_vendored_spec() -> None:
+    """#3139: HAXcms PHP serves the system spec as JSON, with the instance's version and
+    servers filled in and empty objects encoded as `[]`; it must hash like the YAML."""
+    import json
+
+    import yaml
+
+    document = yaml.safe_load((SPECS / "system-spec.yaml").read_text(encoding="utf-8"))
+    document["info"]["version"] = "99.0.0"
+    document["servers"] = [{"url": "http://127.0.0.1:9/", "description": "instance"}]
+    php_style = json.dumps(document, indent=4).replace("{}", "[]").encode("utf-8")
+    assert spec_sha256(php_style) == spec_info.SYSTEM_SPEC_SHA256
+
+
+def test_hash_still_detects_a_real_contract_change() -> None:
+    import yaml
+
+    document = yaml.safe_load((SPECS / "system-spec.yaml").read_text(encoding="utf-8"))
+    document["paths"].pop(next(iter(document["paths"])))
+    changed = yaml.safe_dump(document).encode("utf-8")
+    assert spec_sha256(changed) != spec_info.SYSTEM_SPEC_SHA256

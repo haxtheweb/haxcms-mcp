@@ -111,7 +111,9 @@ async def test_get_server_info_reports_live_version(mcp: McpTestClient) -> None:
 async def test_wrong_password_is_auth_failed(mcp: McpTestClient, haxcms: HaxcmsRuntime) -> None:
     error = await mcp.call_error("login", username=haxcms.username, password="definitely-wrong")
     assert error.startswith("[AUTH_FAILED]"), error
-    assert "Invalid username or password" in error
+    # NodeJS words it "Invalid username or password"; PHP answers a generic "Access denied"
+    if haxcms.backend == "node":
+        assert "Invalid username or password" in error
 
 
 async def test_repeated_wrong_passwords_are_rate_limited(mcp: McpTestClient) -> None:

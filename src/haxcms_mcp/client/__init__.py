@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
 
     from haxcms_mcp.config import Settings
+    from haxcms_mcp.generated.route import Route
 
 logger = get_logger(__name__)
 
@@ -153,6 +154,14 @@ class HaxcmsClient:
             elapsed_ms,
         )
         return response
+
+    async def call(
+        self, route: Route, *, auth: AuthMode | None = None, **kwargs: Any
+    ) -> httpx.Response:
+        """`request()` for a generated spec route (ADR-0005): method and path from the spec,
+        auth defaulting to what the spec requires. Pass `auth` to send MORE than the spec
+        requires (an open route that answers differently for a known user)."""
+        return await self.request(route.method, route.path, auth=auth or route.auth, **kwargs)
 
     # --- JSON convenience wrappers --------------------------------------------------
     async def get_json(self, path: str, **kwargs: Any) -> Any:

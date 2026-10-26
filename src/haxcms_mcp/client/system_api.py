@@ -1,5 +1,7 @@
 """Typed System API endpoint helpers (PLAN Phase 1 T1.6, Phase 2 T2.2).
 
+Where each call goes (method, path, required auth) comes from the routes generated from the
+spec (`generated/system_routes.py`, ADR-0005); this module owns bodies and response shapes.
 Header requirements follow the `security:` blocks in `specs/system-spec.yaml` (verified live in
 Phase 0/2): login/refresh/logout/connection-settings are open; `sites` (list/info/create/clone/
 archive), `status`, `system/version`, `session/user`, and `themes` require bearer +
@@ -21,16 +23,16 @@ from haxcms_mcp.client.envelope import (
     unwrap_list,
 )
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.generated import system_routes as routes
+from haxcms_mcp.generated.route import Route
 from haxcms_mcp.models.site import SiteList
 
 
 async def login(client: HaxcmsClient, username: str, password: str) -> dict[str, Any]:
     """POST session/login -> full body `{status, jwt}` (cookies land in the client jar)."""
-    response = await client.request(
-        "POST",
-        client.sys("session/login"),
+    response = await client.call(
+        routes.session_login(),
         json={"username": username, "password": password},
-        auth="none",
         no_retry=True,
     )
     return unwrap_full(response)
@@ -38,47 +40,45 @@ async def login(client: HaxcmsClient, username: str, password: str) -> dict[str,
 
 async def refresh(client: HaxcmsClient) -> dict[str, Any]:
     """GET session/refresh using the cookie jar -> `{status, jwt}` + rotated cookie."""
-    response = await client.request(
-        "GET", client.sys("session/refresh"), auth="none", no_retry=True
-    )
+    response = await client.call(routes.session_refresh_get(), no_retry=True)
     return unwrap_full(response)
 
 
 async def logout(client: HaxcmsClient) -> Any:
     """POST session/logout -> "loggedout"."""
-    response = await client.request(
-        "POST", client.sys("session/logout"), auth="none", no_retry=True
-    )
+    response = await client.call(routes.session_logout(), no_retry=True)
     return unwrap(response)
 
 
 async def session(client: HaxcmsClient) -> Any:
     """GET session (anonymous probe route; bearer attached when one is held)."""
-    response = await client.request("GET", client.sys("session"), auth="bearer")
+    response = await client.call(
+        routes.session_auth_get(), auth="bearer"
+    )  # open route; bearer names the user
     return unwrap(response)
 
 
 async def session_user(client: HaxcmsClient) -> Any:
     """GET session/user -> active user profile (bearer + user token)."""
-    response = await client.request("GET", client.sys("session/user"), auth="bearer+user")
+    response = await client.call(routes.session_user_get())
     return unwrap(response)
 
 
 async def status(client: HaxcmsClient) -> Any:
     """GET status -> environment diagnostics (includes the upload limit)."""
-    response = await client.request("GET", client.sys("status"), auth="bearer+user")
+    response = await client.call(routes.system_status_get())
     return unwrap(response)
 
 
 async def version(client: HaxcmsClient) -> Any:
     """GET system/version -> installed HAXcms version details."""
-    response = await client.request("GET", client.sys("system/version"), auth="bearer+user")
+    response = await client.call(routes.system_version_get())
     return unwrap(response)
 
 
 async def list_sites(client: HaxcmsClient) -> SiteList:
     """GET sites -> typed site listing (bearer + user token; verified fact, Phase 0)."""
-    response = await client.request("GET", client.sys("sites"), auth="bearer+user")
+    response = await client.call(routes.list_sites())
     return SiteList.from_api(unwrap(response))
 
 
@@ -87,7 +87,7 @@ async def site_info(client: HaxcmsClient, site: str) -> dict[str, Any]:
 
     `metadata.pageCount` is the page count; `links` names every system operation for the site.
     """
-    response = await client.request("GET", client.sys(f"sites/{site}"), auth="bearer+user")
+    response = await client.call(routes.site_info_get(site))
     return unwrap_dict(response)
 
 
@@ -97,47 +97,37 @@ async def create_site(client: HaxcmsClient, payload: dict[str, Any]) -> dict[str
     The ACTUAL site name is at `metadata.site.name` — on a duplicate request the server silently
     creates `<name>-1` (Phase 2 probe), so callers must read the name back, not assume it.
     """
-    response = await client.request("POST", client.sys("sites"), json=payload, auth="bearer+user")
+    response = await client.call(routes.create_site(), json=payload)
     return unwrap_dict(response)
 
 
 async def clone_site(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """POST sites/{name}/clone -> `{detail: "/_sites/<new>", name: "<new>"}` (Phase 2 probe)."""
-    response = await client.request(
-        "POST",
-        client.sys(f"sites/{site}/clone"),
-        json={"site": {"name": site}},
-        auth="bearer+user",
-    )
+    response = await client.call(routes.clone_site(site), json={"site": {"name": site}})
     return unwrap_dict(response)
 
 
 async def archive_site(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """POST sites/{name}/archive -> `{name, archivedName, detail: "Site archived"}`."""
-    response = await client.request(
-        "POST",
-        client.sys(f"sites/{site}/archive"),
-        json={"site": {"name": site}},
-        auth="bearer+user",
-    )
+    response = await client.call(routes.archive_site(site), json={"site": {"name": site}})
     return unwrap_dict(response)
 
 
 async def list_themes(client: HaxcmsClient) -> list[dict[str, Any]]:
     """GET themes -> LIST of theme records (API-REF §3.5 said "map"; live it is a list)."""
-    response = await client.request("GET", client.sys("themes"), auth="bearer+user")
+    response = await client.call(routes.system_themes_get())
     return unwrap_list(response)
 
 
 async def list_skeletons(client: HaxcmsClient) -> list[dict[str, Any]]:
     """GET skeletons -> LIST of flat skeleton records (bearer only per spec security block)."""
-    response = await client.request("GET", client.sys("skeletons"), auth="bearer")
+    response = await client.call(routes.system_skeletons_get())
     return unwrap_list(response)
 
 
 async def get_skeleton(client: HaxcmsClient, name: str) -> dict[str, Any]:
     """GET skeletons/{name} -> `{meta, site, build, ...}` full skeleton detail (bearer only)."""
-    response = await client.request("GET", client.sys(f"skeletons/{name}"), auth="bearer")
+    response = await client.call(routes.system_skeleton_detail_get(name))
     return unwrap_dict(response)
 
 
@@ -145,26 +135,34 @@ async def get_skeleton(client: HaxcmsClient, name: str) -> dict[str, Any]:
 # All routes below are bearer + X-HAXCMS-User-Token per the spec security blocks (live-probed:
 # bearer-only gets the 403 "X-HAXCMS-User-Token header is required for this endpoint").
 
+# import kind -> spec operationId (paths come from the generated routes)
 IMPORT_KIND_ROUTES: Final[dict[str, str]] = {
-    kind: f"actions/import-{kind}" for kind in ("docx", "pptx", "html", "xlsx", "pdf")
+    kind: f"import{kind.capitalize()}" for kind in ("docx", "pptx", "html", "xlsx", "pdf")
 }
 
 # operationId -> path for the twelve generated converters (ADR-0002; scripts/gen_tools.py
 # derives the same table from specs/system-spec.yaml, pinned 26.8.1).
-ACTION_ROUTES: Final[dict[str, str]] = {
-    "docxToHtml": "actions/docx-to-html",
-    "htmlToDocx": "actions/html-to-docx",
-    "mdToHtml": "actions/md-to-html",
-    "htmlToMd": "actions/html-to-md",
-    "prettyHtml": "actions/pretty-html",
-    "jsonToYaml": "actions/json-to-yaml",
-    "yamlToJson": "actions/yaml-to-json",
-    "htmlToPdf": "actions/html-to-pdf",
-    "xlsxToCsv": "actions/xlsx-to-csv",
-    "pdfToHtml": "actions/pdf-to-html",
-    "pptxToHtml": "actions/pptx-to-html",
-    "docxToPdf": "actions/docx-to-pdf",
-}
+ACTION_ROUTES: Final[frozenset[str]] = frozenset(
+    {
+        "docxToHtml",
+        "htmlToDocx",
+        "mdToHtml",
+        "htmlToMd",
+        "prettyHtml",
+        "jsonToYaml",
+        "yamlToJson",
+        "htmlToPdf",
+        "xlsxToCsv",
+        "pdfToHtml",
+        "pptxToHtml",
+        "docxToPdf",
+    }
+)
+
+
+def _operation(operation_id: str) -> Route:
+    """A parameterless system route by operationId (imports and converter actions)."""
+    return Route.from_table(routes.OPERATIONS, operation_id)
 
 
 def _import_form(
@@ -207,12 +205,10 @@ async def import_document(
             f"unknown import kind {kind!r}",
             hint=f"supported kinds: {', '.join(sorted(IMPORT_KIND_ROUTES))}",
         )
-    response = await client.request(
-        "POST",
-        client.sys(route),
+    response = await client.call(
+        _operation(route),
         files={"file-upload": (filename, content, mimetype)},
         data=_import_form(method, content_type, parent_id) or None,
-        auth="bearer+user",
     )
     return unwrap_dict(response)
 
@@ -240,7 +236,7 @@ async def import_platform(
     safeFetch SSRF guard: private, loopback and link-local addresses are refused with
     400 `data.error`, and fetch failures are 400 too.
     """
-    path = client.sys(f"site/import/{platform.strip().lower()}")
+    route = routes.site_import_by_platform(platform.strip().lower())
     form = _import_form(method, content_type, parent_id)
     if content is not None:
         if filename is None:
@@ -248,12 +244,10 @@ async def import_platform(
                 ErrorCode.INVALID_ARGUMENT,
                 "filename is required for a multipart platform import",
             )
-        response = await client.request(
-            "POST",
-            path,
+        response = await client.call(
+            route,
             files={"file-upload": (filename, content, mimetype or "text/html")},
             data=form or None,
-            auth="bearer+user",
         )
     else:
         if not repo_url:
@@ -262,7 +256,7 @@ async def import_platform(
                 "import_platform needs either repo_url or file content",
             )
         payload: dict[str, Any] = {"repoUrl": repo_url, **form}
-        response = await client.request("POST", path, json=payload, auth="bearer+user")
+        response = await client.call(route, json=payload)
     return unwrap_dict(response)
 
 
@@ -287,21 +281,18 @@ async def action(
     `raw=True` returns the response BYTES for docxToPdf, which streams application/pdf
     past the envelope. Errors are 400 with `data.error`.
     """
-    route = ACTION_ROUTES.get(operation_id)
-    if route is None:
+    if operation_id not in ACTION_ROUTES:
         raise HaxcmsMcpError(
             ErrorCode.INVALID_ARGUMENT,
             f"unknown converter operation {operation_id!r}",
             hint=f"supported operations: {', '.join(sorted(ACTION_ROUTES))}",
         )
-    response = await client.request(
-        "POST",
-        client.sys(route),
+    response = await client.call(
+        _operation(operation_id),
         json=json,
         files=files,
         data=data,
         params=params,
-        auth="bearer+user",
         timeout=timeout,
     )
     if raw:
@@ -326,11 +317,9 @@ async def download_site(client: HaxcmsClient, site: str) -> dict[str, Any]:
     directory; fetch the bytes with `fetch_published(client, link)`. Zipping runs inside
     the request, so the call gets the export timeout.
     """
-    response = await client.request(
-        "POST",
-        client.sys(f"sites/{site}/download"),
+    response = await client.call(
+        routes.download_site(site),
         json={"site": {"name": site}},
-        auth="bearer+user",
         timeout=client.settings.export_timeout_s,
     )
     return unwrap_dict(response)
@@ -345,11 +334,9 @@ async def download_site_skeleton(client: HaxcmsClient, site: str) -> dict[str, A
     structure: "from-skeleton", items: [{id, title, slug, order, parent, indent, content,
     metadata}], files: []}, theme, _skeleton}` — items carry their page CONTENT inline.
     """
-    response = await client.request(
-        "POST",
-        client.sys(f"sites/{site}/download-skeleton"),
+    response = await client.call(
+        routes.download_site_skeleton(site),
         json={"site": {"name": site}},
-        auth="bearer+user",
         timeout=client.settings.export_timeout_s,
     )
     return unwrap_dict(response)
@@ -362,11 +349,9 @@ async def save_site_as_template(client: HaxcmsClient, site: str) -> dict[str, An
     the skeletons list route scans core AND user directories, so the template shows up in
     `list_skeletons` (and `get_skeleton(name)` follows the returned `link`).
     """
-    response = await client.request(
-        "POST",
-        client.sys(f"sites/{site}/save-as-template"),
+    response = await client.call(
+        routes.save_site_as_template(site),
         json={"site": {"name": site}},
-        auth="bearer+user",
         timeout=client.settings.export_timeout_s,
     )
     return unwrap_dict(response)

@@ -39,6 +39,8 @@ jobs:
         run: uv run mypy src
       - name: Generated converters drift check
         run: uv run python scripts/gen_tools.py --check
+      - name: Generated routes drift check
+        run: uv run python scripts/gen_routes.py --check
       - name: Tool docs drift check
         run: uv run python scripts/gen_tool_docs.py --check
       - name: Unit tests

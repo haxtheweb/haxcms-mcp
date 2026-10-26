@@ -146,6 +146,7 @@ reconcile:
 
 ```bash
 uv run python scripts/sync_specs.py --from ../haxcms-nodejs   # specs/, VERSION, generated spec_info.py
+uv run python scripts/gen_routes.py                           # client routes (ADR-0005)
 uv run python scripts/gen_tools.py                            # converters
 uv run python scripts/gen_tool_docs.py                        # docs/tools.md
 uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the nightly runs
@@ -192,6 +193,7 @@ uv run pytest -m e2e                               # full tutorial over a stdio 
 uv run ruff check . && uv run ruff format --check . && uv run mypy src
 
 uv run python scripts/gen_tools.py --check         # converter drift (ADR-0002)
+uv run python scripts/gen_routes.py --check        # client route drift (ADR-0005)
 uv run python scripts/gen_tool_docs.py             # regenerate docs/tools.md
 uv run pytest --snapshot-update                    # update regression snapshots deliberately
 ```
@@ -224,6 +226,7 @@ The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generat
 - [`PLAN.md`](PLAN.md) / [`PROGRESS.md`](PROGRESS.md) — the build plan and the session log
 - ADRs: [0001 HTTP wrapper](docs/adr/0001-http-wrapper-over-running-haxcms.md),
   [0002 generated converters](docs/adr/0002-build-time-generated-converter-tools.md),
-  [0003 text anchors](docs/adr/0003-text-anchor-block-addressing.md)
+  [0003 text anchors](docs/adr/0003-text-anchor-block-addressing.md),
+  [0005 generated routes](docs/adr/0005-generate-the-route-layer-not-the-client.md)
 - [HAXcms NodeJS](https://github.com/haxtheweb/haxcms-nodejs) — the instance this operates
 - [Model Context Protocol](https://modelcontextprotocol.io/) — the protocol it speaks

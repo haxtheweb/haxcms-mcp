@@ -23,6 +23,7 @@ from haxcms_mcp.models.item import Item
 from haxcms_mcp.server import build_server
 from haxcms_mcp.services import pages as pages_service
 from haxcms_mcp.services import sites as sites_service
+from tests.harness.haxcms_php_runtime import HaxcmsPhpRuntime
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 from tests.harness.mcp_client import McpTestClient
 
@@ -40,10 +41,19 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
             item.add_marker(skip_network)
 
 
+def test_backend() -> str:
+    """Which HAXcms backend the live suites run against: `node` (default) or `php` (#3139)."""
+    backend = os.environ.get("HAXCMS_MCP_TEST_BACKEND", "node").strip().lower()
+    if backend not in {"node", "php"}:
+        raise pytest.UsageError(f"HAXCMS_MCP_TEST_BACKEND must be node or php, got {backend!r}")
+    return backend
+
+
 @pytest.fixture(scope="session")
 async def haxcms() -> AsyncIterator[HaxcmsRuntime]:
-    """One real HAXcms NodeJS instance for the whole test session."""
-    async with HaxcmsRuntime() as runtime:
+    """One real HAXcms instance (NodeJS by default, PHP with HAXCMS_MCP_TEST_BACKEND=php)."""
+    runtime_class = HaxcmsPhpRuntime if test_backend() == "php" else HaxcmsRuntime
+    async with runtime_class() as runtime:
         yield runtime
 
 

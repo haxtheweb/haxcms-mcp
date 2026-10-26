@@ -6,12 +6,15 @@ and middleware. Later Phases add their registrations here (PLAN.md Section 2.1).
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastmcp import FastMCP
 
 from haxcms_mcp.client import HaxcmsClient
+from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
 from haxcms_mcp.middleware import (
     ErrorTranslationMiddleware,
@@ -38,13 +41,19 @@ from haxcms_mcp.tools.sites import register_sites_tools
 def build_server(settings: Settings) -> FastMCP:
     """Create and configure the FastMCP application for one Instance."""
     client = HaxcmsClient(settings)
+    compat = CompatChecker(client)
 
     @asynccontextmanager
     async def _lifespan(server: FastMCP) -> AsyncIterator[None]:
-        """Graceful shutdown (T9.4): the httpx client dies with the server session."""
+        """Startup spec check (best effort, never blocks) and graceful shutdown (T9.4):
+        the httpx client dies with the server session."""
+        check = asyncio.create_task(compat.result(), name="haxcms-spec-compat")
         try:
             yield
         finally:
+            check.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await check
             await client.aclose()
 
     mcp = FastMCP("haxcms-mcp", lifespan=_lifespan)
@@ -58,7 +67,7 @@ def build_server(settings: Settings) -> FastMCP:
     # one shared catalog: the content tools and the typed block tools use the same
     # 10-minute live-merge cache
     catalog = CatalogService(client)
-    register_auth_tools(mcp, settings, client)
+    register_auth_tools(mcp, settings, client, compat)
     register_sites_tools(mcp, settings, client)
     register_outline_tools(mcp, settings, client)
     register_pages_tools(mcp, settings, client)

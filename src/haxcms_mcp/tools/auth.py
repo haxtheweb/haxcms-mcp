@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 from haxcms_mcp import __version__
 from haxcms_mcp.client import HaxcmsClient, system_api
 from haxcms_mcp.client.auth import ACCESS_TOKEN_TTL_S
+from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import HaxcmsMcpError
 from haxcms_mcp.tools._common import tool_annotations
@@ -23,8 +24,14 @@ def _budget_stats(client: HaxcmsClient) -> dict[str, Any]:
     }
 
 
-def register_auth_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient) -> None:
+def register_auth_tools(
+    mcp: FastMCP,
+    settings: Settings,
+    client: HaxcmsClient,
+    compat: CompatChecker | None = None,
+) -> None:
     """Register the four session tools on the FastMCP app."""
+    checker = compat or CompatChecker(client)
 
     @mcp.tool(
         annotations=tool_annotations("Login", read_only=False, destructive=False),
@@ -94,7 +101,9 @@ def register_auth_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient) 
 
         Reports which HAXcms instance the server talks to, whether Read-Only Mode is active,
         and — best effort — the instance's own version and status diagnostics (failures appear
-        as `version_error` / `status_error` instead of failing the call).
+        as `version_error` / `status_error` instead of failing the call). `spec_compatibility`
+        says whether the instance serves the same HAXcms API spec this server was built against
+        (`match`, `mismatch` — tools may misbehave — or `unavailable`).
         """
         info: dict[str, Any] = {
             "name": "haxcms-mcp",
@@ -114,4 +123,5 @@ def register_auth_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient) 
         except HaxcmsMcpError as exc:
             haxcms_info["status_error"] = exc.formatted
         info["haxcms"] = haxcms_info
+        info["spec_compatibility"] = (await checker.result()).to_dict()
         return info

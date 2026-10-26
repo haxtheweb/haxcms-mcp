@@ -17,7 +17,7 @@ in Phase 7; recorded in PROGRESS.md):
   a LOCAL html-platform URL can never be fetched — local HTML goes through the
   document importer instead (kind "html").
 * Platform dispatcher set (siteImport.js): haxcms, html, pressbooks, gitbook, notion,
-  wordpress, elmsln, drupal-book, plone, openstax, vitepress.
+  wordpress, elmsln, drupal, plone, openstax, vitepress, quarto.
 """
 
 from __future__ import annotations
@@ -45,11 +45,15 @@ PLATFORMS = (
     "notion",
     "wordpress",
     "elmsln",
-    "drupal-book",
+    "drupal",
     "plone",
     "openstax",
     "vitepress",
+    "quarto",
 )
+# Names the MCP used for a platform before HAXcms renamed it; mapped to the current id so
+# older prompts keep working (HAXcms main answers 400 for `drupal-book`).
+PLATFORM_ALIASES = {"drupal-book": "drupal"}
 
 
 def _bulk_entry(item: ImportedItem) -> dict[str, Any]:
@@ -93,6 +97,7 @@ def _validate_content_type(content_type: str) -> str:
 
 def _validate_platform(platform: str) -> str:
     normalized = (platform or "").strip().lower()
+    normalized = PLATFORM_ALIASES.get(normalized, normalized)
     if normalized not in PLATFORMS:
         raise HaxcmsMcpError(
             ErrorCode.INVALID_ARGUMENT,

@@ -143,8 +143,13 @@ async def validate_url(
     *,
     resolve: Resolver | None = None,
     allow_private: bool = False,
+    via_proxy: bool = False,
 ) -> _Target:
-    """Check one URL and pin it to a validated public address (raises FILE_SOURCE_ERROR)."""
+    """Check one URL and pin it to a validated public address (raises FILE_SOURCE_ERROR).
+
+    `via_proxy`: the operator routes URL sources through an egress proxy, which then does
+    DNS and enforces where requests may go. Only IP-literal hosts can be checked here; a
+    host name is passed to the proxy as-is (no pinning)."""
     parts = urlsplit(url)
     scheme = parts.scheme.lower()
     if scheme not in {"http", "https"}:
@@ -165,6 +170,8 @@ async def validate_url(
         literal = None
     if literal is not None:
         candidates = [str(literal)]
+    elif via_proxy:
+        return _Target(url, host, parts.netloc)
     else:
         resolver = resolve or _system_resolve
         try:
@@ -238,6 +245,7 @@ async def guarded_fetch(
     transport: httpx.AsyncBaseTransport | None = None,
     deadline_s: float | None = None,
     allow_private: bool = False,
+    proxy: str | None = None,
 ) -> FetchResult:
     """GET `url` with the SSRF rules above. `check_size(n)` raises when n bytes is too many;
     it is called with the declared Content-Length and again as the body streams in. The whole
@@ -248,7 +256,7 @@ async def guarded_fetch(
         try:
             async with asyncio.timeout(limit):
                 return await _guarded_fetch(
-                    url, timeout_s, check_size, resolve, transport, allow_private
+                    url, timeout_s, check_size, resolve, transport, allow_private, proxy
                 )
         except TimeoutError as exc:
             raise _refused(f"fetching {url!r} took longer than {int(limit)}s") from exc
@@ -261,18 +269,31 @@ async def _guarded_fetch(
     resolve: Resolver | None,
     transport: httpx.AsyncBaseTransport | None,
     allow_private: bool,
+    proxy: str | None,
 ) -> FetchResult:
     current = url
     async with httpx.AsyncClient(
-        timeout=timeout_s, follow_redirects=False, trust_env=False, transport=transport
+        timeout=timeout_s,
+        follow_redirects=False,
+        trust_env=False,  # never an implicit proxy: only the operator's explicit one
+        transport=transport,
+        proxy=proxy if transport is None else None,
     ) as fetcher:
         for _hop in range(MAX_REDIRECTS + 1):
-            target = await validate_url(current, resolve=resolve, allow_private=allow_private)
+            target = await validate_url(
+                current, resolve=resolve, allow_private=allow_private, via_proxy=proxy is not None
+            )
+            pinned = target.url != current
             extensions = (
-                {"sni_hostname": target.host} if current.lower().startswith("https") else {}
+                {"sni_hostname": target.host}
+                if pinned and current.lower().startswith("https")
+                else {}
             )
             request = fetcher.build_request(
-                "GET", target.url, headers={"Host": target.host_header}, extensions=extensions
+                "GET",
+                target.url,
+                headers={"Host": target.host_header} if pinned else None,
+                extensions=extensions,
             )
             response = await fetcher.send(request, stream=True)
             try:

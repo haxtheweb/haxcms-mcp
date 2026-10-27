@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     rate_limit_rps: float = 4.0
     rate_limit_burst: int = 8
     rate_limit_max_wait_s: float = 30.0
+    # Per-caller HTTP mode: RATE_LIMIT_RPS/BURST apply per user; this caps all users together.
+    rate_limit_total_rps: float = 16.0
     retry_max: int = 3
     timeout_s: float = 60.0
     export_timeout_s: float = 300.0
@@ -72,6 +74,10 @@ class Settings(BaseSettings):
     # allowed over stdio and refused over HTTP.
     allow_private_url_sources: bool | None = None
     allow_local_sources: bool | None = None
+    # Send URL sources through this egress proxy (http://host:port). The proxy then does DNS
+    # and decides what is reachable, so it must block internal addresses itself; only
+    # IP-literal URLs are still checked here. Unset: direct, DNS-pinned connections.
+    url_sources_proxy: str | None = None
     # DNS-rebinding protection (security audit): the HTTP transport only answers requests whose
     # Host is loopback, the bind address, the PUBLIC_URL host, or one of these; a browser
     # Origin must be loopback, same-origin, or one of HTTP_ALLOWED_ORIGINS. Comma-separated.
@@ -84,6 +90,8 @@ class Settings(BaseSettings):
     output_ttl_s: int = 3600
     output_caller_quota_mb: int = 200
     download_ttl_s: int = 900
+    # Largest HAXcms response read as a binary download (site zips, exports), streamed.
+    download_max_mb: int = 500
 
     # --- Test-only -------------------------------------------------------------
     test_haxcms_dir: Path | None = None

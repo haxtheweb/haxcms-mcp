@@ -13,6 +13,7 @@ also bearer + user token; their errors carry `data.error` instead of `data.messa
 from __future__ import annotations
 
 from typing import Any, Final
+from urllib.parse import urlsplit
 
 from haxcms_mcp.client import HaxcmsClient
 from haxcms_mcp.client.envelope import (
@@ -363,8 +364,22 @@ async def fetch_published(client: HaxcmsClient, link: str) -> bytes:
     The mount has NO auth (app.js serves it with res.sendFile), so this is auth="none";
     the export timeout covers large sites on slow disks.
     """
+    # `link` comes from the HAXcms response: only ever follow it to the instance's own
+    # _published mount, never to another host (a compromised instance must not turn this
+    # into a fetch of arbitrary URLs from wherever the MCP server runs)
+    parsed = urlsplit(link)
+    if parsed.scheme or parsed.netloc or not parsed.path.startswith("/_published/"):
+        raise HaxcmsMcpError(
+            ErrorCode.UPSTREAM_ERROR,
+            "HAXcms returned an unexpected download link",
+            details={"link_path": parsed.path[:200]},
+        )
     response = await client.request(
-        "GET", link, auth="none", timeout=client.settings.export_timeout_s
+        "GET",
+        parsed.path,
+        auth="none",
+        timeout=client.settings.export_timeout_s,
+        max_bytes=client.settings.download_max_mb * 1024 * 1024,
     )
     if response.status_code >= 400:
         raise error_from_response(response)

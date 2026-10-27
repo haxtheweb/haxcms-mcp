@@ -158,6 +158,7 @@ async def _fetch(source: str, settings: Settings) -> tuple[int, httpx.Headers, b
             timeout_s=settings.timeout_s,
             check_size=check_size,
             allow_private=not settings.ssrf_guard_enabled,
+            proxy=settings.url_sources_proxy,
         )
     except httpx.HTTPError as exc:
         raise _source_error(f"could not fetch {source} ({type(exc).__name__})") from exc

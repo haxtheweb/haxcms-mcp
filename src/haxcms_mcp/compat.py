@@ -19,6 +19,7 @@ from typing import Any, Literal
 from haxcms_mcp.client import HaxcmsClient
 from haxcms_mcp.errors import HaxcmsMcpError
 from haxcms_mcp.generated import spec_info
+from haxcms_mcp.generated import system_routes as routes
 from haxcms_mcp.logging import get_logger
 from haxcms_mcp.spec_hash import spec_sha256
 
@@ -52,10 +53,8 @@ async def check_spec_compatibility(client: HaxcmsClient) -> SpecCompatibility:
     ref = vendored_ref()
     expected = spec_info.SYSTEM_SPEC_SHA256
     try:
-        response = await client.request(
-            "GET",
-            client.sys("openapi"),
-            auth="none",
+        response = await client.call(
+            routes.system_openapi(),
             accept="application/yaml",  # NodeJS: raw YAML; PHP answers JSON either way
             timeout=CHECK_TIMEOUT_S,
             no_retry=True,

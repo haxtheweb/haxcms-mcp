@@ -68,6 +68,9 @@ working directory.
 | `ALLOW_LOCAL_SOURCES` | off over HTTP | Allow local-path sources (read from the server's disk) |
 | `HTTP_ALLOWED_HOSTS`, `HTTP_ALLOWED_ORIGINS` | none | Extra `Host` names / browser origins the HTTP transport answers (comma-separated). Loopback, the bind address and the `PUBLIC_URL` host are always allowed; anything else gets `421`/`403` (DNS-rebinding protection) |
 | `AUTH_FAILURES_PER_MINUTE` | `20` | Per client address: after this many refused bearer tokens in a minute, answer `429` without asking HAXcms (`0` disables; use the proxy's limit behind a reverse proxy) |
+| `RATE_LIMIT_TOTAL_RPS` | `16` | Per-caller HTTP mode: `RATE_LIMIT_RPS`/`BURST` apply to each user, and this caps all users together |
+| `DOWNLOAD_MAX_MB` | `500` | Largest site zip / export read from HAXcms (streamed; bigger is refused, compressed bodies are counted decoded) |
+| `URL_SOURCES_PROXY` | none | Send URL sources through this egress proxy (`http://host:port`). The proxy then does DNS and must block internal addresses itself; only IP-literal URLs are still checked here |
 | `OUTPUT_TTL_S`, `OUTPUT_CALLER_QUOTA_MB`, `DOWNLOAD_TTL_S` | `3600`, `200`, `900` | Per-caller HTTP mode: results expire after `OUTPUT_TTL_S`, each user may keep `OUTPUT_CALLER_QUOTA_MB` on the server, and download links live `DOWNLOAD_TTL_S` |
 | `LOG_LEVEL` | `INFO` | stderr logging (stdout belongs to the stdio transport) |
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |

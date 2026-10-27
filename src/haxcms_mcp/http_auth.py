@@ -32,6 +32,7 @@ from pydantic import AnyHttpUrl
 
 from haxcms_mcp.client.budget import OutboundBudget
 from haxcms_mcp.client.principal import Principal, current_principal
+from haxcms_mcp.generated import system_routes as routes
 from haxcms_mcp.logging import get_logger
 
 if TYPE_CHECKING:
@@ -104,10 +105,9 @@ class HaxcmsTokenVerifier(TokenVerifier):
             if now - cached[0] < ttl:
                 return cached[1]
         try:
-            response = await self._client.request(
-                "GET",
-                self._client.sys("session"),
-                auth="none",
+            response = await self._client.call(
+                routes.session_auth_get(),
+                auth="none",  # the bearer under test goes in explicitly, never a held one
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=VERIFY_TIMEOUT_S,
                 no_retry=True,

@@ -9,6 +9,17 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Security follow-ups:
+  - Site zips and exports are streamed from HAXcms under `DOWNLOAD_MAX_MB` (decoded size, so
+    compressed bombs are caught) instead of being read whole into memory; a `_published`
+    link from HAXcms is only followed on the instance's own `/_published/` mount.
+  - Per-caller HTTP mode: every user has their own outbound budget, and
+    `RATE_LIMIT_TOTAL_RPS` caps all users together.
+  - `URL_SOURCES_PROXY`: an explicit egress proxy for URL sources (for networks where the
+    server only reaches the internet through a proxy).
+  - The last hand-built API paths (login, refresh, logout, connection-settings, the spec
+    check, token verification) use the generated routes too (ADR-0005).
+
 - Security hardening from the October 2026 audit (local sources):
   - `INPUT_ROOTS` defaults to none: local-path sources are off until the operator names a
     folder (the working directory used to be the default, and it holds the server's `.env`).

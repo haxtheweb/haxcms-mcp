@@ -26,5 +26,5 @@ Those live in the hand-written functions, their docstrings and their tests. Gene
 - When a route moves, regenerate (`scripts/gen_routes.py`). When an operation disappears or its parameters change, the hand-written caller fails `mypy` and imports instead of failing at runtime.
 - The nightly drift workflow regenerates the routes from `haxcms-nodejs` `main` and type-checks the client. When the specs drift, the run shows whether a plain regenerate is enough.
 - CI runs `gen_routes.py --check`, like the converters.
-- `client/auth.py` (login, refresh, logout, connection-settings) and `compat.py` still build their few session paths by hand for now, because open PRs touch those lines. Moving them is a mechanical follow-up.
+- Every call the client makes now goes through a generated route, including the session calls in `client/auth.py`, the spec check in `compat.py` and token verification; the only exceptions are the non-API static mounts (`site.json`, `/_published/...`).
 - Next candidate: generate response *models* for the operations whose response schemas are precise (files, revisions), one model at a time, each checked against the live suite.

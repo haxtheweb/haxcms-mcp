@@ -13,7 +13,7 @@ env:
   HAXCMS_NODEJS_REPO: haxtheweb/haxcms-nodejs
   HAXCMS_NODEJS_REF: main
   HAXCMS_PHP_REPO: haxtheweb/haxcms-php
-  HAXCMS_PHP_REF: master  # haxcms-php's default branch is master, not main
+  HAXCMS_PHP_REF: fix/item-from-params-metadata  # TEMP: validate the leg against haxtheweb/haxcms-php#704
 
 jobs:
   lint-unit:

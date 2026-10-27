@@ -21,21 +21,28 @@ on:
 env:
   HAXCMS_NODEJS_REF: ${{ inputs.haxcms_ref || 'main' }}
 
+# least privilege: every job only reads the repository (security audit)
+permissions:
+  contents: read
+
 jobs:
   spec-drift:
     name: Vendored specs vs haxcms-nodejs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
       - name: Check out HAXcms (${{ env.HAXCMS_NODEJS_REF }})
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          persist-credentials: false
           repository: haxtheweb/haxcms-nodejs
           ref: ${{ env.HAXCMS_NODEJS_REF }}
           path: .haxcms-nodejs
@@ -59,19 +66,22 @@ jobs:
     name: Live suites against haxcms-nodejs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
       - name: Check out HAXcms (${{ env.HAXCMS_NODEJS_REF }})
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          persist-credentials: false
           repository: haxtheweb/haxcms-nodejs
           ref: ${{ env.HAXCMS_NODEJS_REF }}
           path: .haxcms-nodejs

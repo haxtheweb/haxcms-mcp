@@ -62,7 +62,7 @@ def register_files_tools(
         )
         return dump_model(collection)
 
-    @mcp.tool(annotations=tool_annotations("Upload file", idempotent=False))
+    @mcp.tool(annotations=tool_annotations("Upload file", idempotent=False, open_world=True))
     async def upload_file(
         source: str,
         filename: str | None = None,
@@ -99,7 +99,7 @@ def register_files_tools(
         record = await files_service.get_file(client, name, uuid)
         return dump_model(record)
 
-    @mcp.tool(annotations=tool_annotations("Rename file"))
+    @mcp.tool(annotations=tool_annotations("Rename file", destructive=True))
     async def rename_file(uuid: str, new_name: str, site: str | None = None) -> dict[str, Any]:
         """Rename a file (changes its stored name and `files/<name>` URL).
 
@@ -154,7 +154,9 @@ def register_files_tools(
         name = resolve_site(site, settings.default_site)
         return await files_service.delete_file(client, name, uuid)
 
-    @mcp.tool(annotations=tool_annotations("Add image from file", idempotent=False))
+    @mcp.tool(
+        annotations=tool_annotations("Add image from file", idempotent=False, open_world=True)
+    )
     async def add_image_from_file(
         page: str,
         source: str,

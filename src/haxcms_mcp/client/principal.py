@@ -27,3 +27,10 @@ class Principal:
     def key(self) -> str:
         """Stable, non-reversible key for per-caller caches (never log the token itself)."""
         return hashlib.sha256(self.token.encode("utf-8")).hexdigest()
+
+
+def caller_scope() -> str:
+    """Key prefix for per-caller state shared in one process (caches, locks): the caller's
+    token hash in authenticated HTTP mode, "" otherwise (one identity per process)."""
+    principal = current_principal.get()
+    return principal.key if principal is not None else ""

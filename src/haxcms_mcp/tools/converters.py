@@ -59,8 +59,25 @@ def _bind(
     return functools.partial(fn, client)
 
 
+# Converters whose result is a FILE written to the Output Directory: they change the
+# environment, so they are not read-only (and Read-Only Mode refuses them).
+WRITES_FILES = frozenset({"convert_html_to_docx", "convert_html_to_pdf", "convert_docx_to_pdf"})
+
+
+def _annotations(fn: Callable[..., Any], name: str, title: str) -> Any:
+    writes = name in WRITES_FILES
+    # a `source` may be an http(s) URL this server fetches: an open-world interaction
+    takes_source = "source" in inspect.signature(fn).parameters
+    return tool_annotations(
+        title,
+        read_only=not writes,
+        idempotent=not writes,  # each call writes a new, uniquely named file
+        open_world=takes_source,
+    )
+
+
 def register_converter_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient) -> None:
-    """Register all twelve generated converters as read-only tools."""
+    """Register all twelve generated converters (annotations per `_annotations`)."""
     for name, title in TITLES.items():
         fn: Callable[..., Any] = getattr(generated, name)
         mcp.add_tool(
@@ -68,6 +85,6 @@ def register_converter_tools(mcp: FastMCP, settings: Settings, client: HaxcmsCli
                 _bind(fn, client, settings),
                 name=name,
                 description=inspect.getdoc(fn) or title,
-                annotations=tool_annotations(title, read_only=True),
+                annotations=_annotations(fn, name, title),
             )
         )

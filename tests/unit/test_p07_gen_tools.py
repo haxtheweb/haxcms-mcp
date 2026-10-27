@@ -139,7 +139,7 @@ def test_result_shapes() -> None:
     assert "conversion.write_bytes(" in raw
     # only the two binary base64 ops and the raw op touch the output directory
     for name in FUNCTIONS:
-        touched = "settings.output_dir" in _segment(name)
+        touched = "settings=settings," in _segment(name)
         assert touched == (
             name
             in {

@@ -66,6 +66,9 @@ working directory.
 | `AUTHORIZATION_SERVER_URL` | `BASE_URL` | OAuth authorization server advertised to clients |
 | `ALLOW_PRIVATE_URL_SOURCES` | off over HTTP | Allow URL sources that resolve to loopback/private/link-local addresses |
 | `ALLOW_LOCAL_SOURCES` | off over HTTP | Allow local-path sources (read from the server's disk) |
+| `HTTP_ALLOWED_HOSTS`, `HTTP_ALLOWED_ORIGINS` | none | Extra `Host` names / browser origins the HTTP transport answers (comma-separated). Loopback, the bind address and the `PUBLIC_URL` host are always allowed; anything else gets `421`/`403` (DNS-rebinding protection) |
+| `AUTH_FAILURES_PER_MINUTE` | `20` | Per client address: after this many refused bearer tokens in a minute, answer `429` without asking HAXcms (`0` disables; use the proxy's limit behind a reverse proxy) |
+| `OUTPUT_TTL_S`, `OUTPUT_CALLER_QUOTA_MB`, `DOWNLOAD_TTL_S` | `3600`, `200`, `900` | Per-caller HTTP mode: results expire after `OUTPUT_TTL_S`, each user may keep `OUTPUT_CALLER_QUOTA_MB` on the server, and download links live `DOWNLOAD_TTL_S` |
 | `LOG_LEVEL` | `INFO` | stderr logging (stdout belongs to the stdio transport) |
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |
 
@@ -105,7 +108,8 @@ claude mcp add --transport http haxcms http://127.0.0.1:8765/mcp
 ### Serving over HTTP to other people
 
 Bound to loopback, the HTTP transport behaves like stdio: one HAXcms identity for the whole
-process. To serve anyone else, turn on per-caller auth. The server refuses to bind a
+process. It only answers requests whose `Host` is loopback (and refuses foreign browser
+`Origin`s), so a web page cannot reach it through DNS rebinding. To serve anyone else, turn on per-caller auth. The server refuses to bind a
 non-loopback host without it:
 
 ```bash
@@ -120,10 +124,17 @@ token with HAXcms and then acts as that user, with that user's permissions. Unau
 requests get `401` plus OAuth protected-resource metadata naming HAXcms as the authorization
 server ([ADR-0004](docs/adr/0004-haxcms-is-the-oauth-authorization-server.md)). Over HTTP:
 
-- URL sources must resolve to public addresses (SSRF guard, redirects re-checked).
+- URL sources must resolve to public addresses (SSRF guard, redirects re-checked, at most 4
+  fetches at once, 120 s per fetch).
 - Local-path sources are refused.
 - `login` and `logout` are unavailable.
 - Read-Only Mode still applies.
+- Exports and converter files land in the caller's own folder (quota, expiry) and come back
+  as a short-lived signed `download_url` served by this server, not as a server path.
+- A non-loopback bind needs `PUBLIC_URL=https://...`: put TLS in front of the server.
+- Repeatedly refused tokens from one address are throttled (`429`), and token checks have
+  their own budget, so made-up tokens cannot use up the budget real callers' tools draw on.
+- Unexpected errors reach callers without internal detail (hosts, paths, resolved IPs).
 
 The browser sign-in flow (OAuth authorize/token endpoints) has to land in HAXcms first. Until
 then, only clients that can send a static header (`claude mcp add --transport http --header

@@ -56,7 +56,7 @@ async def convert_html_to_docx(
         data,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         fallback_filename="converted.docx",
-        output_dir=settings.output_dir,
+        settings=settings,
     )
 
 
@@ -190,7 +190,7 @@ async def convert_html_to_pdf(
         data,
         mimetype="application/pdf",
         fallback_filename="converted.pdf",
-        output_dir=settings.output_dir,
+        settings=settings,
     )
 
 
@@ -277,5 +277,5 @@ async def convert_docx_to_pdf(
         content,
         mimetype="application/pdf",
         filename=filename,
-        output_dir=settings.output_dir,
+        settings=settings,
     )

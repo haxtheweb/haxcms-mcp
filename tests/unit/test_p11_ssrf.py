@@ -216,7 +216,13 @@ def test_http_on_a_non_loopback_host_without_auth_fails_closed(host: str) -> Non
 
 
 def test_http_on_a_non_loopback_host_with_auth_is_allowed() -> None:
-    settings = Settings(base_url=BASE, transport="http", http_host="0.0.0.0", http_auth="haxcms")
+    settings = Settings(
+        base_url=BASE,
+        transport="http",
+        http_host="0.0.0.0",
+        http_auth="haxcms",
+        public_url="https://mcp.example.org",
+    )
     assert settings.per_caller_auth is True
 
 

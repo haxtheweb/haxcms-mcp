@@ -11,6 +11,7 @@ from __future__ import annotations
 import secrets
 from collections.abc import AsyncIterator
 
+import httpx
 import pytest
 from fastmcp import Client
 
@@ -64,3 +65,34 @@ async def test_write_round_trip_over_http(http_server: HttpMcpProcess) -> None:
         finally:
             archived = await client.call_tool("archive_site", {"site": name})
             assert archived.data["name"] == name
+
+
+async def test_dns_rebinding_is_refused_on_the_loopback_server(http_server: HttpMcpProcess) -> None:
+    """Security audit: a browser page that rebinds its name to 127.0.0.1 sends a foreign Host
+    (and Origin); the server must refuse it before any tool can run with the operator's
+    credentials."""
+    initialize = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {},
+            "clientInfo": {"name": "probe", "version": "0"},
+        },
+    }
+    headers = {"Accept": "application/json, text/event-stream"}
+    port = http_server.url.split(":")[2].split("/")[0]
+    async with httpx.AsyncClient(timeout=30) as http:
+        rebound = await http.post(
+            http_server.url,
+            json=initialize,
+            headers={**headers, "Host": f"attacker.example:{port}"},
+        )
+        cross_origin = await http.post(
+            http_server.url,
+            json=initialize,
+            headers={**headers, "Origin": "http://attacker.example"},
+        )
+    assert rebound.status_code == 421
+    assert cross_origin.status_code == 403

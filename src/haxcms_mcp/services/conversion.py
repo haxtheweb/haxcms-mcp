@@ -13,11 +13,11 @@ import binascii
 from pathlib import Path
 from typing import Any
 
+from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 from haxcms_mcp.models.common import dump_model
 from haxcms_mcp.models.imports import ConversionResult
-
-MAX_UNIQUE_SUFFIX = 1000
+from haxcms_mcp.services import output_store
 
 
 def _extras(data: dict[str, Any]) -> dict[str, Any]:
@@ -49,35 +49,22 @@ def text_result(data: Any, mimetype: str) -> dict[str, Any]:
 def safe_filename(name: Any, fallback: str) -> str:
     """Upstream filenames are untrusted: strip any directory part, fall back when empty."""
     candidate = Path(str(name or "").replace("\\", "/")).name.strip()
-    return candidate or fallback
+    # "." / ".." survive Path.name; as a folder or file name they would escape the target
+    if candidate in {"", ".", ".."}:
+        return fallback
+    return candidate
 
 
-def _unique_path(output_dir: Path, filename: str) -> Path:
-    """The first free `<stem>-<n><suffix>` slot, so conversions never overwrite."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / filename
-    if not path.exists():
-        return path
-    for index in range(1, MAX_UNIQUE_SUFFIX):
-        candidate = output_dir / f"{path.stem}-{index}{path.suffix}"
-        if not candidate.exists():
-            return candidate
-    raise HaxcmsMcpError(
-        ErrorCode.UPSTREAM_ERROR,
-        f"no free filename for {filename!r} under {output_dir}",
-        hint="the output directory holds too many same-named results; clear it",
-    )
-
-
-def _write(raw: bytes, *, filename: str, mimetype: str, output_dir: Path) -> dict[str, Any]:
-    path = _unique_path(output_dir, filename)
-    path.write_bytes(raw)
+def _write(raw: bytes, *, filename: str, mimetype: str, settings: Settings) -> dict[str, Any]:
+    stored = output_store.store(raw, settings=settings, filename=filename)
     return dump_model(
         ConversionResult(
-            path=str(path),
+            path=stored.reported_path,
             bytes=len(raw),
             mimetype=mimetype,
             filename=filename,
+            download_url=stored.download_url,
+            expires_at=stored.expires_at,
         )
     )
 
@@ -87,7 +74,7 @@ def write_base64(
     *,
     mimetype: str,
     fallback_filename: str,
-    output_dir: Path,
+    settings: Settings,
 ) -> dict[str, Any]:
     """Envelope `data` `{contents: <base64>, filename?}` -> a file in the Output Directory."""
     if not isinstance(data, dict) or not isinstance(data.get("contents"), str):
@@ -103,7 +90,7 @@ def write_base64(
             f"converter returned invalid base64: {exc}",
         ) from exc
     filename = safe_filename(data.get("filename"), fallback_filename)
-    return _write(raw, filename=filename, mimetype=mimetype, output_dir=output_dir)
+    return _write(raw, filename=filename, mimetype=mimetype, settings=settings)
 
 
 def write_bytes(
@@ -111,12 +98,12 @@ def write_bytes(
     *,
     mimetype: str,
     filename: str,
-    output_dir: Path,
+    settings: Settings,
 ) -> dict[str, Any]:
     """RAW binary converter response (docxToPdf) -> a file in the Output Directory."""
     return _write(
         content,
         filename=safe_filename(filename, "converted.bin"),
         mimetype=mimetype,
-        output_dir=output_dir,
+        settings=settings,
     )

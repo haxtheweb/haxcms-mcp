@@ -15,7 +15,8 @@ from pathlib import Path
 
 from haxcms_mcp.config import Settings
 from haxcms_mcp.models.export import ExportArtifact
-from haxcms_mcp.services.conversion import _unique_path, safe_filename
+from haxcms_mcp.services import output_store
+from haxcms_mcp.services.conversion import safe_filename
 
 
 def timestamp_prefix(now: datetime | None = None) -> str:
@@ -35,7 +36,7 @@ def site_output_dir(settings: Settings, site: str) -> Path:
     The site name is sanitized too (defense in depth: it normally arrives already
     lowercased and server-validated, but never trust it as a path segment).
     """
-    return settings.output_dir / safe_filename(site, "site")
+    return output_store.output_root(settings) / safe_filename(site, "site")
 
 
 def write_export(
@@ -54,14 +55,20 @@ def write_export(
     Creates the site subfolder, picks a collision-free timestamped filename, writes the
     bytes, and never returns the content itself (PLAN §2.3).
     """
-    path = _unique_path(site_output_dir(settings, site), export_filename(name, now=now))
-    path.write_bytes(content)
+    stored = output_store.store(
+        content,
+        settings=settings,
+        filename=export_filename(name, now=now),
+        sub=safe_filename(site, "site"),
+    )
     return ExportArtifact(
         site=site,
         page_id=page_id,
         format=format,
-        path=path,
+        path=Path(stored.reported_path),
         bytes=len(content),
         mimetype=mimetype,
         created_at=time.time(),
+        download_url=stored.download_url,
+        expires_at=stored.expires_at,
     )

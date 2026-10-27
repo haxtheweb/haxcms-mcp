@@ -9,6 +9,17 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Security hardening from the October 2026 audit (HTTP transport):
+  - Host/Origin validation on every HTTP request (DNS-rebinding protection; `421`/`403`),
+    with `HTTP_ALLOWED_HOSTS` / `HTTP_ALLOWED_ORIGINS` for extra names.
+  - Per-caller mode: token verification uses its own outbound budget and caches refusals;
+    `AUTH_FAILURES_PER_MINUTE` throttles addresses that keep presenting refused tokens; a
+    non-loopback bind requires an `https://` `PUBLIC_URL`; error details are masked.
+  - Per-caller results go to per-user folders with a quota and expiry, and are returned as
+    signed, short-lived `download_url`s (`GET /downloads/<token>`) instead of server paths.
+  - URL fetches: total deadline and a concurrency cap; refusals no longer reveal resolved
+    addresses; connection errors no longer name the internal HAXcms host.
+
 - Generated route layer ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)
   stretch, ADR-0005): `scripts/gen_routes.py` writes one builder per spec operation
   (`generated/system_routes.py`, `generated/site_routes.py`). `system_api.py` and
@@ -43,6 +54,9 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 - `create_site_from_platform` accepts the `quarto` platform.
 
 ### Changed
+
+- Dependencies: fastmcp 4.1.2; floors for opentelemetry-api 1.45.1 (CVE-2026-114603) and
+  certifi 2026.10.19 (PYSEC-2026-4320); dev-only pillow 13.
 
 - Vendored specs refreshed to HAXcms NodeJS `main` @ `ad82de48` (new `languages` routes, `idMap` on
   save responses, md site export, auth notes on exports).

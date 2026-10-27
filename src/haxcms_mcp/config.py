@@ -11,6 +11,7 @@ import os
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated, Any, Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -68,6 +69,18 @@ class Settings(BaseSettings):
     # allowed over stdio and refused over HTTP.
     allow_private_url_sources: bool | None = None
     allow_local_sources: bool | None = None
+    # DNS-rebinding protection (security audit): the HTTP transport only answers requests whose
+    # Host is loopback, the bind address, the PUBLIC_URL host, or one of these; a browser
+    # Origin must be loopback, same-origin, or one of HTTP_ALLOWED_ORIGINS. Comma-separated.
+    http_allowed_hosts: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    http_allowed_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    # Per client address: after this many refused bearer tokens in a minute, answer 429
+    # without asking HAXcms (0 disables; use the reverse proxy's limit when behind one).
+    auth_failures_per_minute: int = 20
+    # Per-caller mode: results expire, are capped per user, and are fetched via signed links.
+    output_ttl_s: int = 3600
+    output_caller_quota_mb: int = 200
+    download_ttl_s: int = 900
 
     # --- Test-only -------------------------------------------------------------
     test_haxcms_dir: Path | None = None
@@ -98,6 +111,13 @@ class Settings(BaseSettings):
             return list(value)
         return value
 
+    @field_validator("http_allowed_hosts", "http_allowed_origins", mode="before")
+    @classmethod
+    def _split_csv(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return [part.strip() for part in value.split(",") if part.strip()]
+        return value
+
     @field_validator("log_level")
     @classmethod
     def _upper_log_level(cls, value: str) -> str:
@@ -116,11 +136,41 @@ class Settings(BaseSettings):
             )
         return self
 
+    @model_validator(mode="after")
+    def _require_tls_when_exposed(self) -> Settings:
+        """Bearer tokens from other hosts must not travel in clear text (security audit)."""
+        if not self.per_caller_auth or is_loopback_host(self.http_host):
+            return self
+        if not (self.public_url or "").lower().startswith("https://"):
+            raise ValueError(
+                "HAXCMS_MCP_HTTP_AUTH=haxcms on a non-loopback bind needs "
+                "HAXCMS_MCP_PUBLIC_URL=https://... (terminate TLS in front of this server): "
+                "callers send their HAXcms access token on every request"
+            )
+        return self
+
     # --- derived -------------------------------------------------------------------
     @property
     def per_caller_auth(self) -> bool:
         """True when each MCP caller brings their own HAXcms token (HTTP + http_auth)."""
         return self.transport == "http" and self.http_auth != "none"
+
+    @property
+    def transport_guard(self) -> dict[str, Any]:
+        """Host/Origin validation kwargs for FastMCP's HTTP transport (DNS rebinding)."""
+        hosts = list(self.http_allowed_hosts)
+        origins = list(self.http_allowed_origins)
+        if self.public_url:
+            public = urlsplit(self.public_url)
+            if public.hostname:
+                hosts.append(public.netloc)
+                hosts.append(public.hostname)
+                origins.append(f"{public.scheme}://{public.netloc}")
+        return {
+            "host_origin_protection": True,
+            "allowed_hosts": hosts,
+            "allowed_origins": origins,
+        }
 
     @property
     def ssrf_guard_enabled(self) -> bool:

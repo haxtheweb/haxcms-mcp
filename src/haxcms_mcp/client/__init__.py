@@ -143,6 +143,7 @@ class HaxcmsClient:
         accept: str | None = None,
         headers: Mapping[str, str] | None = None,
         no_retry: bool = False,
+        budget: OutboundBudget | None = None,
     ) -> httpx.Response:
         """Send one request with auth headers, budget accounting, and retry/refresh handling."""
         request_headers: dict[str, str] = dict(headers or {})
@@ -178,7 +179,7 @@ class HaxcmsClient:
         if timeout is not None:
             # passing timeout=None to build_request would DISABLE the client-level timeout
             kwargs["timeout"] = timeout
-        response = await self._send(method, path, request_headers, policy, kwargs)
+        response = await self._send(method, path, request_headers, policy, kwargs, budget)
 
         # One reactive refresh on 403 "Invalid bearer token" (API-REF §2.2, PLAN §2.2 step 5).
         if auth != "none" and not self.settings.no_auth and is_invalid_bearer(response):
@@ -189,7 +190,7 @@ class HaxcmsClient:
                 request_headers["Authorization"] = f"Bearer {token}"
             else:
                 request_headers.pop("Authorization", None)
-            response = await self._send(method, path, request_headers, policy, kwargs)
+            response = await self._send(method, path, request_headers, policy, kwargs, budget)
         return response
 
     async def _send(
@@ -199,12 +200,16 @@ class HaxcmsClient:
         headers: dict[str, str],
         policy: RetryPolicy,
         kwargs: dict[str, Any],
+        budget: OutboundBudget | None = None,
     ) -> httpx.Response:
         request = self.http.build_request(method, path, headers=headers, **kwargs)
-        await self.budget.acquire()
+        # `budget` lets a caller draw from a separate bucket (token verification must not
+        # be able to starve tool traffic, and vice versa)
+        bucket = budget or self.budget
+        await bucket.acquire()
         started = time.monotonic()
         response = await with_retry(
-            self.http.send, request, policy, sleep=self._sleep, on_retry=self.budget.acquire
+            self.http.send, request, policy, sleep=self._sleep, on_retry=bucket.acquire
         )
         # PLAN §5: every outbound request at DEBUG as `METHOD path status ms` — raw_path so
         # %2F-encoded slugs log as sent, and never headers (they carry the bearer tokens).

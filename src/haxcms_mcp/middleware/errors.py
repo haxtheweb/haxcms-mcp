@@ -1,13 +1,17 @@
 """Error translation middleware (PLAN.md Section 2.2 step 6).
 
 Translates ``HaxcmsMcpError`` raised anywhere below (tools, services, client) into a
-FastMCP ``ToolError`` whose message is ``[CODE] message. hint``.
+FastMCP ``ToolError`` / ``ResourceError`` whose message is ``[CODE] message. hint``.
+Any OTHER exception keeps fastmcp's handling; in per-caller HTTP mode the server runs with
+``mask_error_details`` so those reach remote callers without internal detail.
 """
 
 from __future__ import annotations
 
+from typing import Any
+
 import mcp_types
-from fastmcp.exceptions import ToolError
+from fastmcp.exceptions import ResourceError, ToolError
 from fastmcp.server.middleware import CallNext, Middleware, MiddlewareContext
 from fastmcp.tools.base import ToolResult
 
@@ -38,4 +42,19 @@ class ErrorTranslationMiddleware(Middleware):
             cause = exc.__cause__
             if isinstance(cause, HaxcmsMcpError):
                 raise ToolError(cause.formatted) from cause
+            raise
+
+    async def on_read_resource(
+        self, context: MiddlewareContext[Any], call_next: CallNext[Any, Any]
+    ) -> Any:
+        """Same for resources: with error masking on (per-caller HTTP mode) fastmcp would hide
+        our actionable `[CODE] message. hint` text along with genuine internals."""
+        try:
+            return await call_next(context)
+        except HaxcmsMcpError as exc:
+            raise ResourceError(exc.formatted) from exc
+        except ResourceError as exc:
+            cause = exc.__cause__
+            if isinstance(cause, HaxcmsMcpError):
+                raise ResourceError(cause.formatted) from cause
             raise

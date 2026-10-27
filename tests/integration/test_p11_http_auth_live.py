@@ -178,3 +178,81 @@ async def test_read_only_mode_still_applies_to_authenticated_callers(
         assert me.data["read_only"] is True
         with pytest.raises(ToolError, match="READ_ONLY"):
             await client.call_tool("create_site", {"name": f"p11-ro-{secrets.token_hex(3)}"})
+
+
+# --- security audit follow-ups --------------------------------------------------------------
+
+INITIALIZE = {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+        "protocolVersion": "2025-06-18",
+        "capabilities": {},
+        "clientInfo": {"name": "probe", "version": "0"},
+    },
+}
+MCP_HEADERS = {"Accept": "application/json, text/event-stream"}
+
+
+async def test_foreign_host_and_origin_are_refused(
+    auth_server: HttpMcpProcess, haxcms: HaxcmsRuntime
+) -> None:
+    """DNS rebinding: a page on another origin must not reach the MCP endpoint."""
+    token = await haxcms_token(haxcms)
+    authed = {**MCP_HEADERS, "Authorization": f"Bearer {token}"}
+    port = auth_server.url.split(":")[2].split("/")[0]
+    async with httpx.AsyncClient(timeout=30) as http:
+        foreign_host = await http.post(
+            auth_server.url, json=INITIALIZE, headers={**authed, "Host": f"evil.example:{port}"}
+        )
+        foreign_origin = await http.post(
+            auth_server.url, json=INITIALIZE, headers={**authed, "Origin": "https://evil.example"}
+        )
+        own = await http.post(auth_server.url, json=INITIALIZE, headers=authed)
+    assert foreign_host.status_code == 421
+    assert foreign_origin.status_code == 403
+    assert own.status_code == 200
+
+
+async def test_exports_come_back_as_a_signed_download_link(
+    auth_server: HttpMcpProcess, haxcms: HaxcmsRuntime
+) -> None:
+    token = await haxcms_token(haxcms)
+    name = f"p11-dl-{secrets.token_hex(3)}"
+    async with Client(auth_server.url, auth=BearerAuth(token)) as client:
+        await client.call_tool("create_site", {"name": name})
+        try:
+            artifact = (await client.call_tool("export_site", {"site": name, "format": "zip"})).data
+        finally:
+            await client.call_tool("archive_site", {"site": name})
+    assert not str(artifact["path"]).startswith("/")  # no server filesystem layout
+    url = artifact["download_url"]
+    async with httpx.AsyncClient(timeout=60) as http:
+        downloaded = await http.get(url)  # no bearer: the signed link is the capability
+        tampered = await http.get(url[:-3] + "AAA")
+    assert downloaded.status_code == 200
+    assert downloaded.content[:2] == b"PK"
+    assert len(downloaded.content) == artifact["bytes"]
+    assert tampered.status_code == 404
+
+
+async def test_a_client_presenting_forged_tokens_is_throttled(
+    haxcms: HaxcmsRuntime, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    proc = await _spawn(
+        haxcms, tmp_path_factory, "p11-limit", HAXCMS_MCP_AUTH_FAILURES_PER_MINUTE="3"
+    )
+    try:
+        statuses = []
+        async with httpx.AsyncClient(timeout=30) as http:
+            for n in range(5):
+                response = await http.post(
+                    proc.url,
+                    json=INITIALIZE,
+                    headers={**MCP_HEADERS, "Authorization": f"Bearer forged-{n}"},
+                )
+                statuses.append(response.status_code)
+    finally:
+        await proc.stop()
+    assert statuses == [401, 401, 401, 429, 429]

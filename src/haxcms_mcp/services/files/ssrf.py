@@ -27,6 +27,9 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 import httpx
 
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.logging import get_logger
+
+logger = get_logger(__name__)
 
 MAX_REDIRECTS = 5
 _REDIRECT_STATUSES = {301, 302, 303, 307, 308}
@@ -140,13 +143,13 @@ async def validate_url(
         except ValueError as exc:
             raise _refused(f"{host!r} resolved to an unparseable address {candidate!r}") from exc
         if "%" in candidate:  # scoped (link-local) IPv6
-            raise _refused(f"refusing to fetch {url!r}: {host!r} resolves to {candidate}")
+            logger.warning("url source %s resolved to scoped address %s", host, candidate)
+            raise _refused(f"refusing to fetch {url!r}: {host!r} resolves to a non-public address")
     blocked = [str(a) for a in addresses if not is_public_address(a)]
     if blocked:
-        raise _refused(
-            f"refusing to fetch {url!r}: {host!r} resolves to a non-public address "
-            f"({', '.join(blocked)})"
-        )
+        # the resolved addresses describe the server's network: log them, never return them
+        logger.warning("url source %s resolved to non-public %s", host, ", ".join(blocked))
+        raise _refused(f"refusing to fetch {url!r}: {host!r} resolves to a non-public address")
 
     pinned = addresses[0]
     netloc_host = f"[{pinned}]" if pinned.version == 6 else str(pinned)
@@ -167,6 +170,22 @@ class FetchResult:
     url: str  # final logical URL (after redirects)
 
 
+# Whole-fetch limits (security audit): httpx timeouts are per read, so a server trickling a
+# byte a minute could hold a fetch open forever; and every fetch buffers up to the upload cap.
+TOTAL_DEADLINE_S = 120.0
+MAX_CONCURRENT_FETCHES = 4
+_slots: dict[int, asyncio.Semaphore] = {}
+
+
+def _fetch_slots() -> asyncio.Semaphore:
+    loop_id = id(asyncio.get_running_loop())
+    slots = _slots.get(loop_id)
+    if slots is None:
+        _slots.clear()  # one live event loop per process; drop semaphores of closed loops
+        slots = _slots[loop_id] = asyncio.Semaphore(MAX_CONCURRENT_FETCHES)
+    return slots
+
+
 async def guarded_fetch(
     url: str,
     *,
@@ -174,9 +193,28 @@ async def guarded_fetch(
     check_size: Callable[[int], None],
     resolve: Resolver | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
+    deadline_s: float | None = None,
 ) -> FetchResult:
     """GET `url` with the SSRF rules above. `check_size(n)` raises when n bytes is too many;
-    it is called with the declared Content-Length and again as the body streams in."""
+    it is called with the declared Content-Length and again as the body streams in. The whole
+    fetch (redirects included) must finish within `deadline_s`, and at most
+    MAX_CONCURRENT_FETCHES run at once."""
+    limit = TOTAL_DEADLINE_S if deadline_s is None else deadline_s
+    async with _fetch_slots():
+        try:
+            async with asyncio.timeout(limit):
+                return await _guarded_fetch(url, timeout_s, check_size, resolve, transport)
+        except TimeoutError as exc:
+            raise _refused(f"fetching {url!r} took longer than {int(limit)}s") from exc
+
+
+async def _guarded_fetch(
+    url: str,
+    timeout_s: float,
+    check_size: Callable[[int], None],
+    resolve: Resolver | None,
+    transport: httpx.AsyncBaseTransport | None,
+) -> FetchResult:
     current = url
     async with httpx.AsyncClient(
         timeout=timeout_s, follow_redirects=False, trust_env=False, transport=transport

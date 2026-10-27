@@ -1,5 +1,9 @@
 """Typed Site API endpoint helpers (PLAN Phase 2 T2.2, Phase 3 T3.2).
 
+Method, path and the spec-required auth of every call come from the routes generated from
+the spec (`generated/site_routes.py`, ADR-0005); `auth=` appears at a call site only where
+we deliberately send MORE than the spec requires. This module owns bodies and responses.
+
 Auth per `specs/site-spec.yaml` `security:` blocks (source of truth — API-REF §2.6 was wrong
 once already):
 
@@ -34,36 +38,30 @@ from urllib.parse import quote
 
 from haxcms_mcp.client import HaxcmsClient
 from haxcms_mcp.client.envelope import error_from_response, unwrap_dict, unwrap_full
+from haxcms_mcp.generated import site_routes as routes
 
 # --- Phase 2: public site-level reads -------------------------------------------------
 
 
 async def site_summary(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """GET site -> public SiteSummary `{id, name, title, ..., counts, links}`."""
-    response = await client.request("GET", client.site_path(site, "site"), auth="none")
+    response = await client.call(routes.get_site_summary(site))
     return unwrap_dict(response)
 
 
 async def list_site_themes(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """GET themes -> ThemeCollection `{count, total, page, themes: [...]}` (public)."""
-    response = await client.request("GET", client.site_path(site, "themes"), auth="none")
+    response = await client.call(routes.list_themes(site))
     return unwrap_dict(response)
 
 
 async def active_theme(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """GET themes/active -> the site's active theme record (public)."""
-    response = await client.request("GET", client.site_path(site, "themes/active"), auth="none")
+    response = await client.call(routes.get_active_theme(site))
     return unwrap_dict(response)
 
 
 # --- Phase 3: items / outline ----------------------------------------------------------
-
-
-def _item_path(client: HaxcmsClient, site: str, id_or_slug: str, suffix: str = "") -> str:
-    """`items/{quoted}` (+suffix) — slugs may contain `/`, so percent-encode the segment."""
-    segment = quote(id_or_slug, safe="")
-    tail = f"/{suffix.lstrip('/')}" if suffix else ""
-    return client.site_path(site, f"items/{segment}{tail}")
 
 
 async def list_items(
@@ -74,9 +72,7 @@ async def list_items(
     `params` carries the raw query keys (`filter.parent`, `page.limit`, `include`, ...).
     Bearer-authenticated: unpublished items are included.
     """
-    response = await client.request(
-        "GET", client.site_path(site, "items"), params=params, auth="bearer"
-    )
+    response = await client.call(routes.list_items(site), params=params, auth="bearer")
     return unwrap_dict(response)
 
 
@@ -85,8 +81,8 @@ async def get_item(
 ) -> dict[str, Any]:
     """GET items/{idOrSlug} -> one item record (404 -> NOT_FOUND; bearer sees unpublished)."""
     params = {"include": "content"} if include_content else None
-    response = await client.request(
-        "GET", _item_path(client, site, id_or_slug), params=params, auth="bearer"
+    response = await client.call(
+        routes.get_item_by_id_or_slug(site, id_or_slug), params=params, auth="bearer"
     )
     return unwrap_dict(response)
 
@@ -94,9 +90,7 @@ async def get_item(
 async def create_item(client: HaxcmsClient, site: str, payload: dict[str, Any]) -> dict[str, Any]:
     """POST items (single `node` form or bulk `items` form) -> the created item (bulk: the
     LAST created item — read createNode.js; callers that need every id supply their own)."""
-    response = await client.request(
-        "POST", client.site_path(site, "items"), json=payload, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.create_item(site), json=payload, site=site)
     return unwrap_dict(response)
 
 
@@ -105,20 +99,14 @@ async def update_item(
 ) -> dict[str, Any]:
     """PATCH items/{idOrSlug} with ONE nodeDetailOperation -> the updated item record."""
     body: dict[str, Any] = {"site": {"name": site}, "operation": operation, **fields}
-    response = await client.request(
-        "PATCH", _item_path(client, site, id_or_slug), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_item(site, id_or_slug), json=body, site=site)
     return unwrap_dict(response)
 
 
 async def delete_item(client: HaxcmsClient, site: str, id_or_slug: str) -> dict[str, Any]:
     """DELETE items/{idOrSlug} -> the deleted item record (children re-parent to the root)."""
-    response = await client.request(
-        "DELETE",
-        _item_path(client, site, id_or_slug),
-        json={"site": {"name": site}},
-        auth="bearer+site",
-        site=site,
+    response = await client.call(
+        routes.delete_item(site, id_or_slug), json={"site": {"name": site}}, site=site
     )
     return unwrap_dict(response)
 
@@ -132,11 +120,9 @@ async def save_outline(
     `delete: true` entry removes a page) but they also keep their old order — send the
     complete list. Unknown ids are created with server-assigned ids.
     """
-    response = await client.request(
-        "PATCH",
-        client.site_path(site, "site/outline"),
+    response = await client.call(
+        routes.update_site_outline(site),
         json={"site": {"name": site}, "items": items},
-        auth="bearer+site",
         site=site,
     )
     return unwrap_dict(response)
@@ -150,11 +136,9 @@ async def normalize_slugs(
     Regenerates every slug from its title per Pathauto; items with
     `metadata.overridePathauto` land in `skipped`. `preview=True` plans without writing.
     """
-    response = await client.request(
-        "POST",
-        client.site_path(site, "site/normalize-slugs"),
+    response = await client.call(
+        routes.normalize_site_slugs(site),
         json={"site": {"name": site}, "preview": preview},
-        auth="bearer+site",
         site=site,
     )
     return unwrap_dict(response)
@@ -167,11 +151,9 @@ async def list_revisions(
     client: HaxcmsClient, site: str, id_or_slug: str, *, limit: int = 25, offset: int = 0
 ) -> dict[str, Any]:
     """GET items/{idOrSlug}/revisions -> `{nodeId, ..., count, total, revisions: [...]}`."""
-    response = await client.request(
-        "GET",
-        _item_path(client, site, id_or_slug, "revisions"),
+    response = await client.call(
+        routes.list_item_revisions(site, id_or_slug),
         params={"page.limit": limit, "page.offset": offset},
-        auth="bearer+site",
         site=site,
     )
     return unwrap_dict(response)
@@ -181,11 +163,8 @@ async def get_revision(
     client: HaxcmsClient, site: str, id_or_slug: str, revision_id: str
 ) -> dict[str, Any]:
     """GET items/{idOrSlug}/revisions/{hash} -> `{nodeId, ..., revision, content}`."""
-    response = await client.request(
-        "GET",
-        _item_path(client, site, id_or_slug, f"revisions/{quote(revision_id, safe='')}"),
-        auth="bearer+site",
-        site=site,
+    response = await client.call(
+        routes.get_item_revision_by_id(site, id_or_slug, revision_id), site=site
     )
     return unwrap_dict(response)
 
@@ -194,11 +173,9 @@ async def restore_revision(
     client: HaxcmsClient, site: str, id_or_slug: str, revision_id: str
 ) -> dict[str, Any]:
     """POST items/{idOrSlug}/revisions/{hash}/restore -> `{nodeId, restoredFromHash, ...}`."""
-    response = await client.request(
-        "POST",
-        _item_path(client, site, id_or_slug, f"revisions/{quote(revision_id, safe='')}/restore"),
+    response = await client.call(
+        routes.restore_item_revision(site, id_or_slug, revision_id),
         json={"site": {"name": site}},
-        auth="bearer+site",
         site=site,
     )
     return unwrap_dict(response)
@@ -212,24 +189,17 @@ async def search(
 ) -> dict[str, Any]:
     """GET search?q=... -> `{count, total, page, results: [...]}` (400 when q is empty)."""
     query: dict[str, Any] = {"q": q, **(params or {})}
-    response = await client.request(
-        "GET", client.site_path(site, "search"), params=query, auth="bearer"
-    )
+    response = await client.call(routes.search_content(site), params=query, auth="bearer")
     return unwrap_dict(response)
 
 
 async def list_tags(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """GET tags -> `{count, total, page, tags: [{tag, count}]}` sorted by -count."""
-    response = await client.request("GET", client.site_path(site, "tags"), auth="bearer")
+    response = await client.call(routes.list_tags(site), auth="bearer")
     return unwrap_dict(response)
 
 
 # --- Phase 4: content ---------------------------------------------------------------------
-
-
-def _content_path(client: HaxcmsClient, site: str, id_or_slug: str) -> str:
-    segment = quote(id_or_slug, safe="")  # nested slugs contain `/`
-    return client.site_path(site, f"content/{segment}")
 
 
 async def get_content(
@@ -241,8 +211,8 @@ async def get_content(
     responses in a `<pre>` envelope (live-verified Phase 3). Bearer so unpublished pages
     are readable. `body` never contains the `<page-break>` (stripped on save).
     """
-    response = await client.request(
-        "GET", _content_path(client, site, id_or_slug), params={"format": fmt}, auth="bearer"
+    response = await client.call(
+        routes.get_content_by_id_or_slug(site, id_or_slug), params={"format": fmt}, auth="bearer"
     )
     return unwrap_dict(response)
 
@@ -268,12 +238,8 @@ async def patch_content(
         payload["schema"] = schema
     if details is not None:
         payload["details"] = details
-    response = await client.request(
-        "PATCH",
-        _content_path(client, site, id_or_slug),
-        json=payload,
-        auth="bearer+site",
-        site=site,
+    response = await client.call(
+        routes.update_content_by_id_or_slug(site, id_or_slug), json=payload, site=site
     )
     return unwrap_dict(response)
 
@@ -286,7 +252,7 @@ async def patch_content(
 
 async def list_blocks(client: HaxcmsClient, site: str) -> dict[str, Any]:
     """GET blocks -> block records + usage counts."""
-    response = await client.request("GET", client.site_path(site, "blocks"), auth="bearer")
+    response = await client.call(routes.list_blocks(site), auth="bearer")
     return unwrap_dict(response)
 
 
@@ -295,12 +261,7 @@ async def get_block(
 ) -> dict[str, Any]:
     """GET blocks/{tag}[?include=haxProperties,haxSchema,haxElementSchema] -> one record."""
     params = {"include": include} if include else None
-    response = await client.request(
-        "GET",
-        client.site_path(site, f"blocks/{quote(tag, safe='')}"),
-        params=params,
-        auth="bearer",
-    )
+    response = await client.call(routes.get_block_by_name(site, tag), params=params, auth="bearer")
     return unwrap_dict(response)
 
 
@@ -311,17 +272,13 @@ async def list_schemas(
 
     Served when the instance can find `<pkg>/lib/<tag>.haxProperties.json` in its build.
     """
-    response = await client.request(
-        "GET", client.site_path(site, "schemas"), params=params, auth="bearer"
-    )
+    response = await client.call(routes.list_schemas(site), params=params, auth="bearer")
     return unwrap_dict(response)
 
 
 async def get_custom_element(client: HaxcmsClient, site: str, tag: str) -> dict[str, Any]:
     """GET custom-elements/{tag} -> the wc-registry entry (404 when the tag is unknown)."""
-    response = await client.request(
-        "GET", client.site_path(site, f"custom-elements/{quote(tag, safe='')}"), auth="bearer"
-    )
+    response = await client.call(routes.get_custom_element_by_name(site, tag), auth="bearer")
     return unwrap_dict(response)
 
 
@@ -334,10 +291,6 @@ async def get_custom_element(client: HaxcmsClient, site: str, tag: str) -> dict[
 # retry-after appended).
 
 
-def _file_path(client: HaxcmsClient, site: str, uuid: str) -> str:
-    return client.site_path(site, f"files/{quote(uuid, safe='')}")
-
-
 async def list_files(
     client: HaxcmsClient, site: str, *, params: dict[str, Any] | None = None
 ) -> dict[str, Any]:
@@ -348,9 +301,7 @@ async def list_files(
     `sort`, `fields`). The route auto-indexes on-disk files missing from files.json
     before returning, and flags records whose disk file is gone in `orphans`.
     """
-    response = await client.request(
-        "GET", client.site_path(site, "files"), params=params, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.list_files(site), params=params, site=site)
     return unwrap_dict(response)
 
 
@@ -372,22 +323,13 @@ async def upload_file(
     """
     files = {"file-upload": (filename, content, mimetype)}
     data = {"nodeId": node_id} if node_id else None
-    response = await client.request(
-        "POST",
-        client.site_path(site, "files"),
-        data=data,
-        files=files,
-        auth="bearer+site",
-        site=site,
-    )
+    response = await client.call(routes.create_file(site), data=data, files=files, site=site)
     return unwrap_dict(response)
 
 
 async def get_file(client: HaxcmsClient, site: str, uuid: str) -> dict[str, Any]:
     """GET files/{uuid} -> one FileRecord (404 -> NOT_FOUND)."""
-    response = await client.request(
-        "GET", _file_path(client, site, uuid), auth="bearer+site", site=site
-    )
+    response = await client.call(routes.get_file_by_uuid(site, uuid), site=site)
     return unwrap_dict(response)
 
 
@@ -400,17 +342,13 @@ async def update_file(
     (`level`: light|medium|heavy|maximum), duplicate. Delete uses its own route.
     """
     body: dict[str, Any] = {"operation": operation, **args}
-    response = await client.request(
-        "PATCH", _file_path(client, site, uuid), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_file_by_uuid(site, uuid), json=body, site=site)
     return unwrap_dict(response)
 
 
 async def delete_file(client: HaxcmsClient, site: str, uuid: str) -> dict[str, Any]:
     """DELETE files/{uuid} -> the deletion result (no request body)."""
-    response = await client.request(
-        "DELETE", _file_path(client, site, uuid), auth="bearer+site", site=site
-    )
+    response = await client.call(routes.delete_file_by_uuid(site, uuid), site=site)
     return unwrap_dict(response)
 
 
@@ -472,9 +410,7 @@ async def update_manifest(
     haxcms_form_id/haxcms_form_token keys (those select the unreachable form path).
     """
     body = {"site": {"name": site}, **details}
-    response = await client.request(
-        "PATCH", client.site_path(site, "site"), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_site_summary(site), json=body, site=site)
     return unwrap_dict(response)
 
 
@@ -489,9 +425,7 @@ async def update_appearance(
     Region values are arrays of page ids; variables are strings ('' deletes the key).
     """
     body = {"site": {"name": site}, "manifest": {"theme": theme}}
-    response = await client.request(
-        "PATCH", client.site_path(site, "site/appearance"), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_site_appearance(site), json=body, site=site)
     return unwrap_dict(response)
 
 
@@ -513,18 +447,14 @@ async def update_seo(
         body["seo"] = seo
     if author is not None:
         body["author"] = author
-    response = await client.request(
-        "PATCH", client.site_path(site, "site/seo"), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_site_seo(site), json=body, site=site)
     return unwrap_dict(response)
 
 
 async def update_editor(client: HaxcmsClient, site: str, audience: str) -> dict[str, Any]:
     """PATCH site/editor -> the FULL manifest (audience: 'novice' | 'expert')."""
     body = {"site": {"name": site}, "platform": {"audience": audience}}
-    response = await client.request(
-        "PATCH", client.site_path(site, "site/editor"), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_site_editor_settings(site), json=body, site=site)
     return unwrap_dict(response)
 
 
@@ -533,9 +463,7 @@ async def update_allowed_blocks(
 ) -> dict[str, Any]:
     """PATCH site/blocks -> the FULL manifest (null = unrestricted; else the tag list)."""
     body = {"site": {"name": site}, "platform": {"allowedBlocks": allowed_blocks}}
-    response = await client.request(
-        "PATCH", client.site_path(site, "site/blocks"), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_site_allowed_blocks(site), json=body, site=site)
     return unwrap_dict(response)
 
 
@@ -548,9 +476,7 @@ async def update_platform(
     booleans), not just the changed keys — a partial payload wipes every unlisted flag.
     """
     body = {"site": {"name": site}, "platform": {"features": features}}
-    response = await client.request(
-        "PATCH", client.site_path(site, "site/platform"), json=body, auth="bearer+site", site=site
-    )
+    response = await client.call(routes.update_site_platform(site), json=body, site=site)
     return unwrap_dict(response)
 
 
@@ -561,13 +487,7 @@ async def update_alternative_formats(
     body: dict[str, Any] = {"site": {"name": site}}
     if fmt is not None:
         body["format"] = fmt
-    response = await client.request(
-        "POST",
-        client.site_path(site, "site/updateAlternativeFormats"),
-        json=body,
-        auth="bearer+site",
-        site=site,
-    )
+    response = await client.call(routes.update_site_alternative_formats(site), json=body, site=site)
     return unwrap_dict(response)
 
 
@@ -590,9 +510,8 @@ async def site_export(client: HaxcmsClient, site: str, format: str) -> bytes | d
     format=md`). Discriminator: the Content-Type the server set (application/json vs the
     format's binary media type).
     """
-    response = await client.request(
-        "GET",
-        client.site_path(site, f"site/export/{format}"),
+    response = await client.call(
+        routes.get_site_export(site, format),
         auth="bearer",
         timeout=client.settings.export_timeout_s,
     )
@@ -611,9 +530,8 @@ async def item_export(client: HaxcmsClient, site: str, id_or_slug: str, format: 
     Content-Disposition filename is the sanitized slug. Anonymous callers 404 on
     unpublished items — we send bearer, so unpublished items export too.
     """
-    response = await client.request(
-        "GET",
-        _item_path(client, site, id_or_slug, f"export/{format}"),
+    response = await client.call(
+        routes.download_item_export(site, id_or_slug, format),
         auth="bearer",
         timeout=client.settings.export_timeout_s,
     )
@@ -629,9 +547,8 @@ async def site_markdown(client: HaxcmsClient, site: str) -> str:
     the raw text/markdown representation (sendFormattedResponse's rawByFormat), NOT the
     JSON envelope.
     """
-    response = await client.request(
-        "GET",
-        client.site_path(site, "content"),
+    response = await client.call(
+        routes.list_content(site),
         params={"mode": "concat", "format": "md"},
         auth="bearer",
         timeout=client.settings.export_timeout_s,

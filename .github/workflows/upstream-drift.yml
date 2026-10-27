@@ -5,7 +5,8 @@ name: Upstream drift
 #   1. the vendored OpenAPI specs in specs/ must equal haxcms-nodejs main's src/openapi/
 #   2. the live suites must pass against a fresh haxcms-nodejs main checkout
 # Fix drift with: uv run python scripts/sync_specs.py --from <haxcms-nodejs checkout>, then
-# scripts/gen_tools.py and scripts/gen_tool_docs.py (see README "Keeping up with HAXcms").
+# scripts/gen_routes.py, scripts/gen_tools.py and scripts/gen_tool_docs.py (see README
+# "Keeping up with HAXcms").
 
 on:
   schedule:
@@ -42,6 +43,17 @@ jobs:
         run: uv sync
       - name: Diff specs/ against src/openapi/
         run: uv run python scripts/sync_specs.py --check --from .haxcms-nodejs
+      # Even when the specs differ: would the hand-written client still fit the upstream
+      # routes after a plain regenerate? A removed or renamed operation fails mypy here
+      # (ADR-0005), which says whether the fix is "regenerate" or "edit the client".
+      - name: Regenerate routes from upstream and type-check the client
+        if: always()
+        run: |
+          uv run python scripts/sync_specs.py --from .haxcms-nodejs
+          uv run python scripts/gen_routes.py
+          git --no-pager diff --stat -- src/haxcms_mcp/generated
+          uv run mypy src
+          uv run pytest -m unit -q
 
   live-suite:
     name: Live suites against haxcms-nodejs

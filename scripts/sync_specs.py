@@ -77,8 +77,8 @@ def check_against_checkout(checkout: Path) -> int:
     if drift:
         print(
             "\nvendored specs are out of date; run `uv run python scripts/sync_specs.py "
-            "--from <haxcms-nodejs checkout>` then regenerate with scripts/gen_tools.py and "
-            "scripts/gen_tool_docs.py"
+            "--from <haxcms-nodejs checkout>` then regenerate with scripts/gen_routes.py, "
+            "scripts/gen_tools.py and scripts/gen_tool_docs.py"
         )
         return 1
     return 0

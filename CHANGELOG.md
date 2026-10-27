@@ -9,6 +9,13 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Generated route layer ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)
+  stretch, ADR-0005): `scripts/gen_routes.py` writes one builder per spec operation
+  (`generated/system_routes.py`, `generated/site_routes.py`). `system_api.py` and
+  `site_api.py` take method, path and required auth from them through `client.call()`. CI
+  checks drift, and the nightly workflow regenerates from `haxcms-nodejs` `main` and
+  type-checks the client.
+
 - Nightly `upstream-drift` workflow: vendored specs vs `haxcms-nodejs` `main`, plus the live
   suites against a fresh `main` checkout ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)).
 - `scripts/sync_specs.py --check --from <checkout>` prints a unified diff and exits 1 on drift;

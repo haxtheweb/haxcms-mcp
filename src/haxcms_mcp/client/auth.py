@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from haxcms_mcp.client import HaxcmsClient
+    from haxcms_mcp.client.principal import Principal
     from haxcms_mcp.config import Settings
 
 logger = get_logger(__name__)
@@ -76,14 +77,22 @@ class AuthManager:
         client: HaxcmsClient,
         *,
         clock: Callable[[], float] = time.monotonic,
+        principal: Principal | None = None,
     ) -> None:
         self._settings = settings
         self._client = client
         self._clock = clock
-        self.access_token: str | None = None
-        self.access_issued_at: float | None = None
-        self.username: str | None = settings.username
-        self._password: str | None = settings.password
+        # Authenticated HTTP mode (#3140): a caller's own token, never env credentials.
+        self.principal = principal
+        self._per_caller = settings.per_caller_auth
+        self.access_token: str | None = principal.token if principal else None
+        self.access_issued_at: float | None = clock() if principal else None
+        if self._per_caller:
+            self.username = principal.username if principal else None
+            self._password: str | None = None
+        else:
+            self.username = settings.username
+            self._password = settings.password
         self.user_token_value: str | None = None
         self.site_tokens: dict[str, str] = {}
         self._logged_out = False
@@ -130,6 +139,8 @@ class AuthManager:
         """
         if self.no_auth:
             return None
+        if self._per_caller:
+            return self._caller_access(force=force)
         fresh = (
             self.access_token is not None
             and self.access_issued_at is not None
@@ -157,6 +168,23 @@ class AuthManager:
             MSG_AUTH_REQUIRED,
             hint="call the login tool or set HAXCMS_MCP_USERNAME/HAXCMS_MCP_PASSWORD",
         )
+
+    def _caller_access(self, *, force: bool) -> str:
+        """Authenticated HTTP mode: the caller's token is the only credential there is."""
+        if self.principal is None:
+            raise HaxcmsMcpError(
+                ErrorCode.AUTH_REQUIRED,
+                "this server requires each caller's own HAXcms access token",
+                hint="connect with an Authorization: Bearer <HAXcms access token> header",
+            )
+        if force or self.access_token is None:
+            # HAXcms refused the token (expired or revoked); only the caller can renew it
+            raise HaxcmsMcpError(
+                ErrorCode.AUTH_FAILED,
+                "HAXcms refused the access token this connection presented",
+                hint="re-authorize the connector to obtain a fresh HAXcms access token",
+            )
+        return self.access_token
 
     async def login(self, username: str, password: str) -> str:
         """POST session/login; store the access token and replace process credentials."""
@@ -229,7 +257,8 @@ class AuthManager:
         response = await self._client.request(
             "GET",
             self._client.sys("session/connection-settings"),
-            auth="none",
+            # per-caller mode has no refresh cookie: HAXcms identifies the caller by bearer
+            auth="bearer" if self._per_caller else "none",
             headers=headers,
         )
         if response.status_code >= 400:

@@ -11,7 +11,7 @@ from haxcms_mcp.client import HaxcmsClient, system_api
 from haxcms_mcp.client.auth import ACCESS_TOKEN_TTL_S
 from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
-from haxcms_mcp.errors import HaxcmsMcpError
+from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 from haxcms_mcp.tools._common import tool_annotations
 
 
@@ -22,6 +22,17 @@ def _budget_stats(client: HaxcmsClient) -> dict[str, Any]:
         "waits": stats.waits,
         "denials": stats.denials,
     }
+
+
+def _refuse_in_per_caller_mode(settings: Settings, tool: str) -> None:
+    """Over authenticated HTTP the connection's own token IS the session (#3140)."""
+    if settings.per_caller_auth:
+        raise HaxcmsMcpError(
+            ErrorCode.UNSUPPORTED,
+            f"{tool} is not available on this server: each connection is authenticated with "
+            "its own HAXcms account",
+            hint="sign in or out through your MCP client's connector authorization instead",
+        )
 
 
 def register_auth_tools(
@@ -44,6 +55,7 @@ def register_auth_tools(
         lifetime; failures surface as AUTH_FAILED (bad credentials) or RATE_LIMITED (too many
         failed attempts — wait out the retry-after window).
         """
+        _refuse_in_per_caller_mode(settings, "login")
         await client.auth.login(username, password)
         return {"user": username, "expires_in_s": ACCESS_TOKEN_TTL_S}
 
@@ -56,6 +68,7 @@ def register_auth_tools(
         After logout, authenticated tools fail with AUTH_REQUIRED until login is called again —
         even when environment credentials are configured.
         """
+        _refuse_in_per_caller_mode(settings, "logout")
         await client.auth.logout()
         return {"status": "loggedout"}
 
@@ -91,6 +104,7 @@ def register_auth_tools(
             "budget": _budget_stats(client),
             "read_only": settings.read_only,
             "default_site": settings.default_site,
+            "per_caller_auth": settings.per_caller_auth,
         }
 
     @mcp.tool(

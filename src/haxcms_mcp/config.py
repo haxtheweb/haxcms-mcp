@@ -6,12 +6,13 @@ working directory, via pydantic-settings. See PLAN.md Section 4 for the full tab
 
 from __future__ import annotations
 
+import ipaddress
 import os
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -54,6 +55,20 @@ class Settings(BaseSettings):
     http_path: str = "/mcp"
     log_level: str = "INFO"
 
+    # --- HTTP transport security (#3140, docs/adr/0004) -------------------------
+    # "none": one process-wide HAXcms identity (env credentials / login tool), loopback only.
+    # "haxcms": every MCP request must carry `Authorization: Bearer <HAXcms access token>`;
+    # each caller acts as their own HAXcms user and env credentials are never used.
+    http_auth: Literal["none", "haxcms"] = "none"
+    # Public URL of this MCP endpoint's origin (OAuth protected-resource metadata, RFC 9728).
+    public_url: str | None = None
+    # Authorization server advertised to clients; defaults to the HAXcms instance (option A).
+    authorization_server_url: str | None = None
+    # None = decided by transport: private/loopback URL sources and local-path sources are
+    # allowed over stdio and refused over HTTP.
+    allow_private_url_sources: bool | None = None
+    allow_local_sources: bool | None = None
+
     # --- Test-only -------------------------------------------------------------
     test_haxcms_dir: Path | None = None
     test_haxcms_version: str = "26.8.1"
@@ -87,6 +102,48 @@ class Settings(BaseSettings):
     @classmethod
     def _upper_log_level(cls, value: str) -> str:
         return value.strip().upper()
+
+    @model_validator(mode="after")
+    def _fail_closed_http(self) -> Settings:
+        """Never serve HTTP beyond loopback without per-caller auth (#3140)."""
+        if self.transport != "http" or self.http_auth != "none":
+            return self
+        if not is_loopback_host(self.http_host):
+            raise ValueError(
+                f"refusing to serve the HTTP transport on {self.http_host!r} without "
+                "authentication: set HAXCMS_MCP_HTTP_AUTH=haxcms (each caller then acts as "
+                "their own HAXcms user), or bind to 127.0.0.1"
+            )
+        return self
+
+    # --- derived -------------------------------------------------------------------
+    @property
+    def per_caller_auth(self) -> bool:
+        """True when each MCP caller brings their own HAXcms token (HTTP + http_auth)."""
+        return self.transport == "http" and self.http_auth != "none"
+
+    @property
+    def ssrf_guard_enabled(self) -> bool:
+        if self.allow_private_url_sources is not None:
+            return not self.allow_private_url_sources
+        return self.transport == "http"
+
+    @property
+    def local_sources_enabled(self) -> bool:
+        if self.allow_local_sources is not None:
+            return self.allow_local_sources
+        return self.transport != "http"
+
+
+def is_loopback_host(host: str) -> bool:
+    """`localhost` or a loopback IP literal (`0.0.0.0` / `::` bind everything: not loopback)."""
+    value = host.strip().strip("[]").lower()
+    if value == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(value).is_loopback
+    except ValueError:
+        return False
 
 
 def load_settings(**overrides: Any) -> Settings:

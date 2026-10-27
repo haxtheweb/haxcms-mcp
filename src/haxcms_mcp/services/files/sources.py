@@ -32,6 +32,7 @@ import httpx
 
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.services.files.ssrf import guarded_fetch
 
 # the HAXcms upload limit (HAXCMS_UPLOAD_LIMIT default, API-REF §6) — sources larger than
 # this can never be uploaded, so they are rejected before any transfer
@@ -140,24 +141,35 @@ def _extension_for(mimetype: str | None) -> str:
     return mimetypes.guess_extension(mimetype.split(";")[0].strip()) or ""
 
 
-async def _resolve_url(source: str, settings: Settings) -> SourceFile:
+async def _fetch(source: str, settings: Settings) -> tuple[int, httpx.Headers, bytes]:
+    def check_size(size: int) -> None:
+        _check_upload_cap(size, f"the file at {source}")
+
     try:
+        if settings.ssrf_guard_enabled:
+            result = await guarded_fetch(
+                source, timeout_s=settings.timeout_s, check_size=check_size
+            )
+            return result.status_code, result.headers, result.content
         async with httpx.AsyncClient(timeout=settings.timeout_s, follow_redirects=True) as fetcher:
             response = await fetcher.get(source)
     except httpx.HTTPError as exc:
         raise _source_error(f"could not fetch {source} ({exc})") from exc
-    if response.status_code >= 400:
-        raise _source_error(f"fetching {source} returned HTTP {response.status_code}")
-
     content_length = response.headers.get("content-length")
     if content_length and content_length.isdigit():
-        _check_upload_cap(int(content_length), f"the file at {source}")
-    data = response.content
-    _check_upload_cap(len(data), f"the file at {source}")
+        check_size(int(content_length))
+    check_size(len(response.content))
+    return response.status_code, response.headers, response.content
+
+
+async def _resolve_url(source: str, settings: Settings) -> SourceFile:
+    status_code, headers, data = await _fetch(source, settings)
+    if status_code >= 400:
+        raise _source_error(f"fetching {source} returned HTTP {status_code}")
 
     basename = unquote(Path(urlparse(source).path).name)
     filename = basename or "download"
-    content_type = response.headers.get("content-type", "")
+    content_type = headers.get("content-type", "")
     mimetype = (
         sniff_mimetype(data)
         or (content_type.split(";")[0].strip() if content_type else None)
@@ -254,4 +266,11 @@ async def resolve_source(source: str, settings: Settings) -> SourceFile:
         return _resolve_data_url(text, settings)
     if lowered.startswith("base64:"):
         return _resolve_inline_base64(text, settings)
+    if not settings.local_sources_enabled:
+        raise _source_error(
+            "local file paths are not accepted as sources when the server is reachable over "
+            "HTTP (the path would be read from the server's disk, not yours)",
+            hint="send the file inline (base64:<name>:<payload> or a data: URL) or as a public "
+            "http(s) URL; an operator can re-enable paths with HAXCMS_MCP_ALLOW_LOCAL_SOURCES",
+        )
     return _resolve_path(text, settings)

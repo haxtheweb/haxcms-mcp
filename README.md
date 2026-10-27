@@ -57,7 +57,7 @@ working directory.
 | `TIMEOUT_S` | `60` | HTTP timeout for normal calls |
 | `EXPORT_TIMEOUT_S` | `300` | HTTP timeout for export/import/converter calls |
 | `OUTPUT_DIR` | `./haxcms-mcp-output` | Where exports and converted files are written (on the **server** host) |
-| `INPUT_ROOTS` | cwd | `os.pathsep`-separated directories local file sources may come from |
+| `INPUT_ROOTS` | none (local paths off) | `os.pathsep`-separated folders local-path sources may come from. Unset means agents cannot upload files by path at all; hidden files/folders (`.env`, `.git`, `.ssh`, ...) and key/credential files are refused even inside a root |
 | `MAX_INLINE_BASE64_MB` | `10` | Cap for inline `base64:` sources |
 | `TRANSPORT` | `stdio` | `stdio` or `http` (CLI flags override) |
 | `HTTP_HOST`, `HTTP_PORT`, `HTTP_PATH` | `127.0.0.1`, `8765`, `/mcp` | HTTP transport bind address |
@@ -96,8 +96,12 @@ claude mcp add haxcms \
   --env HAXCMS_MCP_BASE_URL=http://localhost:3000 \
   --env HAXCMS_MCP_USERNAME=admin \
   --env HAXCMS_MCP_PASSWORD=secret \
+  --env HAXCMS_MCP_INPUT_ROOTS="$HOME/haxcms-uploads" \
   -- haxcms-mcp
 ```
+
+`INPUT_ROOTS` is optional: without it, agents can still upload from URLs and inline
+`base64:`/`data:` sources, but not from local paths.
 
 or against a server already running in HTTP mode:
 
@@ -234,7 +238,11 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
 - **Outbound Budget** rate-limits all traffic to the HAXcms instance (token bucket, default
   4 rps / burst 8) so a runaway agent cannot hammer the server; excess calls wait, then fail
   as `RATE_LIMITED`.
-- **Local file reads are confined** to `INPUT_ROOTS`; exports and conversions are written under
+- **Local file reads are off by default** and, once enabled, confined to `INPUT_ROOTS`; hidden
+  files and key/credential files are never read. URL sources always go through the guarded
+  fetch (streamed size cap, total deadline, redirects re-checked); over stdio LAN and
+  loopback addresses are reachable, link-local and cloud-metadata addresses never are.
+  Exports and conversions are written under
   `OUTPUT_DIR` on the machine running the MCP server, and tools return `{path, bytes, mimetype}`
   records — file bytes never travel through the model context.
 

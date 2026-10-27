@@ -43,15 +43,52 @@ _SIXTO4 = ipaddress.IPv6Network("2002::/16")
 
 Resolver = Callable[[str, int], Awaitable[list[str]]]
 
+# Never reachable, even when private addresses are allowed (stdio / trusted networks):
+# link-local covers the cloud metadata endpoints (169.254.169.254, fd00:ec2::254 aside);
+# the rest are well-known metadata addresses outside link-local.
+_METADATA_HOSTS = frozenset(
+    {
+        ipaddress.ip_address("169.254.169.254"),  # AWS/GCP/Azure/OpenStack/DO
+        ipaddress.ip_address("fd00:ec2::254"),  # AWS IMDS over IPv6
+        ipaddress.ip_address("100.100.100.200"),  # Alibaba Cloud
+        ipaddress.ip_address("168.63.129.16"),  # Azure wire server
+    }
+)
+
+
+def is_allowed_private_address(address: IPAddress) -> bool:
+    """For `allow_private`: loopback / RFC 1918 / ULA / CGNAT are fine, but never link-local,
+    metadata endpoints, multicast, reserved or unspecified addresses (or IPv6 forms that
+    embed one of those)."""
+    if isinstance(address, ipaddress.IPv6Address):
+        if address.scope_id:
+            return False
+        embedded = _embedded_ipv4(address)
+        if embedded is not None and not (
+            is_public_address(embedded) or is_allowed_private_address(embedded)
+        ):
+            return False
+    if address in _METADATA_HOSTS:
+        return False
+    if address.is_loopback:  # ::1 sits inside the reserved ::/8 block
+        return True
+    return not (
+        address.is_link_local
+        or address.is_multicast
+        or address.is_reserved
+        or address.is_unspecified
+    )
+
 
 def _refused(message: str) -> HaxcmsMcpError:
     return HaxcmsMcpError(
         ErrorCode.FILE_SOURCE_ERROR,
         message,
         hint=(
-            "this server is reachable over HTTP, so URL sources may only point at public "
-            "internet addresses; upload the file another way (base64:<name>:<payload> or a "
-            "data: URL), or set HAXCMS_MCP_ALLOW_PRIVATE_URL_SOURCES=true on a trusted network"
+            "URL sources may only point at public internet addresses (on a trusted network the "
+            "operator can allow private ones with HAXCMS_MCP_ALLOW_PRIVATE_URL_SOURCES=true; "
+            "link-local and cloud-metadata addresses are never allowed); upload the file "
+            "another way (base64:<name>:<payload> or a data: URL)"
         ),
     )
 
@@ -105,6 +142,7 @@ async def validate_url(
     url: str,
     *,
     resolve: Resolver | None = None,
+    allow_private: bool = False,
 ) -> _Target:
     """Check one URL and pin it to a validated public address (raises FILE_SOURCE_ERROR)."""
     parts = urlsplit(url)
@@ -145,7 +183,12 @@ async def validate_url(
         if "%" in candidate:  # scoped (link-local) IPv6
             logger.warning("url source %s resolved to scoped address %s", host, candidate)
             raise _refused(f"refusing to fetch {url!r}: {host!r} resolves to a non-public address")
-    blocked = [str(a) for a in addresses if not is_public_address(a)]
+    allowed = (
+        (lambda a: is_public_address(a) or is_allowed_private_address(a))
+        if allow_private
+        else is_public_address
+    )
+    blocked = [str(a) for a in addresses if not allowed(a)]
     if blocked:
         # the resolved addresses describe the server's network: log them, never return them
         logger.warning("url source %s resolved to non-public %s", host, ", ".join(blocked))
@@ -194,6 +237,7 @@ async def guarded_fetch(
     resolve: Resolver | None = None,
     transport: httpx.AsyncBaseTransport | None = None,
     deadline_s: float | None = None,
+    allow_private: bool = False,
 ) -> FetchResult:
     """GET `url` with the SSRF rules above. `check_size(n)` raises when n bytes is too many;
     it is called with the declared Content-Length and again as the body streams in. The whole
@@ -203,7 +247,9 @@ async def guarded_fetch(
     async with _fetch_slots():
         try:
             async with asyncio.timeout(limit):
-                return await _guarded_fetch(url, timeout_s, check_size, resolve, transport)
+                return await _guarded_fetch(
+                    url, timeout_s, check_size, resolve, transport, allow_private
+                )
         except TimeoutError as exc:
             raise _refused(f"fetching {url!r} took longer than {int(limit)}s") from exc
 
@@ -214,13 +260,14 @@ async def _guarded_fetch(
     check_size: Callable[[int], None],
     resolve: Resolver | None,
     transport: httpx.AsyncBaseTransport | None,
+    allow_private: bool,
 ) -> FetchResult:
     current = url
     async with httpx.AsyncClient(
         timeout=timeout_s, follow_redirects=False, trust_env=False, transport=transport
     ) as fetcher:
         for _hop in range(MAX_REDIRECTS + 1):
-            target = await validate_url(current, resolve=resolve)
+            target = await validate_url(current, resolve=resolve, allow_private=allow_private)
             extensions = (
                 {"sni_hostname": target.host} if current.lower().startswith("https") else {}
             )

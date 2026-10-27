@@ -46,7 +46,10 @@ class Settings(BaseSettings):
 
     # --- File sources and outputs -------------------------------------------
     output_dir: Path = Path("haxcms-mcp-output")
-    input_roots: Annotated[list[Path], NoDecode] = Field(default_factory=lambda: [Path.cwd()])
+    # Folders local-path sources may come from. Empty (the default) turns local-path sources
+    # off: the working directory is often $HOME or / and holds this server's own .env
+    # (security audit). Dotfiles and key files are refused even inside a root.
+    input_roots: Annotated[list[Path], NoDecode] = Field(default_factory=list)
     max_inline_base64_mb: int = 10
 
     # --- Transport ------------------------------------------------------------
@@ -105,8 +108,7 @@ class Settings(BaseSettings):
     def _split_input_roots(cls, value: Any) -> Any:
         """Accept an os.pathsep-separated string from the environment."""
         if isinstance(value, str):
-            parts = [p.strip() for p in value.split(os.pathsep) if p.strip()]
-            return parts or [Path.cwd()]
+            return [p.strip() for p in value.split(os.pathsep) if p.strip()]
         if isinstance(value, Sequence) and not isinstance(value, str | bytes):
             return list(value)
         return value

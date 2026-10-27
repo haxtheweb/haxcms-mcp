@@ -20,10 +20,23 @@ import respx
 
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
-from haxcms_mcp.services.files import sources
+from haxcms_mcp.services.files import sources, ssrf
 from haxcms_mcp.services.files.sources import resolve_source, sniff_mimetype
 
+pytestmark = pytest.mark.unit
+
 BASE = "http://localhost:9"
+FILES_TEST_IP = "93.184.215.14"  # every URL fetch is DNS-pinned; files.test "resolves" here
+
+
+@pytest.fixture(autouse=True)
+def _resolve_files_test(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def resolve(host: str, port: int) -> list[str]:
+        assert host == "files.test", host
+        return [FILES_TEST_IP]
+
+    monkeypatch.setattr(ssrf, "_system_resolve", resolve)
+
 
 PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
 PNG_B64 = base64.b64encode(PNG_BYTES).decode("ascii")
@@ -34,7 +47,7 @@ XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 def make_settings(tmp_path: Path | None = None, **kwargs: object) -> Settings:
-    roots = [tmp_path] if tmp_path is not None else [Path.cwd()]
+    roots = [tmp_path] if tmp_path is not None else []
     return Settings(base_url=BASE, input_roots=roots, **kwargs)  # type: ignore[arg-type]
 
 
@@ -166,7 +179,7 @@ async def test_oversize_local_file_rejected(
 
 @respx.mock
 async def test_url_fetch_sniffing_beats_content_type() -> None:
-    respx.get("http://files.test/media/photo.png").mock(
+    respx.get("http://93.184.215.14/media/photo.png").mock(
         return_value=httpx.Response(200, content=PNG_BYTES, headers={"content-type": "text/plain"})
     )
     resolved = await resolve_source("http://files.test/media/photo.png", make_settings())
@@ -177,7 +190,7 @@ async def test_url_fetch_sniffing_beats_content_type() -> None:
 
 @respx.mock
 async def test_url_fetch_content_type_fallback() -> None:
-    respx.get("http://files.test/media/notes.json").mock(
+    respx.get("http://93.184.215.14/media/notes.json").mock(
         return_value=httpx.Response(
             200, content=b"{}", headers={"content-type": "application/json; charset=utf-8"}
         )
@@ -189,7 +202,7 @@ async def test_url_fetch_content_type_fallback() -> None:
 
 @respx.mock
 async def test_url_fetch_without_basename_gets_download_name() -> None:
-    respx.get("http://files.test/").mock(
+    respx.get("http://93.184.215.14/").mock(
         return_value=httpx.Response(200, content=PNG_BYTES, headers={"content-type": "image/png"})
     )
     resolved = await resolve_source("http://files.test/", make_settings())
@@ -198,7 +211,7 @@ async def test_url_fetch_without_basename_gets_download_name() -> None:
 
 @respx.mock
 async def test_url_fetch_http_error_rejected() -> None:
-    respx.get("http://files.test/gone.png").mock(return_value=httpx.Response(404))
+    respx.get("http://93.184.215.14/gone.png").mock(return_value=httpx.Response(404))
     with pytest.raises(HaxcmsMcpError) as excinfo:
         await resolve_source("http://files.test/gone.png", make_settings())
     assert excinfo.value.code is ErrorCode.FILE_SOURCE_ERROR
@@ -207,7 +220,7 @@ async def test_url_fetch_http_error_rejected() -> None:
 
 @respx.mock
 async def test_url_fetch_connection_error_rejected() -> None:
-    respx.get("http://files.test/x.png").mock(side_effect=httpx.ConnectError("boom"))
+    respx.get("http://93.184.215.14/x.png").mock(side_effect=httpx.ConnectError("boom"))
     with pytest.raises(HaxcmsMcpError) as excinfo:
         await resolve_source("http://files.test/x.png", make_settings())
     assert excinfo.value.code is ErrorCode.FILE_SOURCE_ERROR
@@ -217,7 +230,7 @@ async def test_url_fetch_connection_error_rejected() -> None:
 @respx.mock
 async def test_url_fetch_over_upload_cap_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sources, "UPLOAD_LIMIT_BYTES", 10)
-    respx.get("http://files.test/big.png").mock(
+    respx.get("http://93.184.215.14/big.png").mock(
         return_value=httpx.Response(200, content=b"x" * 11, headers={"content-type": "image/png"})
     )
     with pytest.raises(HaxcmsMcpError) as excinfo:

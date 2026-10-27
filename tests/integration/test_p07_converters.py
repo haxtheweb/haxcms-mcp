@@ -22,6 +22,7 @@ from haxcms_mcp.client import HaxcmsClient
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import HaxcmsMcpError
 from haxcms_mcp.generated import converters as generated
+from tests.conftest import FIXTURES_DIR
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 from tests.harness.mcp_client import McpTestClient
 
@@ -44,6 +45,7 @@ def _output_settings(haxcms: HaxcmsRuntime, tmp_path: Path) -> Settings:
         username=haxcms.username,
         password=haxcms.password,
         output_dir=tmp_path,
+        input_roots=[FIXTURES_DIR],  # local-path sources are off unless a root is set
     )
 
 

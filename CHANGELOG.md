@@ -9,6 +9,12 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Security hardening from the October 2026 audit (local sources):
+  - `INPUT_ROOTS` defaults to none: local-path sources are off until the operator names a
+    folder (the working directory used to be the default, and it holds the server's `.env`).
+  - Hidden files/folders and key/credential files are refused even inside a root.
+  - Every URL source uses the guarded streaming fetch; with private addresses allowed (stdio)
+    link-local and cloud-metadata addresses are still refused.
 - Security hardening from the October 2026 audit (HTTP transport):
   - Host/Origin validation on every HTTP request (DNS-rebinding protection; `421`/`403`),
     with `HTTP_ALLOWED_HOSTS` / `HTTP_ALLOWED_ORIGINS` for extra names.

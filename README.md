@@ -182,9 +182,9 @@ message second, because PHP words some errors differently (a failed login is a g
 
 Known differences (upstream parity gaps, not MCP behavior; the PHP test leg skips these):
 
-- creating a page fails with HTTP 500 on PHP `master` until
-  [haxtheweb/haxcms-php#704](https://github.com/haxtheweb/haxcms-php/pull/704) lands
-  (`HAXCMSSite::itemFromParams` metadata bug); the PHP CI leg is non-blocking until then
+- PHP builds before [haxtheweb/haxcms-php#704](https://github.com/haxtheweb/haxcms-php/pull/704)
+  answer HTTP 500 to every page create (`HAXCMSSite::itemFromParams` metadata bug); use
+  `master` or a release that includes it
 - no login rate limiting (repeated wrong passwords never answer 429)
 - content is stored as sent: the NodeJS sanitiser's rewrites (`target`, `preserve-content`,
   attribute re-quoting) do not happen

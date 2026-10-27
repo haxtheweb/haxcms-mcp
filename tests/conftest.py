@@ -23,6 +23,7 @@ from haxcms_mcp.models.item import Item
 from haxcms_mcp.server import build_server
 from haxcms_mcp.services import pages as pages_service
 from haxcms_mcp.services import sites as sites_service
+from tests.harness.haxcms_php_runtime import HaxcmsPhpRuntime
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 from tests.harness.mcp_client import McpTestClient
 
@@ -32,6 +33,7 @@ from tests.harness.mcp_client import McpTestClient
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Skip `network`-marked tests unless HAXCMS_MCP_TEST_NETWORK=1 (PLAN §6.1)."""
+    _skip_php_parity_gaps(items)
     if os.environ.get("HAXCMS_MCP_TEST_NETWORK", "").lower() in {"1", "true", "yes"}:
         return
     skip_network = pytest.mark.skip(reason="needs HAXCMS_MCP_TEST_NETWORK=1")
@@ -40,10 +42,69 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
             item.add_marker(skip_network)
 
 
+# Live tests whose expectations encode HAXcms NodeJS behavior that the PHP backend implements
+# differently (upstream parity gaps, not MCP defects). Skipped only under
+# HAXCMS_MCP_TEST_BACKEND=php; each entry is a node-id prefix with the reason (#3139).
+PHP_PARITY_GAPS: dict[str, str] = {
+    "tests/integration/test_p00_harness.py::test_boot_and_disk_layout": (
+        "asserts the NodeJS runtime's _config layout"
+    ),
+    "tests/integration/test_p01_live_auth.py::test_repeated_wrong_passwords_are_rate_limited": (
+        "PHP has no login rate limiter (12 wrong logins all answer 401)"
+    ),
+    "tests/integration/test_p04_content_roundtrip.py::test_sanitisation_rewrites_are_exactly_the_documented_ones": (  # noqa: E501
+        "golden of the NodeJS saveNode sanitiser; PHP stores these attributes as sent"
+    ),
+    "tests/integration/test_p04_typed_blocks_live.py": (
+        "stored forms asserted per the NodeJS sanitiser golden"
+    ),
+    "tests/functional/test_p04_rebuild_tutorial_page.py": (
+        "asserts the NodeJS sanitiser's link rewrite"
+    ),
+    "tests/integration/test_p05_files.py::test_file_lifecycle": (
+        "PHP file responses carry no uuid"
+    ),
+    "tests/integration/test_p06_git.py::test_git_only_body_hits_the_form_token_wall": (
+        "PHP words the token refusal differently"
+    ),
+    "tests/integration/test_p07_converters.py": (
+        "converter output (markdown, pretty-print, pdf, pptx, xlsx) differs between backends"
+    ),
+    "tests/integration/test_p07_create_site_from_document.py": (
+        "docx import output differs between backends"
+    ),
+    "tests/integration/test_p07_import_document.py::test_docx_method_branch_attaches_flat_pages_under_a_parent": (  # noqa: E501
+        "docx import output differs between backends"
+    ),
+    "tests/integration/test_p07_import_document.py::test_docx_method_page_wraps_everything_into_one_page": (  # noqa: E501
+        "docx import output differs between backends"
+    ),
+}
+
+
+def _skip_php_parity_gaps(items: list[pytest.Item]) -> None:
+    if os.environ.get("HAXCMS_MCP_TEST_BACKEND", "node").strip().lower() != "php":
+        return
+    for item in items:
+        for prefix, reason in PHP_PARITY_GAPS.items():
+            if item.nodeid.startswith(prefix):
+                item.add_marker(pytest.mark.skip(reason=f"HAXcms PHP parity gap: {reason}"))
+                break
+
+
+def test_backend() -> str:
+    """Which HAXcms backend the live suites run against: `node` (default) or `php` (#3139)."""
+    backend = os.environ.get("HAXCMS_MCP_TEST_BACKEND", "node").strip().lower()
+    if backend not in {"node", "php"}:
+        raise pytest.UsageError(f"HAXCMS_MCP_TEST_BACKEND must be node or php, got {backend!r}")
+    return backend
+
+
 @pytest.fixture(scope="session")
 async def haxcms() -> AsyncIterator[HaxcmsRuntime]:
-    """One real HAXcms NodeJS instance for the whole test session."""
-    async with HaxcmsRuntime() as runtime:
+    """One real HAXcms instance (NodeJS by default, PHP with HAXCMS_MCP_TEST_BACKEND=php)."""
+    runtime_class = HaxcmsPhpRuntime if test_backend() == "php" else HaxcmsRuntime
+    async with runtime_class() as runtime:
         yield runtime
 
 

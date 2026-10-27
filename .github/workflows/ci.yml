@@ -116,6 +116,9 @@ jobs:
               "https://github.com/$HAXCMS_PHP_REPO" .haxcms-php > clone.log 2>&1; then
             { echo '### HAXcms PHP checkout failed'; echo '```'; tail -40 clone.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
             cat clone.log
+            # annotations are readable through the checks API (job logs need blob storage)
+            tail -5 clone.log | tr -d '\r' | while IFS= read -r line; do echo "::error title=clone::$line"; done
+            df -h . | tail -1 | sed 's/^/::error title=disk::/'
             exit 1
           fi
           git -C .haxcms-php log --oneline -1
@@ -126,6 +129,7 @@ jobs:
           set +e
           uv run pytest -m "integration or functional" -rfE 2>&1 | tee pytest.log
           status=${PIPESTATUS[0]}
+          grep -E '^(FAILED|ERROR) |[0-9]+ (passed|failed)' pytest.log | tail -40 | while IFS= read -r line; do echo "::notice title=pytest::$line"; done
           { echo '### HAXcms PHP live suites'; echo '```'; grep -E '^(FAILED|ERROR) |passed|failed' pytest.log | tail -60; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
         env:

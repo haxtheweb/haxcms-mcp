@@ -54,7 +54,7 @@ jobs:
       - name: Unit tests
         run: uv run pytest -m unit --cov --cov-report=xml:coverage-unit-${{ matrix.python-version }}.xml --cov-fail-under=80
       - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-unit-${{ matrix.python-version }}
           path: coverage-unit-${{ matrix.python-version }}.xml
@@ -91,7 +91,7 @@ jobs:
         env:
           HAXCMS_MCP_TEST_HAXCMS_DIR: ${{ github.workspace }}/.haxcms-nodejs
       - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-integration
           path: coverage-integration.xml
@@ -176,7 +176,7 @@ jobs:
         env:
           HAXCMS_MCP_TEST_HAXCMS_DIR: ${{ github.workspace }}/.haxcms-nodejs
       - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-e2e
           path: coverage-e2e.xml

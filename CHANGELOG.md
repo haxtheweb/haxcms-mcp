@@ -25,6 +25,15 @@ hand-written from `git log` for the initial release (PLAN T9.6).
     signed, short-lived `download_url`s (`GET /downloads/<token>`) instead of server paths.
   - URL fetches: total deadline and a concurrency cap; refusals no longer reveal resolved
     addresses; connection errors no longer name the internal HAXcms host.
+- Security hardening from the October 2026 audit (annotations, shared state, CI):
+  - Tool annotations: the three converters that write a file (`convert_html_to_docx`,
+    `convert_html_to_pdf`, `convert_docx_to_pdf`) are no longer read-only, so Read-Only Mode
+    refuses them; every tool that takes a `source` (which may be a URL) is open-world;
+    settings writers and other tools that overwrite existing values are destructive.
+  - The block-catalog cache is scoped per caller, bounded, and remembers failures for 30 s
+    instead of 10 minutes; the site-lock table is bounded.
+  - CI: least-privilege `permissions: contents: read`, actions pinned to commit SHAs,
+    `persist-credentials: false`, and Dependabot for actions and the uv lock.
 
 - Generated route layer ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)
   stretch, ADR-0005): `scripts/gen_routes.py` writes one builder per spec operation

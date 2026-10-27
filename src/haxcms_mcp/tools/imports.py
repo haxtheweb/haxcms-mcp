@@ -23,7 +23,9 @@ from haxcms_mcp.tools._common import resolve_site, tool_annotations
 def register_import_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient) -> None:
     """Register the three Phase 7 import tools on the FastMCP app."""
 
-    @mcp.tool(annotations=tool_annotations("Import document into site", idempotent=False))
+    @mcp.tool(
+        annotations=tool_annotations("Import document into site", idempotent=False, open_world=True)
+    )
     async def import_document(
         source: str,
         parent: str | None = None,
@@ -56,7 +58,9 @@ def register_import_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Create site from document", idempotent=False))
+    @mcp.tool(
+        annotations=tool_annotations("Create site from document", idempotent=False, open_world=True)
+    )
     async def create_site_from_document(
         name: str,
         source: str,
@@ -86,7 +90,9 @@ def register_import_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Create site from platform", idempotent=False))
+    @mcp.tool(
+        annotations=tool_annotations("Create site from platform", idempotent=False, open_world=True)
+    )
     async def create_site_from_platform(
         name: str,
         platform: str,

@@ -234,7 +234,8 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   Access tokens are held in memory only, and no token or password ever reaches a log line
   (all logging goes to stderr).
 - **Read-Only Mode** (`HAXCMS_MCP_READ_ONLY=true`) rejects every tool that is not annotated
-  read-only, at the middleware level — a hard guarantee, not a convention.
+  read-only, at the middleware level — a hard guarantee, not a convention. Converters that write a
+  file (`convert_html_to_docx`, `convert_html_to_pdf`, `convert_docx_to_pdf`) count as writes.
 - **Outbound Budget** rate-limits all traffic to the HAXcms instance (token bucket, default
   4 rps / burst 8) so a runaway agent cannot hammer the server; excess calls wait, then fail
   as `RATE_LIMITED`.

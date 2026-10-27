@@ -250,12 +250,17 @@ async def test_page_tool_annotations() -> None:
         assert tool_ann.destructive_hint is False, name
         assert tool_ann.idempotent_hint is False, name
 
-    # same arguments twice -> same end state, no loss
-    for name in ["update_page_details", "set_page_parent", "normalize_slugs"]:
+    # same arguments twice -> same end state; overwriting existing values (title/slug, every
+    # slug) is a destructive update per the MCP hint definition (security audit)
+    for name, destructive in [
+        ("update_page_details", True),
+        ("set_page_parent", False),
+        ("normalize_slugs", True),
+    ]:
         tool_ann = by_name[name].annotations
         assert tool_ann is not None, name
         assert tool_ann.read_only_hint is False, name
-        assert tool_ann.destructive_hint is False, name
+        assert tool_ann.destructive_hint is destructive, name
         assert tool_ann.idempotent_hint is True, name
 
     # full-manifest rewrite, page removal and history rollback -> destructive
@@ -287,12 +292,17 @@ async def test_content_tool_annotations() -> None:
         assert tool_ann.destructive_hint is False, name
         assert tool_ann.idempotent_hint is False, name
 
-    # same arguments twice -> same end state (re-moved, re-set, re-written)
-    for name in ["move_block", "update_block", "set_block_text"]:
+    # same arguments twice -> same end state (re-moved, re-set, re-written); overwriting a
+    # block's attributes or text replaces what was there -> destructive (security audit)
+    for name, destructive in [
+        ("move_block", False),
+        ("update_block", True),
+        ("set_block_text", True),
+    ]:
         tool_ann = by_name[name].annotations
         assert tool_ann is not None, name
         assert tool_ann.read_only_hint is False, name
-        assert tool_ann.destructive_hint is False, name
+        assert tool_ann.destructive_hint is destructive, name
         assert tool_ann.idempotent_hint is True, name
 
     # whole-body rewrite, block swap and block removal -> destructive
@@ -346,12 +356,14 @@ async def test_files_tool_annotations() -> None:
         assert tool_ann.read_only_hint is False, name
         assert tool_ann.destructive_hint is False, name
         assert tool_ann.idempotent_hint is False, name
+        # a `source` may be a URL this server fetches -> open world (security audit)
+        assert tool_ann.open_world_hint is (name in {"upload_file", "add_image_from_file"}), name
 
     # renaming to the same name twice leaves the same end state -> idempotent
     rename_ann = by_name["rename_file"].annotations
     assert rename_ann is not None
     assert rename_ann.read_only_hint is False
-    assert rename_ann.destructive_hint is False
+    assert rename_ann.destructive_hint is True  # existing links to the old name break
     assert rename_ann.idempotent_hint is True
 
     delete_ann = by_name["delete_file"].annotations
@@ -372,7 +384,9 @@ async def test_settings_tool_annotations() -> None:
     assert read_ann.read_only_hint is True
     assert read_ann.destructive_hint is False
 
-    # every settings write converges to the same end state when repeated -> idempotent
+    # every settings write converges to the same end state when repeated -> idempotent; each
+    # replaces the current value, so they are destructive updates (security audit); regenerating
+    # the derived alternate formats overwrites nothing an author wrote
     idempotent_writes = [
         "update_site_info",
         "update_author_info",
@@ -389,24 +403,35 @@ async def test_settings_tool_annotations() -> None:
         tool_ann = by_name[name].annotations
         assert tool_ann is not None, name
         assert tool_ann.read_only_hint is False, name
-        assert tool_ann.destructive_hint is False, name
+        assert tool_ann.destructive_hint is (name != "regenerate_alternate_formats"), name
         assert tool_ann.idempotent_hint is True, name
 
 
 async def test_converter_tool_annotations() -> None:
-    """Phase 7 annotation matrix (PLAN T7.5): converters are read-only — they mutate
-    nothing on the Instance; binary results land in the LOCAL Output Directory."""
+    """Phase 7 annotation matrix (PLAN T7.5), revised by the security audit: converters
+    mutate nothing on the Instance, but the three binary ones WRITE a file into the Output
+    Directory (not read-only, so Read-Only Mode refuses them; each call writes a new file,
+    so not idempotent), and those that take a `source` may fetch a URL (open world)."""
     mcp = build_server(_settings())
     async with Client(mcp) as client:
         tools = await client.list_tools()
     converters = [tool for tool in tools if tool.name.startswith("convert_")]
     assert len(converters) == 12
+    writes = {"convert_html_to_docx", "convert_html_to_pdf", "convert_docx_to_pdf"}
+    text_only = {
+        "convert_md_to_html",
+        "convert_html_to_md",
+        "convert_pretty_html",
+        "convert_json_to_yaml",
+        "convert_yaml_to_json",
+    }
     for tool in converters:
         ann = tool.annotations
         assert ann is not None, tool.name
-        assert ann.read_only_hint is True, tool.name
+        assert ann.read_only_hint is (tool.name not in writes), tool.name
         assert ann.destructive_hint is False, tool.name
-        assert ann.idempotent_hint is True, tool.name
+        assert ann.idempotent_hint is (tool.name not in writes), tool.name
+        assert ann.open_world_hint is (tool.name not in text_only), tool.name
 
 
 async def test_export_tool_annotations() -> None:

@@ -81,7 +81,7 @@ def register_outline_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClien
         item = await outline_service.set_page_parent(client, name, page, parent, order)
         return dump_model(item)
 
-    @mcp.tool(annotations=tool_annotations("Normalize slugs"))
+    @mcp.tool(annotations=tool_annotations("Normalize slugs", destructive=True))
     async def normalize_slugs(preview: bool = False, site: str | None = None) -> dict[str, Any]:
         """Regenerate every page slug from its title, following the site's Pathauto pattern.
 

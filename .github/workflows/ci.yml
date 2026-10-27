@@ -108,16 +108,26 @@ jobs:
           php-version: "8.3"
           extensions: gd, curl, mbstring, dom, zip
           tools: none
+      # A plain shallow clone instead of actions/checkout: the repo is large (46k files), and
+      # every outcome below is also written to the job summary so it can be read via the API.
       - name: Check out HAXcms PHP (${{ env.HAXCMS_PHP_REF }})
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.HAXCMS_PHP_REPO }}
-          ref: ${{ env.HAXCMS_PHP_REF }}
-          path: .haxcms-php
+        run: |
+          if ! git clone --depth 1 --branch "$HAXCMS_PHP_REF" \
+              "https://github.com/$HAXCMS_PHP_REPO" .haxcms-php > clone.log 2>&1; then
+            { echo '### HAXcms PHP checkout failed'; echo '```'; tail -40 clone.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            cat clone.log
+            exit 1
+          fi
+          git -C .haxcms-php log --oneline -1
       - name: Install dependencies
         run: uv sync
       - name: Run integration + functional suites against a live HAXcms PHP
-        run: uv run pytest -m "integration or functional"
+        run: |
+          set +e
+          uv run pytest -m "integration or functional" -rfE 2>&1 | tee pytest.log
+          status=${PIPESTATUS[0]}
+          { echo '### HAXcms PHP live suites'; echo '```'; grep -E '^(FAILED|ERROR) |passed|failed' pytest.log | tail -60; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
         env:
           HAXCMS_MCP_TEST_BACKEND: php
           HAXCMS_MCP_TEST_HAXCMS_PHP_DIR: ${{ github.workspace }}/.haxcms-php

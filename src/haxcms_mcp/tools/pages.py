@@ -123,7 +123,7 @@ def register_pages_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient)
         created = await pages_service.create_pages(client, name, items)
         return {"count": len(created), "pages": [dump_model(item) for item in created]}
 
-    @mcp.tool(annotations=tool_annotations("Update page details"))
+    @mcp.tool(annotations=tool_annotations("Update page details", destructive=True))
     async def update_page_details(
         page: str,
         title: str | None = None,

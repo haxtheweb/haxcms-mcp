@@ -7,10 +7,15 @@ from pathlib import Path
 
 import pytest
 
+from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
-from haxcms_mcp.services import conversion
+from haxcms_mcp.services import conversion, output_store
 
 pytestmark = pytest.mark.unit
+
+
+def _settings(output_dir: Path) -> Settings:
+    return Settings(base_url="http://haxcms.invalid", output_dir=output_dir)
 
 
 def test_text_result_shape() -> None:
@@ -70,7 +75,7 @@ def test_write_base64_writes_under_output_dir(tmp_path: Path) -> None:
         data,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         fallback_filename="converted.docx",
-        output_dir=tmp_path,
+        settings=_settings(tmp_path),
     )
     written = tmp_path / "made.docx"
     assert written.read_bytes() == raw
@@ -85,7 +90,10 @@ def test_write_base64_writes_under_output_dir(tmp_path: Path) -> None:
 def test_write_base64_uses_fallback_and_sanitizes(tmp_path: Path) -> None:
     data = {"contents": base64.b64encode(b"%PDF-1.4").decode(), "filename": "../../evil.pdf"}
     result = conversion.write_base64(
-        data, mimetype="application/pdf", fallback_filename="converted.pdf", output_dir=tmp_path
+        data,
+        mimetype="application/pdf",
+        fallback_filename="converted.pdf",
+        settings=_settings(tmp_path),
     )
     # the directory part of an upstream filename is stripped, never walked
     assert result["filename"] == "evil.pdf"
@@ -97,7 +105,7 @@ def test_write_base64_uses_fallback_and_sanitizes(tmp_path: Path) -> None:
         no_name,
         mimetype="application/pdf",
         fallback_filename="converted.pdf",
-        output_dir=tmp_path / "nested",
+        settings=_settings(tmp_path / "nested"),
     )
     assert result["filename"] == "converted.pdf"
     assert (tmp_path / "nested" / "converted.pdf").read_bytes() == b"x"
@@ -109,7 +117,7 @@ def test_write_base64_rejects_invalid_payloads(tmp_path: Path) -> None:
             {"contents": "not base64!"},
             mimetype="application/pdf",
             fallback_filename="converted.pdf",
-            output_dir=tmp_path,
+            settings=_settings(tmp_path),
         )
     assert excinfo.value.code is ErrorCode.UPSTREAM_ERROR
     assert "invalid base64" in excinfo.value.message
@@ -118,19 +126,19 @@ def test_write_base64_rejects_invalid_payloads(tmp_path: Path) -> None:
             "just a string",
             mimetype="application/pdf",
             fallback_filename="converted.pdf",
-            output_dir=tmp_path,
+            settings=_settings(tmp_path),
         )
 
 
 def test_write_never_overwrites(tmp_path: Path) -> None:
     conversion.write_bytes(
-        b"one", mimetype="application/pdf", filename="out.pdf", output_dir=tmp_path
+        b"one", mimetype="application/pdf", filename="out.pdf", settings=_settings(tmp_path)
     )
     second = conversion.write_bytes(
-        b"two", mimetype="application/pdf", filename="out.pdf", output_dir=tmp_path
+        b"two", mimetype="application/pdf", filename="out.pdf", settings=_settings(tmp_path)
     )
     third = conversion.write_bytes(
-        b"three", mimetype="application/pdf", filename="out.pdf", output_dir=tmp_path
+        b"three", mimetype="application/pdf", filename="out.pdf", settings=_settings(tmp_path)
     )
     assert (tmp_path / "out.pdf").read_bytes() == b"one"
     assert second["filename"] == "out.pdf"  # the reported name is the requested one
@@ -142,19 +150,19 @@ def test_write_never_overwrites(tmp_path: Path) -> None:
 
 def test_write_bytes_falls_back_for_junk_filenames(tmp_path: Path) -> None:
     result = conversion.write_bytes(
-        b"%PDF", mimetype="application/pdf", filename="   ", output_dir=tmp_path
+        b"%PDF", mimetype="application/pdf", filename="   ", settings=_settings(tmp_path)
     )
     assert result["filename"] == "converted.bin"
     assert (tmp_path / "converted.bin").read_bytes() == b"%PDF"
 
 
 def test_unique_path_saturation_raises(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(conversion, "MAX_UNIQUE_SUFFIX", 3)
+    monkeypatch.setattr(output_store, "MAX_UNIQUE_SUFFIX", 3)
     for name in ("out.pdf", "out-1.pdf", "out-2.pdf"):
         (tmp_path / name).write_bytes(b"x")
     with pytest.raises(HaxcmsMcpError) as excinfo:
         conversion.write_bytes(
-            b"y", mimetype="application/pdf", filename="out.pdf", output_dir=tmp_path
+            b"y", mimetype="application/pdf", filename="out.pdf", settings=_settings(tmp_path)
         )
     assert excinfo.value.code is ErrorCode.UPSTREAM_ERROR
     assert "no free filename" in excinfo.value.message

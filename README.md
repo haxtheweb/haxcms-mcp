@@ -57,7 +57,7 @@ working directory.
 | `TIMEOUT_S` | `60` | HTTP timeout for normal calls |
 | `EXPORT_TIMEOUT_S` | `300` | HTTP timeout for export/import/converter calls |
 | `OUTPUT_DIR` | `./haxcms-mcp-output` | Where exports and converted files are written (on the **server** host) |
-| `INPUT_ROOTS` | cwd | `os.pathsep`-separated directories local file sources may come from |
+| `INPUT_ROOTS` | none (local paths off) | `os.pathsep`-separated folders local-path sources may come from. Unset means agents cannot upload files by path at all; hidden files/folders (`.env`, `.git`, `.ssh`, ...) and key/credential files are refused even inside a root |
 | `MAX_INLINE_BASE64_MB` | `10` | Cap for inline `base64:` sources |
 | `TRANSPORT` | `stdio` | `stdio` or `http` (CLI flags override) |
 | `HTTP_HOST`, `HTTP_PORT`, `HTTP_PATH` | `127.0.0.1`, `8765`, `/mcp` | HTTP transport bind address |
@@ -66,6 +66,12 @@ working directory.
 | `AUTHORIZATION_SERVER_URL` | `BASE_URL` | OAuth authorization server advertised to clients |
 | `ALLOW_PRIVATE_URL_SOURCES` | off over HTTP | Allow URL sources that resolve to loopback/private/link-local addresses |
 | `ALLOW_LOCAL_SOURCES` | off over HTTP | Allow local-path sources (read from the server's disk) |
+| `HTTP_ALLOWED_HOSTS`, `HTTP_ALLOWED_ORIGINS` | none | Extra `Host` names / browser origins the HTTP transport answers (comma-separated). Loopback, the bind address and the `PUBLIC_URL` host are always allowed; anything else gets `421`/`403` (DNS-rebinding protection) |
+| `AUTH_FAILURES_PER_MINUTE` | `20` | Per client address: after this many refused bearer tokens in a minute, answer `429` without asking HAXcms (`0` disables; use the proxy's limit behind a reverse proxy) |
+| `RATE_LIMIT_TOTAL_RPS` | `16` | Per-caller HTTP mode: `RATE_LIMIT_RPS`/`BURST` apply to each user, and this caps all users together |
+| `DOWNLOAD_MAX_MB` | `500` | Largest site zip / export read from HAXcms (streamed; bigger is refused, compressed bodies are counted decoded) |
+| `URL_SOURCES_PROXY` | none | Send URL sources through this egress proxy (`http://host:port`). The proxy then does DNS and must block internal addresses itself; only IP-literal URLs are still checked here |
+| `OUTPUT_TTL_S`, `OUTPUT_CALLER_QUOTA_MB`, `DOWNLOAD_TTL_S` | `3600`, `200`, `900` | Per-caller HTTP mode: results expire after `OUTPUT_TTL_S`, each user may keep `OUTPUT_CALLER_QUOTA_MB` on the server, and download links live `DOWNLOAD_TTL_S` |
 | `LOG_LEVEL` | `INFO` | stderr logging (stdout belongs to the stdio transport) |
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |
 
@@ -93,8 +99,12 @@ claude mcp add haxcms \
   --env HAXCMS_MCP_BASE_URL=http://localhost:3000 \
   --env HAXCMS_MCP_USERNAME=admin \
   --env HAXCMS_MCP_PASSWORD=secret \
+  --env HAXCMS_MCP_INPUT_ROOTS="$HOME/haxcms-uploads" \
   -- haxcms-mcp
 ```
+
+`INPUT_ROOTS` is optional: without it, agents can still upload from URLs and inline
+`base64:`/`data:` sources, but not from local paths.
 
 or against a server already running in HTTP mode:
 
@@ -105,7 +115,8 @@ claude mcp add --transport http haxcms http://127.0.0.1:8765/mcp
 ### Serving over HTTP to other people
 
 Bound to loopback, the HTTP transport behaves like stdio: one HAXcms identity for the whole
-process. To serve anyone else, turn on per-caller auth. The server refuses to bind a
+process. It only answers requests whose `Host` is loopback (and refuses foreign browser
+`Origin`s), so a web page cannot reach it through DNS rebinding. To serve anyone else, turn on per-caller auth. The server refuses to bind a
 non-loopback host without it:
 
 ```bash
@@ -120,10 +131,17 @@ token with HAXcms and then acts as that user, with that user's permissions. Unau
 requests get `401` plus OAuth protected-resource metadata naming HAXcms as the authorization
 server ([ADR-0004](docs/adr/0004-haxcms-is-the-oauth-authorization-server.md)). Over HTTP:
 
-- URL sources must resolve to public addresses (SSRF guard, redirects re-checked).
+- URL sources must resolve to public addresses (SSRF guard, redirects re-checked, at most 4
+  fetches at once, 120 s per fetch).
 - Local-path sources are refused.
 - `login` and `logout` are unavailable.
 - Read-Only Mode still applies.
+- Exports and converter files land in the caller's own folder (quota, expiry) and come back
+  as a short-lived signed `download_url` served by this server, not as a server path.
+- A non-loopback bind needs `PUBLIC_URL=https://...`: put TLS in front of the server.
+- Repeatedly refused tokens from one address are throttled (`429`), and token checks have
+  their own budget, so made-up tokens cannot use up the budget real callers' tools draw on.
+- Unexpected errors reach callers without internal detail (hosts, paths, resolved IPs).
 
 The browser sign-in flow (OAuth authorize/token endpoints) has to land in HAXcms first. Until
 then, only clients that can send a static header (`claude mcp add --transport http --header
@@ -219,11 +237,16 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   Access tokens are held in memory only, and no token or password ever reaches a log line
   (all logging goes to stderr).
 - **Read-Only Mode** (`HAXCMS_MCP_READ_ONLY=true`) rejects every tool that is not annotated
-  read-only, at the middleware level — a hard guarantee, not a convention.
+  read-only, at the middleware level — a hard guarantee, not a convention. Converters that write a
+  file (`convert_html_to_docx`, `convert_html_to_pdf`, `convert_docx_to_pdf`) count as writes.
 - **Outbound Budget** rate-limits all traffic to the HAXcms instance (token bucket, default
   4 rps / burst 8) so a runaway agent cannot hammer the server; excess calls wait, then fail
   as `RATE_LIMITED`.
-- **Local file reads are confined** to `INPUT_ROOTS`; exports and conversions are written under
+- **Local file reads are off by default** and, once enabled, confined to `INPUT_ROOTS`; hidden
+  files and key/credential files are never read. URL sources always go through the guarded
+  fetch (streamed size cap, total deadline, redirects re-checked); over stdio LAN and
+  loopback addresses are reachable, link-local and cloud-metadata addresses never are.
+  Exports and conversions are written under
   `OUTPUT_DIR` on the machine running the MCP server, and tools return `{path, bytes, mimetype}`
   records — file bytes never travel through the model context.
 

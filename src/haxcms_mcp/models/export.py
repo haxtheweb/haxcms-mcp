@@ -74,6 +74,10 @@ class ExportArtifact(BaseModel):
     bytes: int
     mimetype: str
     created_at: float
+    # per-caller HTTP mode only: a short-lived signed link served by this MCP server, and
+    # `path` is then relative to the Output Directory (security audit)
+    download_url: str | None = None
+    expires_at: float | None = None
 
 
 class TemplateResult(BaseModel):

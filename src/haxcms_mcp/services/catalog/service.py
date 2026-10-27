@@ -24,6 +24,7 @@ from __future__ import annotations
 import difflib
 import json
 import time
+from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
@@ -31,12 +32,15 @@ from typing import Any
 from pydantic import BaseModel
 
 from haxcms_mcp.client import HaxcmsClient, site_api
+from haxcms_mcp.client.principal import caller_scope
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 from haxcms_mcp.services.catalog.hax_properties import entry_from_hax_properties, kebab
 
 BUNDLED_DIR = Path(__file__).resolve().parent / "bundled"
 
 CACHE_SECONDS = 600  # live-merge cache (PLAN §2.3: 10 minutes)
+FAILURE_CACHE_SECONDS = 30
+MAX_CACHE_ENTRIES = 2048
 
 # native HTML the generic add_block accepts without a catalog entry (Appendix B's last
 # row has native tools for these; the catalog still needs to KNOW them for validate)
@@ -199,7 +203,8 @@ class CatalogService:
     def __init__(self, client: HaxcmsClient | None = None) -> None:
         self._client = client
         self._bundled: dict[str, CatalogEntry] | None = None
-        self._cache: dict[str, tuple[float, Any]] = {}
+        # (caller scope | key) -> (expires_at, data); LRU-bounded (security audit)
+        self._cache: OrderedDict[str, tuple[float, Any]] = OrderedDict()
 
     @property
     def bundled(self) -> dict[str, CatalogEntry]:
@@ -217,16 +222,24 @@ class CatalogService:
         return set(self.bundled) | NATIVE_TAGS
 
     async def _cached(self, key: str, fetch: Callable[[], Awaitable[Any]]) -> Any:
-        """Best-effort fetch with a 10-minute cache; HaxcmsMcpError → cached None."""
+        """Best-effort fetch with a 10-minute cache. A failure (HaxcmsMcpError → None) is only
+        remembered for FAILURE_CACHE_SECONDS, and entries are scoped per caller so one
+        caller's failure or site never answers for another's (security audit)."""
+        key = f"{caller_scope()}|{key}"
         now = time.monotonic()
         hit = self._cache.get(key)
         if hit is not None and hit[0] > now:
+            self._cache.move_to_end(key)
             return hit[1]
         try:
             data = await fetch()
         except HaxcmsMcpError:
             data = None
-        self._cache[key] = (now + CACHE_SECONDS, data)
+        ttl = CACHE_SECONDS if data is not None else FAILURE_CACHE_SECONDS
+        self._cache[key] = (now + ttl, data)
+        self._cache.move_to_end(key)
+        while len(self._cache) > MAX_CACHE_ENTRIES:
+            self._cache.popitem(last=False)
         return data
 
     async def _live_props(self, client: HaxcmsClient, site: str, tag: str) -> dict[str, Any] | None:

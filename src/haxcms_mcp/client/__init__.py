@@ -35,6 +35,16 @@ logger = get_logger(__name__)
 AuthMode = Literal["none", "bearer", "bearer+user", "bearer+site"]
 
 SYSTEM_API_PREFIX = "/system/api/v1"
+
+
+def _too_large(size: int, limit: int) -> HaxcmsMcpError:
+    return HaxcmsMcpError(
+        ErrorCode.UNSUPPORTED,
+        f"the HAXcms response is {size} bytes, over this server's {limit} byte download cap",
+        hint="raise HAXCMS_MCP_DOWNLOAD_MAX_MB, or export a smaller format or a single page",
+    )
+
+
 SITE_API_TEMPLATE = "/_sites/{site}/x/api/v1"
 
 # Per-caller sessions kept at once in authenticated HTTP mode (#3140); least recently used
@@ -64,7 +74,20 @@ class HaxcmsClient:
         self.settings = settings
         self._clock = clock
         self._default_http = self._new_http()
-        self.budget = budget if budget is not None else OutboundBudget.from_settings(settings)
+        # stdio / single identity: this one bucket. Per-caller HTTP mode: every USER gets a
+        # bucket of their own (RATE_LIMIT_RPS/BURST) and all users together are capped by
+        # `_total_budget` (RATE_LIMIT_TOTAL_RPS), so one caller cannot starve the others and
+        # the instance never sees more than the total (security follow-up).
+        self._shared_budget = (
+            budget if budget is not None else OutboundBudget.from_settings(settings)
+        )
+        self._total_budget = OutboundBudget(
+            rate=settings.rate_limit_total_rps,
+            capacity=max(settings.rate_limit_burst, int(settings.rate_limit_total_rps * 2)),
+            max_wait=settings.rate_limit_max_wait_s,
+            clock=clock,
+        )
+        self._user_budgets: OrderedDict[str, OutboundBudget] = OrderedDict()
         self.policy = policy if policy is not None else RetryPolicy.from_settings(settings)
         self._sleep = sleep
         self._default_auth = AuthManager(settings, self, clock=clock)
@@ -96,6 +119,30 @@ class HaxcmsClient:
             _, evicted = self._sessions.popitem(last=False)
             self._close_later(evicted.http)
         return session
+
+    @property
+    def budget(self) -> OutboundBudget:
+        """The current caller's bucket in per-caller mode, else the process-wide one."""
+        if not self.settings.per_caller_auth:
+            return self._shared_budget
+        principal = current_principal.get()
+        if principal is None:
+            return self._shared_budget
+        user = principal.username or principal.key
+        bucket = self._user_budgets.get(user)
+        if bucket is None:
+            bucket = OutboundBudget.from_settings(self.settings)
+            self._user_budgets[user] = bucket
+            while len(self._user_budgets) > MAX_CALLER_SESSIONS:
+                self._user_budgets.popitem(last=False)
+        self._user_budgets.move_to_end(user)
+        return bucket
+
+    def _buckets(self) -> list[OutboundBudget]:
+        caller = self.budget
+        if caller is self._shared_budget:
+            return [caller]
+        return [caller, self._total_budget]
 
     def _close_later(self, http: httpx.AsyncClient) -> None:
         try:
@@ -143,6 +190,8 @@ class HaxcmsClient:
         accept: str | None = None,
         headers: Mapping[str, str] | None = None,
         no_retry: bool = False,
+        budget: OutboundBudget | None = None,
+        max_bytes: int | None = None,
     ) -> httpx.Response:
         """Send one request with auth headers, budget accounting, and retry/refresh handling."""
         request_headers: dict[str, str] = dict(headers or {})
@@ -178,7 +227,9 @@ class HaxcmsClient:
         if timeout is not None:
             # passing timeout=None to build_request would DISABLE the client-level timeout
             kwargs["timeout"] = timeout
-        response = await self._send(method, path, request_headers, policy, kwargs)
+        response = await self._send(
+            method, path, request_headers, policy, kwargs, budget, max_bytes
+        )
 
         # One reactive refresh on 403 "Invalid bearer token" (API-REF §2.2, PLAN §2.2 step 5).
         if auth != "none" and not self.settings.no_auth and is_invalid_bearer(response):
@@ -189,7 +240,9 @@ class HaxcmsClient:
                 request_headers["Authorization"] = f"Bearer {token}"
             else:
                 request_headers.pop("Authorization", None)
-            response = await self._send(method, path, request_headers, policy, kwargs)
+            response = await self._send(
+                method, path, request_headers, policy, kwargs, budget, max_bytes
+            )
         return response
 
     async def _send(
@@ -199,13 +252,22 @@ class HaxcmsClient:
         headers: dict[str, str],
         policy: RetryPolicy,
         kwargs: dict[str, Any],
+        budget: OutboundBudget | None = None,
+        max_bytes: int | None = None,
     ) -> httpx.Response:
         request = self.http.build_request(method, path, headers=headers, **kwargs)
-        await self.budget.acquire()
+        send = self.http.send if max_bytes is None else self._capped_sender(max_bytes)
+        # `budget` lets a caller draw from a separate bucket (token verification must not
+        # be able to starve tool traffic, and vice versa)
+        buckets = [budget] if budget is not None else self._buckets()
+
+        async def acquire() -> None:
+            for bucket in buckets:
+                await bucket.acquire()
+
+        await acquire()
         started = time.monotonic()
-        response = await with_retry(
-            self.http.send, request, policy, sleep=self._sleep, on_retry=self.budget.acquire
-        )
+        response = await with_retry(send, request, policy, sleep=self._sleep, on_retry=acquire)
         # PLAN §5: every outbound request at DEBUG as `METHOD path status ms` — raw_path so
         # %2F-encoded slugs log as sent, and never headers (they carry the bearer tokens).
         elapsed_ms = (time.monotonic() - started) * 1000
@@ -217,6 +279,43 @@ class HaxcmsClient:
             elapsed_ms,
         )
         return response
+
+    def _capped_sender(
+        self, max_bytes: int
+    ) -> Callable[[httpx.Request], Awaitable[httpx.Response]]:
+        """A `send` that streams the body and stops once it exceeds `max_bytes`, so a huge
+        export or zip never has to fit in memory just to be refused (security follow-up)."""
+
+        async def send(request: httpx.Request) -> httpx.Response:
+            response = await self.http.send(request, stream=True)
+            try:
+                declared = response.headers.get("content-length", "")
+                if declared.isdigit() and int(declared) > max_bytes:
+                    raise _too_large(int(declared), max_bytes)
+                chunks: list[bytes] = []
+                size = 0
+                async for chunk in response.aiter_bytes():  # decoded: caps gzip bombs too
+                    size += len(chunk)
+                    if size > max_bytes:
+                        raise _too_large(size, max_bytes)
+                    chunks.append(chunk)
+            finally:
+                await response.aclose()
+            # the body is already decoded, so drop the transfer headers that described it
+            headers = [
+                (key, value)
+                for key, value in response.headers.multi_items()
+                if key.lower() not in {"content-encoding", "content-length", "transfer-encoding"}
+            ]
+            return httpx.Response(
+                response.status_code,
+                headers=headers,
+                content=b"".join(chunks),
+                request=request,
+                extensions={"http_version": response.extensions.get("http_version", b"")},
+            )
+
+        return send
 
     async def call(
         self, route: Route, *, auth: AuthMode | None = None, **kwargs: Any
@@ -246,7 +345,9 @@ class HaxcmsClient:
         return unwrap_full(await self.request("POST", path, **kwargs))
 
     async def download(self, path: str, **kwargs: Any) -> bytes:
-        """GET a binary artifact (published zips, files, exports)."""
+        """GET a binary artifact (published zips, files, exports), streamed under the
+        DOWNLOAD_MAX_MB cap."""
+        kwargs.setdefault("max_bytes", self.settings.download_max_mb * 1024 * 1024)
         response = await self.request("GET", path, **kwargs)
         if response.status_code >= 400:
             raise error_from_response(response)

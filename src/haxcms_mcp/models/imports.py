@@ -181,3 +181,5 @@ class ConversionResult(BaseModel):
     bytes: int | None = None
     mimetype: str | None = None
     filename: str | None = None
+    download_url: str | None = None  # per-caller HTTP mode (see services/output_store.py)
+    expires_at: float | None = None

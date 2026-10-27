@@ -1291,7 +1291,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": false,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": false,
       "title": "Add image from file"
     },
@@ -3486,7 +3486,7 @@
   },
   "configure_site_git": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -3559,7 +3559,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": true,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": true,
       "title": "Convert DOCX to HTML"
     },
@@ -3580,9 +3580,9 @@
   "convert_docx_to_pdf": {
     "annotations": {
       "destructive_hint": false,
-      "idempotent_hint": true,
-      "open_world_hint": false,
-      "read_only_hint": true,
+      "idempotent_hint": false,
+      "open_world_hint": true,
+      "read_only_hint": false,
       "title": "Convert DOCX to PDF"
     },
     "description": "Convert an uploaded DOCX file to a PDF document.\n\nNEEDS CHROME on the HAXcms server (puppeteer-core; PUPPETEER_EXECUTABLE_PATH or a\nsystem Chrome) - without it the conversion fails upstream.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (Word document (.docx) to convert to PDF).\n\nThe binary result is written under the Output Directory; returns {path, bytes,\nmimetype, filename}.",
@@ -3602,9 +3602,9 @@
   "convert_html_to_docx": {
     "annotations": {
       "destructive_hint": false,
-      "idempotent_hint": true,
-      "open_world_hint": false,
-      "read_only_hint": true,
+      "idempotent_hint": false,
+      "open_world_hint": true,
+      "read_only_hint": false,
       "title": "Convert HTML to DOCX"
     },
     "description": "Convert HTML string to a DOCX document (returned as base64).\n\nDEVIATION from the vendored spec (source-verified): the 26.8.1 route accepts ONLY a\nmultipart .html/.htm file upload; the spec's JSON {html} body answers 400 'No file\nuploaded'.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (file to convert).\n\nThe binary result is written under the Output Directory; returns {path, bytes,\nmimetype, filename}.",
@@ -3657,9 +3657,9 @@
   "convert_html_to_pdf": {
     "annotations": {
       "destructive_hint": false,
-      "idempotent_hint": true,
-      "open_world_hint": false,
-      "read_only_hint": true,
+      "idempotent_hint": false,
+      "open_world_hint": true,
+      "read_only_hint": false,
       "title": "Convert HTML to PDF"
     },
     "description": "Convert HTML string to a PDF document (returned as base64).\n\nDEVIATION from the vendored spec (source-verified): multipart .html/.htm file upload\nonly (like convert_html_to_docx); `base` rides as a FORM field.\nNEEDS CHROME on the HAXcms server (puppeteer-core; PUPPETEER_EXECUTABLE_PATH or a\nsystem Chrome) - without it the conversion fails upstream.\n`source`: a path / URL / data: / base64: file (Sources convention), sent as the\nmultipart file part (file to convert).\n`base`: optional base URL for resolving relative links (FORM field; the server wants\nan http(s) URL and defaults to '/').\n\nThe binary result is written under the Output Directory; returns {path, bytes,\nmimetype, filename}.",
@@ -3757,7 +3757,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": true,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": true,
       "title": "Convert PDF to HTML"
     },
@@ -3779,7 +3779,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": true,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": true,
       "title": "Convert PPTX to HTML"
     },
@@ -3834,7 +3834,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": true,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": true,
       "title": "Convert XLSX to CSV"
     },
@@ -4114,7 +4114,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": false,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": false,
       "title": "Create site from document"
     },
@@ -4159,7 +4159,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": false,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": false,
       "title": "Create site from platform"
     },
@@ -4801,7 +4801,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": false,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": false,
       "title": "Import document into site"
     },
@@ -5313,7 +5313,7 @@
   },
   "normalize_slugs": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -5433,7 +5433,7 @@
   },
   "rename_file": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -5749,7 +5749,7 @@
   },
   "set_allowed_blocks": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -5790,7 +5790,7 @@
   },
   "set_block_text": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -5845,7 +5845,7 @@
   },
   "set_editor_audience": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -5970,7 +5970,7 @@
   },
   "set_platform_features": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6006,7 +6006,7 @@
   },
   "set_site_theme": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6105,7 +6105,7 @@
   },
   "set_theme_regions": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6204,7 +6204,7 @@
   },
   "update_author_info": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6319,7 +6319,7 @@
   },
   "update_block": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6396,7 +6396,7 @@
   },
   "update_page_details": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6545,7 +6545,7 @@
   },
   "update_seo_settings": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6671,7 +6671,7 @@
   },
   "update_site_info": {
     "annotations": {
-      "destructive_hint": false,
+      "destructive_hint": true,
       "idempotent_hint": true,
       "open_world_hint": false,
       "read_only_hint": false,
@@ -6769,7 +6769,7 @@
     "annotations": {
       "destructive_hint": false,
       "idempotent_hint": false,
-      "open_world_hint": false,
+      "open_world_hint": true,
       "read_only_hint": false,
       "title": "Upload file"
     },

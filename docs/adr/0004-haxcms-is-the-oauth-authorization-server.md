@@ -44,7 +44,7 @@ Until HAXcms has OAuth endpoints, a client that can send a static header can con
 ## Consequences
 
 - Most of the remaining work is in HAXcms. Once HAXcms serves the metadata and the endpoints above, nothing here changes: the protected-resource metadata already points at it.
-- The verifier asks HAXcms on every new token and caches the answer for 30 s. A revoked token can keep working for up to that long.
-- One outbound budget is shared by all callers. Per-caller budgets are a follow-up if one user can starve others in practice.
-- Exports still write to `HAXCMS_MCP_OUTPUT_DIR` on the server. That suits local use; a hosted connector should return exports inline or as short-lived links (follow-up).
+- The verifier asks HAXcms on every new token and caches the answer for 30 s (refusals for 10 s). A revoked token can keep working for up to 30 s. Verification has its own outbound budget, and an address that keeps presenting refused tokens is throttled, so unauthenticated traffic cannot starve verified callers.
+- Each verified user has their own outbound budget, and a total budget caps all users together, so one busy user cannot starve the others.
+- Exports and converter files go to a per-user folder with a quota and expiry, and come back as signed, short-lived download links served by this server (security audit, October 2026).
 - Server-level MCP administration for HAXiam-hosted sites is out of scope and not advertised. This is for self-hosted HAXcms.

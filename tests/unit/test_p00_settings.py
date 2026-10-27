@@ -40,7 +40,7 @@ def test_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.timeout_s == 60
     assert settings.export_timeout_s == 300
     assert settings.output_dir == Path("haxcms-mcp-output")
-    assert settings.input_roots == [Path.cwd()]
+    assert settings.input_roots == []  # local-path sources are off until configured
     assert settings.max_inline_base64_mb == 10
     assert settings.transport == "stdio"
     assert (settings.http_host, settings.http_port, settings.http_path) == (
@@ -120,8 +120,8 @@ def test_input_roots_split(monkeypatch: pytest.MonkeyPatch) -> None:
     assert settings.input_roots == [first, second]
 
 
-def test_input_roots_empty_falls_back_to_cwd(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_input_roots_empty_means_no_local_sources(monkeypatch: pytest.MonkeyPatch) -> None:
     _clean_env(monkeypatch)
     monkeypatch.setenv("HAXCMS_MCP_BASE_URL", "http://h:1")
     monkeypatch.setenv("HAXCMS_MCP_INPUT_ROOTS", os.pathsep)
-    assert Settings().input_roots == [Path.cwd()]
+    assert Settings().input_roots == []

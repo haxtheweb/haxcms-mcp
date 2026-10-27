@@ -15,6 +15,7 @@ from collections.abc import Sequence
 
 from haxcms_mcp import __version__
 from haxcms_mcp.config import Settings
+from haxcms_mcp.http_auth import transport_middleware
 from haxcms_mcp.logging import configure_logging
 from haxcms_mcp.server import build_server
 
@@ -73,6 +74,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             host=settings.http_host,
             port=settings.http_port,
             path=settings.http_path,
+            # DNS rebinding: refuse foreign Host / Origin headers before any MCP handling
+            **settings.transport_guard,
+            middleware=transport_middleware(settings),
         )
     else:
         mcp.run(transport="stdio")

@@ -9,6 +9,43 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Security follow-ups:
+  - Site zips and exports are streamed from HAXcms under `DOWNLOAD_MAX_MB` (decoded size, so
+    compressed bombs are caught) instead of being read whole into memory; a `_published`
+    link from HAXcms is only followed on the instance's own `/_published/` mount.
+  - Per-caller HTTP mode: every user has their own outbound budget, and
+    `RATE_LIMIT_TOTAL_RPS` caps all users together.
+  - `URL_SOURCES_PROXY`: an explicit egress proxy for URL sources (for networks where the
+    server only reaches the internet through a proxy).
+  - The last hand-built API paths (login, refresh, logout, connection-settings, the spec
+    check, token verification) use the generated routes too (ADR-0005).
+
+- Security hardening from the October 2026 audit (local sources):
+  - `INPUT_ROOTS` defaults to none: local-path sources are off until the operator names a
+    folder (the working directory used to be the default, and it holds the server's `.env`).
+  - Hidden files/folders and key/credential files are refused even inside a root.
+  - Every URL source uses the guarded streaming fetch; with private addresses allowed (stdio)
+    link-local and cloud-metadata addresses are still refused.
+- Security hardening from the October 2026 audit (HTTP transport):
+  - Host/Origin validation on every HTTP request (DNS-rebinding protection; `421`/`403`),
+    with `HTTP_ALLOWED_HOSTS` / `HTTP_ALLOWED_ORIGINS` for extra names.
+  - Per-caller mode: token verification uses its own outbound budget and caches refusals;
+    `AUTH_FAILURES_PER_MINUTE` throttles addresses that keep presenting refused tokens; a
+    non-loopback bind requires an `https://` `PUBLIC_URL`; error details are masked.
+  - Per-caller results go to per-user folders with a quota and expiry, and are returned as
+    signed, short-lived `download_url`s (`GET /downloads/<token>`) instead of server paths.
+  - URL fetches: total deadline and a concurrency cap; refusals no longer reveal resolved
+    addresses; connection errors no longer name the internal HAXcms host.
+- Security hardening from the October 2026 audit (annotations, shared state, CI):
+  - Tool annotations: the three converters that write a file (`convert_html_to_docx`,
+    `convert_html_to_pdf`, `convert_docx_to_pdf`) are no longer read-only, so Read-Only Mode
+    refuses them; every tool that takes a `source` (which may be a URL) is open-world;
+    settings writers and other tools that overwrite existing values are destructive.
+  - The block-catalog cache is scoped per caller, bounded, and remembers failures for 30 s
+    instead of 10 minutes; the site-lock table is bounded.
+  - CI: least-privilege `permissions: contents: read`, actions pinned to commit SHAs,
+    `persist-credentials: false`, and Dependabot for actions and the uv lock.
+
 - Generated route layer ([haxtheweb/issues#3137](https://github.com/haxtheweb/issues/issues/3137)
   stretch, ADR-0005): `scripts/gen_routes.py` writes one builder per spec operation
   (`generated/system_routes.py`, `generated/site_routes.py`). `system_api.py` and
@@ -43,6 +80,9 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 - `create_site_from_platform` accepts the `quarto` platform.
 
 ### Changed
+
+- Dependencies: fastmcp 4.1.2; floors for opentelemetry-api 1.45.1 (CVE-2026-114603) and
+  certifi 2026.10.19 (PYSEC-2026-4320); dev-only pillow 13.
 
 - Vendored specs refreshed to HAXcms NodeJS `main` @ `ad82de48` (new `languages` routes, `idMap` on
   save responses, md site export, auth notes on exports).

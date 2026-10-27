@@ -3,13 +3,15 @@
 `resolve_source(source, settings) -> SourceFile(data, filename, mimetype)` understands
 four source forms:
 
-* `http://` / `https://` URLs — fetched with httpx (size cap = the HAXcms upload limit,
-  50mb by default); the filename comes from the URL path.
+* `http://` / `https://` URLs — fetched through the SSRF guard (`ssrf.guarded_fetch`:
+  streamed against the HAXcms upload limit, 50mb by default; DNS pinned; redirects
+  re-checked; total deadline); the filename comes from the URL path.
 * `data:` URLs — decoded (base64 or percent-encoded); cap `HAXCMS_MCP_MAX_INLINE_BASE64_MB`.
 * `base64:<name>:<payload>` — the inline form that carries a filename; same cap.
 * anything else — a local path that must resolve INSIDE one of `HAXCMS_MCP_INPUT_ROOTS`
-  (default: the working directory) or raise FILE_SOURCE_ERROR. Relative paths are tried
-  against each root in order; `..` segments that escape a root are rejected.
+  (default: none, so local paths are off) or raise FILE_SOURCE_ERROR. Relative paths are
+  tried against each root in order; `..` segments and links that escape a root are
+  rejected, and hidden files/folders and key/credential files are never read.
 
 MIME sniffing (T5.2): magic bytes for png/jpg/gif/webp/pdf; ZIP containers inspected for
 the OOXML office formats (docx/pptx/xlsx); `mimetypes` plus URL Content-Type / data-URL
@@ -142,24 +144,25 @@ def _extension_for(mimetype: str | None) -> str:
 
 
 async def _fetch(source: str, settings: Settings) -> tuple[int, httpx.Headers, bytes]:
+    """Every URL source goes through the guarded, streaming fetch (security audit): size
+    cap while streaming, a total deadline, redirects re-checked, DNS pinned. Private
+    addresses are allowed when the guard is relaxed (stdio, or the operator's override), but
+    link-local and cloud-metadata addresses never are."""
+
     def check_size(size: int) -> None:
         _check_upload_cap(size, f"the file at {source}")
 
     try:
-        if settings.ssrf_guard_enabled:
-            result = await guarded_fetch(
-                source, timeout_s=settings.timeout_s, check_size=check_size
-            )
-            return result.status_code, result.headers, result.content
-        async with httpx.AsyncClient(timeout=settings.timeout_s, follow_redirects=True) as fetcher:
-            response = await fetcher.get(source)
+        result = await guarded_fetch(
+            source,
+            timeout_s=settings.timeout_s,
+            check_size=check_size,
+            allow_private=not settings.ssrf_guard_enabled,
+            proxy=settings.url_sources_proxy,
+        )
     except httpx.HTTPError as exc:
-        raise _source_error(f"could not fetch {source} ({exc})") from exc
-    content_length = response.headers.get("content-length")
-    if content_length and content_length.isdigit():
-        check_size(int(content_length))
-    check_size(len(response.content))
-    return response.status_code, response.headers, response.content
+        raise _source_error(f"could not fetch {source} ({type(exc).__name__})") from exc
+    return result.status_code, result.headers, result.content
 
 
 async def _resolve_url(source: str, settings: Settings) -> SourceFile:
@@ -216,9 +219,36 @@ def _resolve_inline_base64(source: str, settings: Settings) -> SourceFile:
     return SourceFile(data, filename, mimetype)
 
 
+# Never sent anywhere, even from inside an input root: dot-files and dot-folders (.env, .git,
+# .ssh, .aws, ...) and files that look like keys or credentials.
+_SENSITIVE_SUFFIXES = (".pem", ".key", ".p12", ".pfx", ".jks", ".keystore", ".kdbx", ".ovpn")
+_SENSITIVE_NAMES = re.compile(
+    r"^(id_(rsa|dsa|ecdsa|ed25519)(\.pub)?|credentials(\..*)?|secrets?(\..*)?|"
+    r".*\.(env|netrc|npmrc|pgpass)|authorized_keys|known_hosts|htpasswd)$",
+    re.IGNORECASE,
+)
+
+
+def _sensitive_reason(path: Path, root: Path) -> str | None:
+    relative = path.relative_to(root)
+    for part in relative.parts:
+        if part.startswith("."):
+            return f"{part!r} is a hidden file or folder"
+    name = path.name.lower()
+    if name.endswith(_SENSITIVE_SUFFIXES) or _SENSITIVE_NAMES.match(name):
+        return f"{path.name!r} looks like a key or credentials file"
+    return None
+
+
 def _resolve_path(source: str, settings: Settings) -> SourceFile:
     candidate = Path(source)
-    roots = [Path(root).resolve() for root in settings.input_roots] or [Path.cwd()]
+    roots = [Path(root).resolve() for root in settings.input_roots]
+    if not roots:
+        raise _source_error(
+            "local file paths are not enabled on this server",
+            hint="send the file inline (base64:<name>:<payload> or a data: URL) or as an "
+            "http(s) URL; the operator can allow a folder with HAXCMS_MCP_INPUT_ROOTS",
+        )
     tried: list[Path] = []
     resolved: Path | None = None
     if candidate.is_absolute():
@@ -235,14 +265,27 @@ def _resolve_path(source: str, settings: Settings) -> SourceFile:
                 break
             # exists but escapes the root after resolution (.. or a link) — keep looking
     if resolved is None:
-        raise _source_error(
-            f"path {source!r} does not resolve to a file inside the input roots",
-            hint="input roots (HAXCMS_MCP_INPUT_ROOTS): "
+        # the operator's own stdio session may see the server's paths; remote callers not
+        hint = (
+            "the path must be inside a folder the operator allowed (HAXCMS_MCP_INPUT_ROOTS)"
+            if settings.per_caller_auth
+            else "input roots (HAXCMS_MCP_INPUT_ROOTS): "
             + ", ".join(str(root) for root in roots)
-            + f"; tried: {', '.join(str(path) for path in tried)}",
+            + f"; tried: {', '.join(str(path) for path in tried)}"
+        )
+        raise _source_error(
+            f"path {source!r} does not resolve to a file inside the input roots", hint=hint
         )
     if not resolved.is_file():
         raise _source_error(f"{source!r} is not a file", hint="point source at a regular file")
+    root = next(root for root in roots if _is_inside(resolved, root))
+    reason = _sensitive_reason(resolved, root)
+    if reason is not None:
+        raise _source_error(
+            f"refusing to read {source!r}: {reason}",
+            hint="hidden files and key/credential files are never uploaded; copy the content "
+            "you mean to share into a normal file",
+        )
     size = resolved.stat().st_size
     _check_upload_cap(size, f"the file {resolved.name}")
     data = resolved.read_bytes()

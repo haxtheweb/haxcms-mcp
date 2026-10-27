@@ -20,6 +20,7 @@ import httpx
 
 from haxcms_mcp.client.envelope import MSG_AUTH_REQUIRED, error_from_response, unwrap_full
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.generated import system_routes as routes
 from haxcms_mcp.logging import get_logger
 
 if TYPE_CHECKING:
@@ -188,11 +189,9 @@ class AuthManager:
 
     async def login(self, username: str, password: str) -> str:
         """POST session/login; store the access token and replace process credentials."""
-        response = await self._client.request(
-            "POST",
-            self._client.sys("session/login"),
+        response = await self._client.call(
+            routes.session_login(),
             json={"username": username, "password": password},
-            auth="none",
             no_retry=True,  # the login limiter's Retry-After is minutes; surface 429 immediately
         )
         body = unwrap_full(response)
@@ -219,12 +218,7 @@ class AuthManager:
         if self.no_auth:
             return False
         try:
-            response = await self._client.request(
-                "GET",
-                self._client.sys("session/refresh"),
-                auth="none",
-                no_retry=True,
-            )
+            response = await self._client.call(routes.session_refresh_get(), no_retry=True)
             body = unwrap_full(response)
         except HaxcmsMcpError as exc:
             logger.debug("refresh failed: %s", exc.code.value)
@@ -241,9 +235,8 @@ class AuthManager:
         """POST session/logout (best effort) and clear all local auth state."""
         if not self.no_auth and (self.access_token is not None or self.has_refresh_cookie):
             with contextlib.suppress(HaxcmsMcpError, httpx.HTTPError):
-                await self._client.request(
-                    "POST", self._client.sys("session/logout"), auth="bearer", no_retry=True
-                )
+                # open route; the bearer says WHICH session to end
+                await self._client.call(routes.session_logout(), auth="bearer", no_retry=True)
         self._clear()
         self._logged_out = True
         logger.info("logged out")
@@ -254,9 +247,8 @@ class AuthManager:
         headers = {"Accept": "application/javascript"}
         if site is not None:
             headers["Referer"] = f"{self._settings.base_url}/_sites/{site}/"
-        response = await self._client.request(
-            "GET",
-            self._client.sys("session/connection-settings"),
+        response = await self._client.call(
+            routes.session_connection_settings_get(),
             # per-caller mode has no refresh cookie: HAXcms identifies the caller by bearer
             auth="bearer" if self._per_caller else "none",
             headers=headers,

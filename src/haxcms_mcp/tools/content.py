@@ -198,7 +198,7 @@ def register_content_tools(
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Update block attributes"))
+    @mcp.tool(annotations=tool_annotations("Update block attributes", destructive=True))
     async def update_block(
         page: str,
         anchor: str,
@@ -223,7 +223,7 @@ def register_content_tools(
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Set block text"))
+    @mcp.tool(annotations=tool_annotations("Set block text", destructive=True))
     async def set_block_text(
         page: str,
         anchor: str,

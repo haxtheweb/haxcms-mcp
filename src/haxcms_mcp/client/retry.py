@@ -18,6 +18,9 @@ from typing import TYPE_CHECKING
 import httpx
 
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.logging import get_logger
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from haxcms_mcp.config import Settings
@@ -63,9 +66,11 @@ def _transport_error(exc: httpx.TransportError, request: httpx.Request) -> Haxcm
             f"request to {request.url.path} timed out",
             hint="the instance may be busy; retry or raise HAXCMS_MCP_TIMEOUT_S",
         )
+    # the host stays in the server log: remote callers must not learn internal hostnames
+    logger.warning("connection to %s failed: %s", request.url.host, type(exc).__name__)
     return HaxcmsMcpError(
         ErrorCode.UPSTREAM_ERROR,
-        f"connection to {request.url.host} failed: {exc}",
+        f"could not connect to the HAXcms instance ({type(exc).__name__})",
         hint="check HAXCMS_MCP_BASE_URL and that the HAXcms instance is running",
     )
 

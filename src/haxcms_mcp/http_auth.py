@@ -10,6 +10,11 @@ tokens, so a caller acts with exactly their own HAXcms permissions.
   without a valid token (401 + `WWW-Authenticate`) and serves the RFC 9728 protected-resource
   metadata that points MCP clients at the HAXcms authorization server.
 * `PrincipalMiddleware` exposes the verified caller to `HaxcmsClient` for one MCP request.
+* `AuthFailureLimiter` (ASGI) answers 429 to a client address that keeps presenting tokens
+  HAXcms refuses, so made-up bearers cannot flood the instance with verification calls.
+
+Verification draws from its own outbound bucket (security audit): unauthenticated traffic can
+never drain the budget that verified callers' tool calls use, and vice versa.
 """
 
 from __future__ import annotations
@@ -17,6 +22,7 @@ from __future__ import annotations
 import base64
 import json
 import time
+from collections import OrderedDict, deque
 from typing import TYPE_CHECKING, Any
 
 from fastmcp.server.auth import AccessToken, RemoteAuthProvider, TokenVerifier
@@ -24,11 +30,14 @@ from fastmcp.server.dependencies import get_access_token
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from pydantic import AnyHttpUrl
 
+from haxcms_mcp.client.budget import OutboundBudget
 from haxcms_mcp.client.principal import Principal, current_principal
+from haxcms_mcp.generated import system_routes as routes
 from haxcms_mcp.logging import get_logger
 
 if TYPE_CHECKING:
     from fastmcp.server.middleware import CallNext
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
     from haxcms_mcp.client import HaxcmsClient
     from haxcms_mcp.config import Settings
@@ -36,8 +45,13 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 VERIFY_CACHE_TTL_S = 30.0
+VERIFY_FAILURE_TTL_S = 10.0  # a refused token is not re-asked about for this long
 VERIFY_CACHE_MAX = 1024
 VERIFY_TIMEOUT_S = 10.0
+# separate bucket for verification calls (see module docstring)
+VERIFY_RATE_RPS = 10.0
+VERIFY_BURST = 20
+VERIFY_MAX_WAIT_S = 2.0
 
 
 def _unverified_exp(token: str) -> int | None:
@@ -68,7 +82,17 @@ class HaxcmsTokenVerifier(TokenVerifier):
         super().__init__(required_scopes=required_scopes)
         self._client = client
         self._clock = clock
-        self._cache: dict[str, tuple[float, AccessToken]] = {}
+        # key -> (verified_at, token or None for a refusal); LRU-bounded
+        self._cache: OrderedDict[str, tuple[float, AccessToken | None]] = OrderedDict()
+        self._budget = OutboundBudget(
+            rate=VERIFY_RATE_RPS, capacity=VERIFY_BURST, max_wait=VERIFY_MAX_WAIT_S, clock=clock
+        )
+
+    def _remember(self, key: str, now: float, access: AccessToken | None) -> None:
+        self._cache[key] = (now, access)
+        self._cache.move_to_end(key)
+        while len(self._cache) > VERIFY_CACHE_MAX:
+            self._cache.popitem(last=False)
 
     async def verify_token(self, token: str) -> AccessToken | None:
         if not token:
@@ -76,22 +100,32 @@ class HaxcmsTokenVerifier(TokenVerifier):
         key = Principal(token).key
         now = self._clock()
         cached = self._cache.get(key)
-        if cached is not None and now - cached[0] < VERIFY_CACHE_TTL_S:
-            return cached[1]
+        if cached is not None:
+            ttl = VERIFY_CACHE_TTL_S if cached[1] is not None else VERIFY_FAILURE_TTL_S
+            if now - cached[0] < ttl:
+                return cached[1]
         try:
-            response = await self._client.request(
-                "GET",
-                self._client.sys("session"),
-                auth="none",
+            response = await self._client.call(
+                routes.session_auth_get(),
+                auth="none",  # the bearer under test goes in explicitly, never a held one
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=VERIFY_TIMEOUT_S,
                 no_retry=True,
+                budget=self._budget,
             )
         except Exception as exc:  # noqa: BLE001 - an unreachable HAXcms means "not verified"
-            logger.warning("token verification failed: %s", type(exc).__name__)
+            # not cached: an outage or a full verification bucket is not a verdict on the token
+            logger.warning("token verification unavailable: %s", type(exc).__name__)
             return None
+        access = self._access_from(token, response)
+        if access is None and response.status_code in (200, 401, 403):
+            self._remember(key, now, None)  # HAXcms answered: this token is not valid
+        elif access is not None:
+            self._remember(key, now, access)
+        return access
+
+    def _access_from(self, token: str, response: Any) -> AccessToken | None:
         if response.status_code != 200:
-            self._cache.pop(key, None)
             return None
         try:
             body = response.json()
@@ -102,17 +136,13 @@ class HaxcmsTokenVerifier(TokenVerifier):
         user = body.get("user")
         if not isinstance(user, str) or not user:
             return None
-        access = AccessToken(
+        return AccessToken(
             token=token,
             client_id=user,
             scopes=list(self.required_scopes or []),
             expires_at=_unverified_exp(token),
             claims={"user": user},
         )
-        if len(self._cache) >= VERIFY_CACHE_MAX:
-            self._cache.clear()
-        self._cache[key] = (now, access)
-        return access
 
 
 def build_auth_provider(settings: Settings, client: HaxcmsClient) -> RemoteAuthProvider:
@@ -144,3 +174,80 @@ class PrincipalMiddleware(Middleware):
             return await call_next(context)
         finally:
             current_principal.reset(token)
+
+
+class AuthFailureLimiter:
+    """ASGI middleware: after `limit` 401 answers to one client address within `window_s`,
+    answer 429 (with Retry-After) without touching the auth layer or HAXcms.
+
+    The address is the TCP peer. Behind a reverse proxy every caller shares the proxy's
+    address, so rate-limit failed auth at the proxy instead and set the limit to 0 here.
+    """
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        limit: int,
+        window_s: float = 60.0,
+        clock: Any = time.monotonic,
+        max_clients: int = 4096,
+    ) -> None:
+        self.app = app
+        self.limit = limit
+        self.window_s = window_s
+        self._clock = clock
+        self._max_clients = max_clients
+        self._failures: OrderedDict[str, deque[float]] = OrderedDict()
+
+    def _recent(self, client: str, now: float) -> deque[float]:
+        hits = self._failures.get(client)
+        if hits is None:
+            hits = deque()
+            self._failures[client] = hits
+            while len(self._failures) > self._max_clients:
+                self._failures.popitem(last=False)
+        self._failures.move_to_end(client)
+        while hits and now - hits[0] > self.window_s:
+            hits.popleft()
+        return hits
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or self.limit <= 0:
+            await self.app(scope, receive, send)
+            return
+        peer = scope.get("client")
+        client = str(peer[0]) if peer else "unknown"
+        now = self._clock()
+        hits = self._recent(client, now)
+        if len(hits) >= self.limit:
+            retry = max(1, int(self.window_s - (now - hits[0])) + 1)
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 429,
+                    "headers": [
+                        (b"content-type", b"application/json"),
+                        (b"retry-after", str(retry).encode()),
+                    ],
+                }
+            )
+            body = b'{"error":"too_many_failed_auth","error_description":"slow down"}'
+            await send({"type": "http.response.body", "body": body})
+            return
+
+        async def tracking_send(message: Message) -> None:
+            if message["type"] == "http.response.start" and message.get("status") == 401:
+                self._recent(client, self._clock()).append(self._clock())
+            await send(message)
+
+        await self.app(scope, receive, tracking_send)
+
+
+def transport_middleware(settings: Settings) -> list[Any]:
+    """Starlette middleware for the HTTP transport (empty unless per-caller auth is on)."""
+    if not settings.per_caller_auth or settings.auth_failures_per_minute <= 0:
+        return []
+    from starlette.middleware import Middleware as StarletteMiddleware
+
+    return [StarletteMiddleware(AuthFailureLimiter, limit=settings.auth_failures_per_minute)]

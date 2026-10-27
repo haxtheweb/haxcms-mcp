@@ -514,6 +514,7 @@ async def site_export(client: HaxcmsClient, site: str, format: str) -> bytes | d
         routes.get_site_export(site, format),
         auth="bearer",
         timeout=client.settings.export_timeout_s,
+        max_bytes=client.settings.download_max_mb * 1024 * 1024,  # streamed, capped
     )
     if response.status_code >= 400:
         raise error_from_response(response)
@@ -534,6 +535,7 @@ async def item_export(client: HaxcmsClient, site: str, id_or_slug: str, format: 
         routes.download_item_export(site, id_or_slug, format),
         auth="bearer",
         timeout=client.settings.export_timeout_s,
+        max_bytes=client.settings.download_max_mb * 1024 * 1024,  # streamed, capped
     )
     if response.status_code >= 400:
         raise error_from_response(response)
@@ -552,6 +554,7 @@ async def site_markdown(client: HaxcmsClient, site: str) -> str:
         params={"mode": "concat", "format": "md"},
         auth="bearer",
         timeout=client.settings.export_timeout_s,
+        max_bytes=client.settings.download_max_mb * 1024 * 1024,  # streamed, capped
     )
     if response.status_code >= 400:
         raise error_from_response(response)

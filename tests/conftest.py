@@ -12,6 +12,7 @@ import contextlib
 import os
 import secrets
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 import pytest
 from fastmcp import Client
@@ -29,6 +30,9 @@ from tests.harness.mcp_client import McpTestClient
 
 # NOTE: the --snapshot-update flag comes from the syrupy pytest plugin (installed);
 # tests/harness/snapshots.py reuses it for the plain-JSON snapshots.
+
+
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -115,6 +119,8 @@ def settings(haxcms: HaxcmsRuntime) -> Settings:
         base_url=haxcms.base_url,
         username=haxcms.username,
         password=haxcms.password,
+        # local-path sources are off unless a root is configured (security audit)
+        input_roots=[FIXTURES_DIR],
     )
 
 

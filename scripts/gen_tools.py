@@ -300,7 +300,7 @@ def render_converter(op_id: str, operation: dict[str, Any]) -> str:
                 "    data,",
                 f'    mimetype="{result[1]}",',
                 f'    fallback_filename="{result[2]}",',
-                "    output_dir=settings.output_dir,",
+                "    settings=settings,",
                 ")",
             ]
         )
@@ -316,7 +316,7 @@ def render_converter(op_id: str, operation: dict[str, Any]) -> str:
                 "    content,",
                 f'    mimetype="{result[1]}",',
                 "    filename=filename,",
-                "    output_dir=settings.output_dir,",
+                "    settings=settings,",
                 ")",
             ]
         )

@@ -110,6 +110,8 @@ async def test_guarded_fetch_connects_to_the_pinned_ip_with_host_and_sni() -> No
     assert seen[0].url.host == PUBLIC
     assert seen[0].headers["host"] == "files.example"
     assert seen[0].extensions["sni_hostname"] == "files.example"
+    # the HAXcms attribution header (haxtheweb/issues#3191) never goes to third-party hosts
+    assert "x-hax-actor" not in seen[0].headers
 
 
 async def test_redirect_to_a_private_address_is_refused() -> None:

@@ -4714,7 +4714,7 @@
       "read_only_hint": true,
       "title": "Server info"
     },
-    "description": "Return identity and configuration of this HAXcms MCP server.\n\nReports which HAXcms instance the server talks to, whether Read-Only Mode is active,\nand — best effort — the instance's own version and status diagnostics (failures appear\nas `version_error` / `status_error` instead of failing the call). `spec_compatibility`\nsays whether the instance serves the same HAXcms API spec this server was built against\n(`match`, `mismatch` — tools may misbehave — or `unavailable`).",
+    "description": "Return identity and configuration of this HAXcms MCP server.\n\nReports which HAXcms instance the server talks to, whether Read-Only Mode is active,\nand — best effort — the instance's own version and status diagnostics (failures appear\nas `version_error` / `status_error` instead of failing the call). `spec_compatibility`\nsays whether the instance serves the same HAXcms API spec this server was built against\n(`match`, `mismatch` — tools may misbehave — or `unavailable`). `instance_mcp_policy`\nis what the instance itself allows over MCP (`enabled`, `read_only`); this is the one\ntool that still answers when the instance has MCP turned off.",
     "parameters": {
       "additionalProperties": false,
       "properties": {},

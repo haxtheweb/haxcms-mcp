@@ -12,6 +12,7 @@ from haxcms_mcp.client.auth import ACCESS_TOKEN_TTL_S
 from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.policy import PolicyChecker
 from haxcms_mcp.tools._common import tool_annotations
 
 
@@ -40,9 +41,11 @@ def register_auth_tools(
     settings: Settings,
     client: HaxcmsClient,
     compat: CompatChecker | None = None,
+    policy: PolicyChecker | None = None,
 ) -> None:
     """Register the four session tools on the FastMCP app."""
     checker = compat or CompatChecker(client)
+    policy_checker = policy or PolicyChecker(client)
 
     @mcp.tool(
         annotations=tool_annotations("Login", read_only=False, destructive=False),
@@ -117,7 +120,9 @@ def register_auth_tools(
         and — best effort — the instance's own version and status diagnostics (failures appear
         as `version_error` / `status_error` instead of failing the call). `spec_compatibility`
         says whether the instance serves the same HAXcms API spec this server was built against
-        (`match`, `mismatch` — tools may misbehave — or `unavailable`).
+        (`match`, `mismatch` — tools may misbehave — or `unavailable`). `instance_mcp_policy`
+        is what the instance itself allows over MCP (`enabled`, `read_only`); this is the one
+        tool that still answers when the instance has MCP turned off.
         """
         info: dict[str, Any] = {
             "name": "haxcms-mcp",
@@ -138,4 +143,6 @@ def register_auth_tools(
             haxcms_info["status_error"] = exc.formatted
         info["haxcms"] = haxcms_info
         info["spec_compatibility"] = (await checker.result()).to_dict()
+        # what the instance itself allows over MCP (published on GET /system/api/v1)
+        info["instance_mcp_policy"] = (await policy_checker.current()).to_dict()
         return info

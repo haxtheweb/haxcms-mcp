@@ -189,6 +189,33 @@ with the vendored spec. A difference is logged once as a warning (stderr) and re
 `get_server_info` under `spec_compatibility` (`match`, `mismatch` or `unavailable`). It never
 blocks startup and never disables a tool: most upstream spec edits are descriptions and examples.
 
+### The instance decides whether MCP may operate it
+
+HAXcms has its own MCP setting in its `config.json` (both backends):
+
+```json
+"mcp": { "enabled": true, "readOnly": true }
+```
+
+It publishes that setting on the open discovery route (`GET /system/api/v1` → `data.mcp`), and
+this server obeys it:
+
+- `enabled: false`: every tool and resource is refused with `MCP_DISABLED`. Only
+  `get_server_info` still answers, so you can see why. HAXiam-managed deployments default to
+  this.
+- `readOnly: true`: Read-Only Mode is on, whatever `HAXCMS_MCP_READ_ONLY` says. **Stock HAXcms
+  ships read-only**, so to let an agent edit your sites, set `"readOnly": false` in the
+  instance's `config.json`.
+- The local `HAXCMS_MCP_READ_ONLY=true` can still make this server stricter than the instance,
+  never looser.
+
+`get_server_info` reports what the instance allows under `instance_mcp_policy`. A HAXcms that
+predates this setting publishes nothing; the local settings apply, with a warning. The policy
+is re-read every minute, so a config change takes effect without restarting this server.
+
+Every request also carries `X-HAX-Actor: agent`, so HAXcms records the agent as the author of
+the commits it makes.
+
 ### HAXcms PHP
 
 [HAXcms PHP](https://github.com/haxtheweb/haxcms-php) implements the same OpenAPI contract and
@@ -236,6 +263,8 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
 - **Credentials live in the environment only** — never in tool arguments or results.
   Access tokens are held in memory only, and no token or password ever reaches a log line
   (all logging goes to stderr).
+- **The instance's own MCP policy wins** (`config.mcp` in HAXcms): MCP turned off there
+  refuses everything; read-only there forces Read-Only Mode here.
 - **Read-Only Mode** (`HAXCMS_MCP_READ_ONLY=true`) rejects every tool that is not annotated
   read-only, at the middleware level — a hard guarantee, not a convention. Converters that write a
   file (`convert_html_to_docx`, `convert_html_to_pdf`, `convert_docx_to_pdf`) count as writes.

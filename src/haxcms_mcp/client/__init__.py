@@ -30,6 +30,12 @@ if TYPE_CHECKING:
     from haxcms_mcp.config import Settings
     from haxcms_mcp.generated.route import Route
 
+# haxtheweb/issues#3191: HAXcms records who made each change in the site's git history
+# ("[A:updateItem:x9r1] ..."). Every call this server makes is on behalf of an agent, so
+# it says so; without the header HAXcms records the change as made by a human. The
+# header is informational only and never changes what HAXcms allows.
+ACTOR_HEADERS = {"X-HAX-Actor": "agent"}
+
 logger = get_logger(__name__)
 
 AuthMode = Literal["none", "bearer", "bearer+user", "bearer+site"]
@@ -95,7 +101,11 @@ class HaxcmsClient:
         self._closing: set[asyncio.Task[None]] = set()
 
     def _new_http(self) -> httpx.AsyncClient:
-        return httpx.AsyncClient(base_url=self.settings.base_url, timeout=self.settings.timeout_s)
+        return httpx.AsyncClient(
+            base_url=self.settings.base_url,
+            timeout=self.settings.timeout_s,
+            headers=ACTOR_HEADERS,
+        )
 
     # --- per-caller routing (#3140) ---------------------------------------------------
     def _caller_session(self) -> _CallerSession | None:

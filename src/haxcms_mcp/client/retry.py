@@ -39,6 +39,9 @@ class RetryPolicy:
     """Tunables for `with_retry`; defaults per PLAN §2.3 / §4."""
 
     retry_max: int = 3
+    # back off and retry GET/HEAD on transport errors and 502/503/504; off for `no_retry`
+    # calls (probes and rotating-token calls: a retried refresh would replay a spent cookie)
+    transient: bool = True
     retry_after_cap_s: float = 60.0
     retry_after_default_s: float = 2.0
 
@@ -92,7 +95,11 @@ async def with_retry(
         try:
             response = await send(request)
         except httpx.TransportError as exc:
-            if not idempotent or transient_attempt >= len(BACKOFF_SCHEDULE_S):
+            if (
+                not idempotent
+                or not policy.transient
+                or transient_attempt >= len(BACKOFF_SCHEDULE_S)
+            ):
                 raise _transport_error(exc, request) from exc
             delay = BACKOFF_SCHEDULE_S[transient_attempt]
             transient_attempt += 1
@@ -112,6 +119,7 @@ async def with_retry(
         if (
             response.status_code in TRANSIENT_STATUSES
             and idempotent
+            and policy.transient
             and transient_attempt < len(BACKOFF_SCHEDULE_S)
         ):
             delay = BACKOFF_SCHEDULE_S[transient_attempt]

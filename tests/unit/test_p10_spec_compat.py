@@ -136,3 +136,21 @@ def test_hash_still_detects_a_real_contract_change() -> None:
     document["paths"].pop(next(iter(document["paths"])))
     changed = yaml.safe_dump(document).encode("utf-8")
     assert spec_sha256(changed) != spec_info.SYSTEM_SPEC_SHA256
+
+
+def test_prose_differences_do_not_count_but_a_property_named_description_does() -> None:
+    """Descriptions/summaries are documentation: two backends whose prose differs serve the
+    same contract. A schema property literally called `description` IS contract."""
+    import yaml
+
+    document = yaml.safe_load((SPECS / "system-spec.yaml").read_text(encoding="utf-8"))
+    document["info"]["description"] = "reworded"
+    first_path = next(iter(document["paths"].values()))
+    next(iter(first_path.values()))["summary"] = "also reworded"
+    assert spec_sha256(yaml.safe_dump(document).encode()) == spec_info.SYSTEM_SPEC_SHA256
+
+    schemas = document["components"]["schemas"]
+    schemas["ProbeOnly"] = {"type": "object", "properties": {"description": {"type": "string"}}}
+    with_prop = spec_sha256(yaml.safe_dump(document).encode())
+    del schemas["ProbeOnly"]["properties"]["description"]
+    assert spec_sha256(yaml.safe_dump(document).encode()) != with_prop

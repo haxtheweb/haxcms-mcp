@@ -35,6 +35,8 @@ logger = get_logger(__name__)
 AuthMode = Literal["none", "bearer", "bearer+user", "bearer+site"]
 
 SYSTEM_API_PREFIX = "/system/api/v1"
+ACTOR_HEADER = "X-HAX-Actor"
+ACTOR_AGENT = "agent"
 
 
 def _too_large(size: int, limit: int) -> HaxcmsMcpError:
@@ -194,7 +196,9 @@ class HaxcmsClient:
         max_bytes: int | None = None,
     ) -> httpx.Response:
         """Send one request with auth headers, budget accounting, and retry/refresh handling."""
-        request_headers: dict[str, str] = dict(headers or {})
+        # HAXcms records who made each commit ([<actor>:<operationId>:<txn>], haxtheweb/
+        # issues#3191); an MCP server is an agent. Informational: never changes permissions.
+        request_headers: dict[str, str] = {ACTOR_HEADER: ACTOR_AGENT, **dict(headers or {})}
         if accept is not None:
             request_headers["Accept"] = accept
 
@@ -217,7 +221,7 @@ class HaxcmsClient:
         if token is not None:
             request_headers["Authorization"] = f"Bearer {token}"
 
-        policy = RetryPolicy(retry_max=0) if no_retry else self.policy
+        policy = RetryPolicy(retry_max=0, transient=False) if no_retry else self.policy
         kwargs: dict[str, Any] = {
             "json": json,
             "data": data,

@@ -9,6 +9,15 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- The server obeys the HAXcms instance's own MCP policy (Phase 0 of the OAuth plan,
+  [haxtheweb/issues#3140](https://github.com/haxtheweb/issues/issues/3140)): `config.mcp`
+  published on `GET /system/api/v1`. MCP turned off there refuses every tool and resource
+  (`MCP_DISABLED`, a new error code) except `get_server_info`; read-only there forces Read-Only
+  Mode. `get_server_info` reports it as `instance_mcp_policy`.
+- Every request sends `X-HAX-Actor: agent` (HAXcms commit attribution,
+  [haxtheweb/issues#3191](https://github.com/haxtheweb/issues/issues/3191)).
+
+
 - Security follow-ups:
   - Site zips and exports are streamed from HAXcms under `DOWNLOAD_MAX_MB` (decoded size, so
     compressed bombs are caught) instead of being read whole into memory; a `_published`
@@ -80,6 +89,11 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 - `create_site_from_platform` accepts the `quarto` platform.
 
 ### Changed
+
+- `no_retry` calls (probes, login, refresh, logout) no longer back off and retry on transport
+  errors either; a retried refresh would replay a spent cookie.
+- The spec compatibility hash ignores descriptions and summaries, so two backends whose prose
+  differs (PHP and NodeJS today) still compare as the same contract.
 
 - Dependencies: fastmcp 4.1.2; floors for opentelemetry-api 1.45.1 (CVE-2026-114603) and
   certifi 2026.10.19 (PYSEC-2026-4320); dev-only pillow 13.

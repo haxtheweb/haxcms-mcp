@@ -9,6 +9,9 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Every HAXcms call sends `X-HAX-Actor: agent`, so changes made through the MCP server are
+  recorded as agent changes (`[A:<operationId>:<txn>] ...`) in the site's git history and
+  revision panel (haxtheweb/issues#3191). Informational only; it changes no permissions.
 - Security follow-ups:
   - Site zips and exports are streamed from HAXcms under `DOWNLOAD_MAX_MB` (decoded size, so
     compressed bombs are caught) instead of being read whole into memory; a `_published`

@@ -276,6 +276,18 @@ def get_item_revision_by_id(site: str, id_or_slug: str, revision_id: str) -> Rou
     )
 
 
+def compare_item_revisions(
+    site: str, id_or_slug: str, revision_id: str, compare_revision_id: str
+) -> Route:
+    """GET /x/api/v1/items/{idOrSlug}/revisions/{revisionId}/compare/{compareRevisionId}"""
+    return Route(
+        "compareItemRevisions",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/items/{q(id_or_slug)}/revisions/{q(revision_id)}/compare/{q(compare_revision_id)}",  # noqa: E501
+        "bearer+site",
+    )
+
+
 def restore_item_revision(site: str, id_or_slug: str, revision_id: str) -> Route:
     """POST /x/api/v1/items/{idOrSlug}/revisions/{revisionId}/restore"""
     return Route(
@@ -392,7 +404,7 @@ def search_content(site: str) -> Route:
         "searchContent",
         "GET",
         f"/_sites/{q(site)}/x/api/v1/search",
-        "none",
+        "bearer",
     )
 
 
@@ -621,6 +633,11 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
         "/_sites/{site}/x/api/v1/items/{idOrSlug}/revisions/{revisionId}",
         "bearer+site",
     ),
+    "compareItemRevisions": (
+        "GET",
+        "/_sites/{site}/x/api/v1/items/{idOrSlug}/revisions/{revisionId}/compare/{compareRevisionId}",
+        "bearer+site",
+    ),
     "restoreItemRevision": (
         "POST",
         "/_sites/{site}/x/api/v1/items/{idOrSlug}/revisions/{revisionId}/restore",
@@ -640,7 +657,7 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "updateFileByUuid": ("PATCH", "/_sites/{site}/x/api/v1/files/{fileUuid}", "bearer+site"),
     "deleteFileByUuid": ("DELETE", "/_sites/{site}/x/api/v1/files/{fileUuid}", "bearer+site"),
     "listTags": ("GET", "/_sites/{site}/x/api/v1/tags", "none"),
-    "searchContent": ("GET", "/_sites/{site}/x/api/v1/search", "none"),
+    "searchContent": ("GET", "/_sites/{site}/x/api/v1/search", "bearer"),
     "listCustomElements": ("GET", "/_sites/{site}/x/api/v1/custom-elements", "none"),
     "getCustomElementByName": (
         "GET",

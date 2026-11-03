@@ -77,7 +77,9 @@ async def test_docx_creates_a_site_whose_outline_mirrors_the_headings(
         build = site_json["metadata"]["build"]
         assert build["structure"] == "import"
         assert build["type"] == "docx import"
-        assert isinstance(build["version"], str) and build["version"]
+        # HAXcms no longer records its own version in site.json (a public file):
+        # haxtheweb/haxcms-nodejs "Never expose the running HAXcms version" (#152)
+        assert "version" not in build
 
         # the first page carries the document's opening paragraph
         assert "Welcome to Biology 101" in haxcms.read_page_html(created, root["id"])

@@ -14,6 +14,7 @@ def test_all_codes_present() -> None:
         "AUTH_REQUIRED",
         "AUTH_FAILED",
         "READ_ONLY",
+        "MCP_DISABLED",
         "RATE_LIMITED",
         "NOT_FOUND",
         "INVALID_ARGUMENT",

@@ -227,7 +227,7 @@ class HaxcmsClient:
         if token is not None:
             request_headers["Authorization"] = f"Bearer {token}"
 
-        policy = RetryPolicy(retry_max=0) if no_retry else self.policy
+        policy = RetryPolicy(retry_max=0, transient=False) if no_retry else self.policy
         kwargs: dict[str, Any] = {
             "json": json,
             "data": data,

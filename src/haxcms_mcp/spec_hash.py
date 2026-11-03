@@ -4,7 +4,8 @@ Kept apart from `compat.py` so `scripts/sync_specs.py` can import it before the 
 `spec_info.py` exists.
 
 The hash is over the *parsed* document, not its bytes, so both HAXcms backends compare equal
-when they serve the same contract (#3139): NodeJS serves the raw YAML at
+when they serve the same contract (#3139), even when their prose differs (descriptions and
+summaries are documentation, not contract): NodeJS serves the raw YAML at
 `GET /system/api/v1/openapi`, while PHP serves it re-encoded as JSON with `info.version` and
 `servers` filled in for the instance, and with empty objects encoded as `[]` (PHP
 `json_encode` of an empty array).
@@ -18,12 +19,19 @@ from typing import Any
 
 import yaml
 
+# Prose that documents the contract without changing it. Dropped only when the value is
+# text, so a schema PROPERTY that happens to be called "description" (a dict) is kept.
+_PROSE_KEYS = frozenset({"description", "summary"})
+
 
 def _normalize(node: Any) -> Any:
     if isinstance(node, dict):
-        if not node:
-            return None
-        return {str(key): _normalize(value) for key, value in node.items()}
+        kept = {
+            str(key): _normalize(value)
+            for key, value in node.items()
+            if not (key in _PROSE_KEYS and isinstance(value, str))
+        }
+        return kept or None
     if isinstance(node, list):
         if not node:
             return None

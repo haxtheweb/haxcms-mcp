@@ -137,6 +137,7 @@ class HaxcmsPhpRuntime(HaxcmsRuntime):
 
         await self._wait_ready()
         self._install(install_token)
+        self.write_mcp_policy(root / "_config" / "config.json")
         self.boot_seconds = time.perf_counter() - started
         print(
             f"[harness] HAXcms PHP booted at {self.base_url} in {self.boot_seconds:.1f}s "

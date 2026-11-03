@@ -24,6 +24,7 @@ from haxcms_mcp.middleware import (
     ReadOnlyMiddleware,
     ToolLoggingMiddleware,
 )
+from haxcms_mcp.policy import PolicyChecker
 from haxcms_mcp.prompts.journeys import register_prompts
 from haxcms_mcp.resources.catalog import register_catalog_resources
 from haxcms_mcp.resources.sites import register_site_resources
@@ -65,18 +66,22 @@ def build_server(settings: Settings) -> FastMCP:
     """Create and configure the FastMCP application for one Instance."""
     client = HaxcmsClient(settings)
     compat = CompatChecker(client)
+    policy = PolicyChecker(client)
 
     @asynccontextmanager
     async def _lifespan(server: FastMCP) -> AsyncIterator[None]:
         """Startup spec check (best effort, never blocks) and graceful shutdown (T9.4):
         the httpx client dies with the server session."""
         check = asyncio.create_task(compat.result(), name="haxcms-spec-compat")
+        # read the instance's MCP policy up front so a disabled instance is logged at start
+        policy_check = asyncio.create_task(policy.current(), name="haxcms-mcp-policy")
         try:
             yield
         finally:
-            check.cancel()
-            with contextlib.suppress(asyncio.CancelledError, Exception):
-                await check
+            for task in (check, policy_check):
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError, Exception):
+                    await task
             await client.aclose()
 
     # Authenticated HTTP transport (#3140, ADR-0004): every request must carry the caller's
@@ -97,14 +102,14 @@ def build_server(settings: Settings) -> FastMCP:
         _register_downloads(mcp, settings)
     # Order matters: read-only gate outermost, then logging, then error translation
     # closest to the tool functions.
-    mcp.add_middleware(ReadOnlyMiddleware(settings))
+    mcp.add_middleware(ReadOnlyMiddleware(settings, policy))
     mcp.add_middleware(ToolLoggingMiddleware())
     mcp.add_middleware(ErrorTranslationMiddleware())
 
     # one shared catalog: the content tools and the typed block tools use the same
     # 10-minute live-merge cache
     catalog = CatalogService(client)
-    register_auth_tools(mcp, settings, client, compat)
+    register_auth_tools(mcp, settings, client, compat, policy)
     register_sites_tools(mcp, settings, client)
     register_outline_tools(mcp, settings, client)
     register_pages_tools(mcp, settings, client)

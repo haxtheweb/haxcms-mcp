@@ -143,6 +143,9 @@ class HaxcmsRuntime:
     password: str = field(default_factory=lambda: secrets.token_hex(16))
     keep: bool | None = None  # default: HAXCMS_MCP_TEST_KEEP_RUNTIME
     ready_timeout_s: float = 60.0
+    # The instance's config.mcp. Stock HAXcms ships {enabled: true, readOnly: true}, which
+    # haxcms-mcp now obeys (read-only); the suites exercise writes, so they run read-write.
+    mcp_policy: dict[str, Any] = field(default_factory=lambda: {"enabled": True, "readOnly": False})
 
     app_js: Path | None = field(default=None, init=False)
     runtime_root: Path | None = field(default=None, init=False)
@@ -152,6 +155,14 @@ class HaxcmsRuntime:
     _log_files: list[Any] = field(default_factory=list, init=False)
     _home_dir: Path | None = field(default=None, init=False)
     backend: str = field(default="node", init=False)  # "php" in HaxcmsPhpRuntime (#3139)
+
+    def write_mcp_policy(self, config_json: Path, policy: dict[str, Any] | None = None) -> None:
+        """Set config.mcp in a HAXcms config.json (NodeJS reads it at boot, PHP per request)."""
+        if policy is not None:
+            self.mcp_policy = policy
+        data = json.loads(config_json.read_text(encoding="utf-8")) if config_json.is_file() else {}
+        data["mcp"] = dict(self.mcp_policy)
+        config_json.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     def _keep_runtime(self) -> bool:
         if self.keep is not None:
@@ -179,6 +190,7 @@ class HaxcmsRuntime:
                 shutil.copy2(src, config / name)
         for sub in CONFIG_SUBDIRS:
             (config / sub).mkdir(parents=True, exist_ok=True)
+        self.write_mcp_policy(config / "config.json")
 
         # --- §11 step 3: login user -------------------------------------------
         (config / ".user").write_text(

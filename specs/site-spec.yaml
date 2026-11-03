@@ -1,7 +1,15 @@
 openapi: 3.0.3
 info:
   title: HAXcms Site API
-  description: Read-only site API for discovery, metadata, and content/query surfaces.
+  description: >-
+    Read-only site API for discovery, metadata, and content/query surfaces.
+
+
+    Commit attribution (haxtheweb/issues#3191): every write is committed to the
+    site's git history as "[<actor>:<operationId>:<txn>] <message>" (actor H
+    human, A agent, S system). Agents MUST send `X-HAX-Actor: agent` on write
+    requests; requests without the header are recorded as human. The header is
+    informational only and never changes permissions.
   version: 1.0.0
   license:
     name: Apache-2.0
@@ -924,7 +932,68 @@ paths:
               $ref: "#/components/headers/AlternateLink"
           content:
             application/json:
-              example: {"status": 200, "data": {"id": "item-2", "title": "Photosynthesis", "slug": "photosynthesis", "parent": "item-1", "indent": 1, "order": 1, "location": "pages/item-2/index.html", "description": "How plants turn light into chemical energy.", "metadata": {"created": 1760000000, "updated": 1760095000, "tags": "biology,plants"}, "region": null, "tags": ["biology", "plants"], "published": true, "links": {"self": "/x/api/v1/items/photosynthesis", "content": "/x/api/v1/content/photosynthesis", "parent": "/x/api/v1/items/getting-started", "children": "/x/api/v1/items?filter.parent=item-2", "previous": "/x/api/v1/items/getting-started", "exportDocx": "/x/api/v1/items/photosynthesis/export/docx", "exportPdf": "/x/api/v1/items/photosynthesis/export/pdf", "haxElementSchema": "/x/api/v1/items/photosynthesis?include=haxElementSchema", "jsonld": "/x/api/v1/items/photosynthesis?include=jsonld"}, "exports": {"pdf": "/x/api/v1/items/photosynthesis/export/pdf", "docx": "/x/api/v1/items/photosynthesis/export/docx", "html": "/x/api/v1/items/photosynthesis/export/html", "md": "/x/api/v1/items/photosynthesis/export/md", "json": "/x/api/v1/items/photosynthesis/export/json", "yaml": "/x/api/v1/items/photosynthesis/export/yaml", "xml": "/x/api/v1/items/photosynthesis/export/xml", "epub": "/x/api/v1/items/photosynthesis/export/epub"}, "jsonld": {"@context": "https://schema.org", "@type": "WebPage", "@id": "/x/api/v1/items/photosynthesis#webpage", "url": "/x/api/v1/items/photosynthesis", "mainEntityOfPage": "/example/photosynthesis", "name": "Photosynthesis", "description": "How plants turn light into chemical energy.", "inLanguage": "en", "identifier": "item-2", "keywords": ["biology", "plants"], "datePublished": "2025-10-09T08:53:20.000Z", "dateModified": "2025-10-10T11:16:40.000Z"}}}
+              example:
+                {
+                  "status": 200,
+                  "data":
+                    {
+                      "id": "item-2",
+                      "title": "Photosynthesis",
+                      "slug": "photosynthesis",
+                      "parent": "item-1",
+                      "indent": 1,
+                      "order": 1,
+                      "location": "pages/item-2/index.html",
+                      "description": "How plants turn light into chemical energy.",
+                      "metadata":
+                        {
+                          "created": 1760000000,
+                          "updated": 1760095000,
+                          "tags": "biology,plants",
+                        },
+                      "region": null,
+                      "tags": ["biology", "plants"],
+                      "published": true,
+                      "links":
+                        {
+                          "self": "/x/api/v1/items/photosynthesis",
+                          "content": "/x/api/v1/content/photosynthesis",
+                          "parent": "/x/api/v1/items/getting-started",
+                          "children": "/x/api/v1/items?filter.parent=item-2",
+                          "previous": "/x/api/v1/items/getting-started",
+                          "exportDocx": "/x/api/v1/items/photosynthesis/export/docx",
+                          "exportPdf": "/x/api/v1/items/photosynthesis/export/pdf",
+                          "haxElementSchema": "/x/api/v1/items/photosynthesis?include=haxElementSchema",
+                          "jsonld": "/x/api/v1/items/photosynthesis?include=jsonld",
+                        },
+                      "exports":
+                        {
+                          "pdf": "/x/api/v1/items/photosynthesis/export/pdf",
+                          "docx": "/x/api/v1/items/photosynthesis/export/docx",
+                          "html": "/x/api/v1/items/photosynthesis/export/html",
+                          "md": "/x/api/v1/items/photosynthesis/export/md",
+                          "json": "/x/api/v1/items/photosynthesis/export/json",
+                          "yaml": "/x/api/v1/items/photosynthesis/export/yaml",
+                          "xml": "/x/api/v1/items/photosynthesis/export/xml",
+                          "epub": "/x/api/v1/items/photosynthesis/export/epub",
+                        },
+                      "jsonld":
+                        {
+                          "@context": "https://schema.org",
+                          "@type": "WebPage",
+                          "@id": "/x/api/v1/items/photosynthesis#webpage",
+                          "url": "/x/api/v1/items/photosynthesis",
+                          "mainEntityOfPage": "/example/photosynthesis",
+                          "name": "Photosynthesis",
+                          "description": "How plants turn light into chemical energy.",
+                          "inLanguage": "en",
+                          "identifier": "item-2",
+                          "keywords": ["biology", "plants"],
+                          "datePublished": "2025-10-09T08:53:20.000Z",
+                          "dateModified": "2025-10-10T11:16:40.000Z",
+                        },
+                    },
+                }
               schema:
                 allOf:
                   - $ref: "#/components/schemas/ApiEnvelope"
@@ -1147,6 +1216,44 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /x/api/v1/items/{idOrSlug}/revisions/{revisionId}/compare/{compareRevisionId}:
+    get:
+      tags:
+        - items
+      operationId: compareItemRevisions
+      summary: Compare two revisions of one item
+      description: >-
+        Returns the page content at both revisions and the page detail fields
+        (title, description, slug, published, hideInMenu, locked, from the
+        .json variant) that differ. "from" is revisionId and "to" is
+        compareRevisionId; either order works.
+      security:
+        - bearerAuth: []
+          siteTokenHeader: []
+      parameters:
+        - $ref: "#/components/parameters/IdOrSlug"
+        - $ref: "#/components/parameters/RevisionId"
+        - $ref: "#/components/parameters/CompareRevisionId"
+      responses:
+        "200":
+          description: Revision comparison
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/RevisionCompareRecord"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /x/api/v1/items/{idOrSlug}/revisions/{revisionId}/restore:
     post:
       tags:
@@ -1159,6 +1266,23 @@ paths:
       parameters:
         - $ref: "#/components/parameters/IdOrSlug"
         - $ref: "#/components/parameters/RevisionId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  maxLength: 120
+                  description: >-
+                    Optional note recorded with the restore. Control characters
+                    are removed, whitespace is collapsed and it is cut to 120
+                    characters; it is appended to the commit summary
+                    ("Page revision restored: Title (id) from abc123: note"),
+                    and the commit line as a whole still keeps the 200
+                    character limit, so a long note is cut first.
       responses:
         "200":
           description: Revision restore result
@@ -1264,6 +1388,16 @@ paths:
                   type: boolean
                 replaceDestroyConfirm:
                   type: boolean
+                nodeIds:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    Optional page ids that limit which pages a replace
+                    touches. When present and non-empty, only matching pages
+                    whose id is in the list are rewritten (and counted in
+                    updatedItems/items); unknown ids are ignored. Absent or
+                    empty replaces across every matching page.
                 searchCaseSensitive:
                   type: boolean
                 searchMode:
@@ -1329,7 +1463,30 @@ paths:
               $ref: "#/components/headers/AlternateLink"
           content:
             application/json:
-              example: {"status": 200, "data": {"id": "item-2", "slug": "photosynthesis", "title": "Photosynthesis", "format": "html", "mode": "bundle", "body": "<p>Plants convert light energy into chemical energy.</p>", "links": {"self": "/x/api/v1/content/photosynthesis", "item": "/x/api/v1/items/photosynthesis", "page": "/example/photosynthesis", "json": "/example/photosynthesis.json", "md": "/example/photosynthesis.md", "yaml": "/example/photosynthesis.yaml", "xml": "/example/photosynthesis.xml", "html": "/example/photosynthesis.html"}}}
+              example:
+                {
+                  "status": 200,
+                  "data":
+                    {
+                      "id": "item-2",
+                      "slug": "photosynthesis",
+                      "title": "Photosynthesis",
+                      "format": "html",
+                      "mode": "bundle",
+                      "body": "<p>Plants convert light energy into chemical energy.</p>",
+                      "links":
+                        {
+                          "self": "/x/api/v1/content/photosynthesis",
+                          "item": "/x/api/v1/items/photosynthesis",
+                          "page": "/example/photosynthesis",
+                          "json": "/example/photosynthesis.json",
+                          "md": "/example/photosynthesis.md",
+                          "yaml": "/example/photosynthesis.yaml",
+                          "xml": "/example/photosynthesis.xml",
+                          "html": "/example/photosynthesis.html",
+                        },
+                    },
+                }
               schema:
                 allOf:
                   - $ref: "#/components/schemas/ApiEnvelope"
@@ -1711,8 +1868,10 @@ paths:
         - search
       operationId: searchContent
       summary: Search item metadata and content
-      description: Anonymous requests only search published items that are not hidden from navigation.
-      security: []
+      description: Anonymous requests only search published items that are not hidden from navigation. Send a bearer token to also search unpublished and hidden items (logged-in editors).
+      security:
+        - bearerAuth: []
+        - {}
       parameters:
         - $ref: "#/components/parameters/RequiredSearchQuery"
         - $ref: "#/components/parameters/FilterParent"
@@ -1731,7 +1890,51 @@ paths:
           description: Search results
           content:
             application/json:
-              example: {"status": 200, "data": {"query": "light", "fields": ["title", "slug", "description", "tags", "content"], "count": 1, "total": 1, "page": {"limit": 25, "offset": 0, "total": 1}, "results": [{"id": "item-2", "title": "Photosynthesis", "slug": "photosynthesis", "location": "pages/item-2/index.html", "score": 2, "snippet": "How plants turn light into chemical energy.", "matches": [{"field": "description", "index": 16, "length": 5, "snippet": "How plants turn light into chemical energy."}, {"field": "content", "index": 18, "length": 5, "snippet": "<p>Plants convert light energy into chemical energy.</p>"}], "links": {"item": "/x/api/v1/items/photosynthesis", "content": "/x/api/v1/content/photosynthesis"}}], "links": {"self": "/x/api/v1/search"}}}
+              example:
+                {
+                  "status": 200,
+                  "data":
+                    {
+                      "query": "light",
+                      "fields":
+                        ["title", "slug", "description", "tags", "content"],
+                      "count": 1,
+                      "total": 1,
+                      "page": { "limit": 25, "offset": 0, "total": 1 },
+                      "results":
+                        [
+                          {
+                            "id": "item-2",
+                            "title": "Photosynthesis",
+                            "slug": "photosynthesis",
+                            "location": "pages/item-2/index.html",
+                            "score": 2,
+                            "snippet": "How plants turn light into chemical energy.",
+                            "matches":
+                              [
+                                {
+                                  "field": "description",
+                                  "index": 16,
+                                  "length": 5,
+                                  "snippet": "How plants turn light into chemical energy.",
+                                },
+                                {
+                                  "field": "content",
+                                  "index": 18,
+                                  "length": 5,
+                                  "snippet": "<p>Plants convert light energy into chemical energy.</p>",
+                                },
+                              ],
+                            "links":
+                              {
+                                "item": "/x/api/v1/items/photosynthesis",
+                                "content": "/x/api/v1/content/photosynthesis",
+                              },
+                          },
+                        ],
+                      "links": { "self": "/x/api/v1/search" },
+                    },
+                }
               schema:
                 allOf:
                   - $ref: "#/components/schemas/ApiEnvelope"
@@ -2293,6 +2496,15 @@ components:
         type: string
         minLength: 7
         maxLength: 64
+    CompareRevisionId:
+      name: compareRevisionId
+      in: path
+      required: true
+      description: The revision to compare revisionId with (git hash).
+      schema:
+        type: string
+        minLength: 7
+        maxLength: 64
     FileUuid:
       name: fileUuid
       in: path
@@ -2598,7 +2810,7 @@ components:
               description: English text of the message.
             code:
               type: string
-              pattern: '^[A-Z][A-Z0-9_]*$'
+              pattern: "^[A-Z][A-Z0-9_]*$"
               description: >
                 Stable message code from the shared HAXcms API code list
                 (@haxtheweb/haxcms-elements/lib/haxcms-api-codes.json). Clients
@@ -2625,8 +2837,6 @@ components:
       type: object
       properties:
         name:
-          type: string
-        version:
           type: string
         mode:
           type: string
@@ -3472,6 +3682,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RevisionRecord"
+        structureScanLimit:
+          type: integer
+          description: >-
+            How many of the most recent site.json commits were checked for
+            structure changes. Older history lists content commits only.
         links:
           type: object
           additionalProperties:
@@ -3495,6 +3710,55 @@ components:
           type: string
         message:
           type: string
+          description: Raw commit subject.
+        actor:
+          type: string
+          enum: ["H", "A", "S", "X"]
+          description: >-
+            Who made the commit, from its op-code prefix (haxtheweb/issues#3191):
+            H human, A agent, S system. X means the subject has no valid prefix
+            (a manual or external commit, or history from before op codes).
+            Self-reported via the X-HAX-Actor request header; informational only.
+        op:
+          type: string
+          description: OpenAPI operationId (or reserved op) that made the commit. Empty when actor is X.
+        txn:
+          type: string
+          description: Short id shared by every commit one request made. Empty when none.
+        summary:
+          type: string
+          description: Commit subject without the op-code prefix (the whole subject when actor is X).
+        kind:
+          type: string
+          enum: ["content", "structure"]
+          description: >-
+            content: the commit changed the page file. structure: it only changed
+            this page's outline entry in site.json (move, rename, publish toggle).
+        changes:
+          type: array
+          description: >-
+            Outline fields of this page that the commit changed (empty when none
+            or when outside the structure scan window). parent values are titles,
+            with fromId/toId carrying the ids. Booleans are "true"/"false".
+          items:
+            $ref: "#/components/schemas/RevisionFieldChange"
+    RevisionFieldChange:
+      type: object
+      properties:
+        field:
+          type: string
+          enum: ["title", "description", "slug", "parent", "order", "published", "hideInMenu", "locked"]
+          description: description only appears in compareItemRevisions results
+        from:
+          type: string
+        to:
+          type: string
+        fromId:
+          type: string
+          description: parent only
+        toId:
+          type: string
+          description: parent only
     RevisionDetailRecord:
       type: object
       properties:
@@ -3520,6 +3784,47 @@ components:
           type: object
           additionalProperties:
             type: string
+    RevisionCompareSide:
+      type: object
+      properties:
+        revision:
+          $ref: "#/components/schemas/RevisionRecord"
+        content:
+          type: string
+        hasItemMetadata:
+          type: boolean
+        itemMetadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+    RevisionCompareRecord:
+      type: object
+      properties:
+        nodeId:
+          type: string
+        nodeSlug:
+          type: string
+        nodeTitle:
+          type: string
+        jsonVariantLocation:
+          type: string
+        from:
+          $ref: "#/components/schemas/RevisionCompareSide"
+        to:
+          $ref: "#/components/schemas/RevisionCompareSide"
+        contentChanged:
+          type: boolean
+        itemMetadataChanges:
+          type: array
+          description: >-
+            Page detail fields that differ between the two revisions' .json
+            variants; empty when either has none. Booleans are "true"/"false".
+          items:
+            $ref: "#/components/schemas/RevisionFieldChange"
+        links:
+          type: object
+          additionalProperties:
+            type: string
     RevisionRestoreRecord:
       type: object
       properties:
@@ -3531,6 +3836,9 @@ components:
           type: string
         restoredFromHash:
           type: string
+        note:
+          type: string
+          description: The note recorded with the restore, after cleaning; empty when none.
         jsonVariantLocation:
           type: string
         hasItemMetadata:

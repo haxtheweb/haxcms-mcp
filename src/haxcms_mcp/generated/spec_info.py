@@ -6,6 +6,6 @@ Identity of the vendored HAXcms specs; compat.py compares the live instance with
 from __future__ import annotations
 
 HAXCMS_VERSION = "26.8.1"
-HAXCMS_COMMIT = "ad82de48"
-SYSTEM_SPEC_SHA256 = "f3af1aadf1a6ffb835476a1ddce1209dfe9669847a513cd130ff4afdb009bbd8"
-SITE_SPEC_SHA256 = "7a4f0e37a74cd2c5a134c859a22a53ff2b44e081d8c750b132035c6e2f43e21d"
+HAXCMS_COMMIT = "0c5ec44cd"
+SYSTEM_SPEC_SHA256 = "9f3cccd7e75a3f283293106899520eeaee84770478ede41392f88d554eaa3cd8"
+SITE_SPEC_SHA256 = "be76a4a6a9c1db78f539ab7f954dba99cc39e2e4879c409a1902e250e32341f8"

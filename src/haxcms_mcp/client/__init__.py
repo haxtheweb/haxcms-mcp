@@ -30,13 +30,17 @@ if TYPE_CHECKING:
     from haxcms_mcp.config import Settings
     from haxcms_mcp.generated.route import Route
 
+# haxtheweb/issues#3191: HAXcms records who made each change in the site's git history
+# ("[A:updateItem:x9r1] ..."). Every call this server makes is on behalf of an agent, so
+# it says so; without the header HAXcms records the change as made by a human. The
+# header is informational only and never changes what HAXcms allows.
+ACTOR_HEADERS = {"X-HAX-Actor": "agent"}
+
 logger = get_logger(__name__)
 
 AuthMode = Literal["none", "bearer", "bearer+user", "bearer+site"]
 
 SYSTEM_API_PREFIX = "/system/api/v1"
-ACTOR_HEADER = "X-HAX-Actor"
-ACTOR_AGENT = "agent"
 
 
 def _too_large(size: int, limit: int) -> HaxcmsMcpError:
@@ -97,7 +101,11 @@ class HaxcmsClient:
         self._closing: set[asyncio.Task[None]] = set()
 
     def _new_http(self) -> httpx.AsyncClient:
-        return httpx.AsyncClient(base_url=self.settings.base_url, timeout=self.settings.timeout_s)
+        return httpx.AsyncClient(
+            base_url=self.settings.base_url,
+            timeout=self.settings.timeout_s,
+            headers=ACTOR_HEADERS,
+        )
 
     # --- per-caller routing (#3140) ---------------------------------------------------
     def _caller_session(self) -> _CallerSession | None:
@@ -196,9 +204,7 @@ class HaxcmsClient:
         max_bytes: int | None = None,
     ) -> httpx.Response:
         """Send one request with auth headers, budget accounting, and retry/refresh handling."""
-        # HAXcms records who made each commit ([<actor>:<operationId>:<txn>], haxtheweb/
-        # issues#3191); an MCP server is an agent. Informational: never changes permissions.
-        request_headers: dict[str, str] = {ACTOR_HEADER: ACTOR_AGENT, **dict(headers or {})}
+        request_headers: dict[str, str] = dict(headers or {})
         if accept is not None:
             request_headers["Accept"] = accept
 

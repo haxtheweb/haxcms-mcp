@@ -72,6 +72,21 @@ async def test_header_matrix_none() -> None:
 
 
 @respx.mock
+async def test_every_call_identifies_as_an_agent() -> None:
+    # haxtheweb/issues#3191: HAXcms writes "[A:<op>:<txn>]" commits for agent calls
+    mock_auth()
+    route = respx.post(ECHO_URL).mock(return_value=httpx.Response(200, json={"status": 200}))
+    async with HaxcmsClient(make_settings()) as client:
+        await client.request("POST", "/system/api/v1/echo", auth="bearer", json={})
+        await client.request("POST", "/system/api/v1/echo", auth="none", json={})
+    for call in route.calls:
+        assert call.request.headers["x-hax-actor"] == "agent"
+    # the login and connection-settings calls carry it too
+    for call in respx.calls:
+        assert call.request.headers["x-hax-actor"] == "agent"
+
+
+@respx.mock
 async def test_header_matrix_bearer() -> None:
     mock_auth()
     route = respx.get(ECHO_URL).mock(return_value=httpx.Response(200, json={"status": 200}))

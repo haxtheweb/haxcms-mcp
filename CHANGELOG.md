@@ -14,10 +14,9 @@ hand-written from `git log` for the initial release (PLAN T9.6).
   published on `GET /system/api/v1`. MCP turned off there refuses every tool and resource
   (`MCP_DISABLED`, a new error code) except `get_server_info`; read-only there forces Read-Only
   Mode. `get_server_info` reports it as `instance_mcp_policy`.
-- Every request sends `X-HAX-Actor: agent` (HAXcms commit attribution,
-  [haxtheweb/issues#3191](https://github.com/haxtheweb/issues/issues/3191)).
-
-
+- Every HAXcms call sends `X-HAX-Actor: agent`, so changes made through the MCP server are
+  recorded as agent changes (`[A:<operationId>:<txn>] ...`) in the site's git history and
+  revision panel (haxtheweb/issues#3191). Informational only; it changes no permissions.
 - Security follow-ups:
   - Site zips and exports are streamed from HAXcms under `DOWNLOAD_MAX_MB` (decoded size, so
     compressed bombs are caught) instead of being read whole into memory; a `_published`

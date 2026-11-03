@@ -22,6 +22,14 @@ dependencies = [
     "anyio>=4",
 ]
 
+[project.urls]
+Homepage = "https://github.com/haxtheweb/haxcms-mcp"
+Documentation = "https://github.com/haxtheweb/haxcms-mcp/blob/main/docs/tools.md"
+Source = "https://github.com/haxtheweb/haxcms-mcp"
+Issues = "https://github.com/haxtheweb/issues/issues"
+Changelog = "https://github.com/haxtheweb/haxcms-mcp/blob/main/CHANGELOG.md"
+Discord = "https://discord.gg/aCGxmRHEJP"
+
 [project.scripts]
 haxcms-mcp = "haxcms_mcp.__main__:main"
 

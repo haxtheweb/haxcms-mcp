@@ -9,6 +9,11 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Standard HAX community files: `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`, `GOVERNANCE.md`,
+  `CODE_OF_CONDUCT.md`, a pull request template, an issue-form redirect to the
+  [unified issue queue](https://github.com/haxtheweb/issues/issues), `CODEOWNERS`, the CLA Assistant
+  workflow, README badges and a "Get Help / Issues / Support" section, and `[project.urls]` in
+  `pyproject.toml`.
 - The server obeys the HAXcms instance's own MCP policy (Phase 0 of the OAuth plan,
   [haxtheweb/issues#3140](https://github.com/haxtheweb/issues/issues/3140)): `config.mcp`
   published on `GET /system/api/v1`. MCP turned off there refuses every tool and resource

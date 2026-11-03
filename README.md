@@ -1,3 +1,11 @@
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![CI](https://github.com/haxtheweb/haxcms-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/haxtheweb/haxcms-mcp/actions/workflows/ci.yml)
+[![Community Support](https://badgen.net/badge/support/community/cyan?icon=awesome)](/SUPPORT.md)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](/CODE_OF_CONDUCT.md)
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/aCGxmRHEJP)
+[![X](https://img.shields.io/twitter/follow/haxtheweb.svg?style=social&label=Follow)](https://twitter.com/intent/follow?screen_name=haxtheweb)
+
 # haxcms-mcp
 
 An MCP (Model Context Protocol) server that lets an AI agent operate a self-hosted
@@ -26,7 +34,7 @@ Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 # as a tool, from a clone of this repo
-git clone <repo-url> && cd haxcms-mcp
+git clone https://github.com/haxtheweb/haxcms-mcp && cd haxcms-mcp
 uv tool install .
 
 # or straight from git
@@ -296,7 +304,7 @@ in most cases.
 ## Development
 
 ```bash
-git clone <repo-url> && cd haxcms-mcp
+git clone https://github.com/haxtheweb/haxcms-mcp && cd haxcms-mcp
 uv sync
 
 uv run pytest -m unit                              # fast, no Node required
@@ -332,6 +340,22 @@ from npm (default `26.8.1`). CI sets the variable to a fresh `main` checkout; th
 The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generated converters in
 `src/haxcms_mcp/generated/converters.py` are checked for drift in CI.
 
+## Get Help / Issues / Support
+
+- Discord - https://discord.gg/aCGxmRHEJP
+- Unified issue queue (pick **haxcms-mcp** as the project) - https://github.com/haxtheweb/issues/issues
+- In any HAX space, open Merlin and type "Issue" to jump-start a report
+- Security vulnerabilities: report privately, see [`SECURITY.md`](SECURITY.md)
+- More ways to get help: [`SUPPORT.md`](SUPPORT.md)
+
+## Contributing
+
+Contributions are welcome at any hour. New to HAX? Start with the
+[ecosystem onboarding guide](https://github.com/haxtheweb/issues/blob/master/CONTRIBUTING.md), then read
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for this repo's checks and pull request flow. All participation is
+covered by the [Code of Conduct](CODE_OF_CONDUCT.md); first-time contributors sign the
+[Contributor License Agreement](https://github.com/haxtheweb/cla/blob/main/CLA.md).
+
 ## More documentation
 
 - [`docs/tools.md`](docs/tools.md) — every tool with annotations, parameters and defaults
@@ -344,3 +368,5 @@ The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generat
   [0005 generated routes](docs/adr/0005-generate-the-route-layer-not-the-client.md)
 - [HAXcms NodeJS](https://github.com/haxtheweb/haxcms-nodejs) — the instance this operates
 - [Model Context Protocol](https://modelcontextprotocol.io/) — the protocol it speaks
+- [HAXTheWeb.org](https://haxtheweb.org/) — project home and documentation
+- [YouTube](https://www.youtube.com/@haxtheweb) — watch and learn more about HAX

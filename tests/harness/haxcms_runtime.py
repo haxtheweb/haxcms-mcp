@@ -143,8 +143,8 @@ class HaxcmsRuntime:
     password: str = field(default_factory=lambda: secrets.token_hex(16))
     keep: bool | None = None  # default: HAXCMS_MCP_TEST_KEEP_RUNTIME
     ready_timeout_s: float = 60.0
-    # The instance's config.mcp. Stock HAXcms ships {enabled: true, readOnly: true}, which
-    # haxcms-mcp now obeys (read-only); the suites exercise writes, so they run read-write.
+    # The instance's config.mcp. Stock HAXcms ships {enabled: false, readOnly: true}, which
+    # haxcms-mcp obeys (refuses everything); the suites exercise writes, so they run read-write.
     mcp_policy: dict[str, Any] = field(default_factory=lambda: {"enabled": True, "readOnly": False})
 
     app_js: Path | None = field(default=None, init=False)

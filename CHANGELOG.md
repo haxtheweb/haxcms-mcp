@@ -18,7 +18,8 @@ hand-written from `git log` for the initial release (PLAN T9.6).
   [haxtheweb/issues#3140](https://github.com/haxtheweb/issues/issues/3140)): `config.mcp`
   published on `GET /system/api/v1`. MCP turned off there refuses every tool and resource
   (`MCP_DISABLED`, a new error code) except `get_server_info`; read-only there forces Read-Only
-  Mode. `get_server_info` reports it as `instance_mcp_policy`.
+  Mode. Stock HAXcms ships with MCP turned off, so an operator enables it in the instance's
+  `config.json`. `get_server_info` reports it as `instance_mcp_policy`.
 - Every HAXcms call sends `X-HAX-Actor: agent`, so changes made through the MCP server are
   recorded as agent changes (`[A:<operationId>:<txn>] ...`) in the site's git history and
   revision panel (haxtheweb/issues#3191). Informational only; it changes no permissions.

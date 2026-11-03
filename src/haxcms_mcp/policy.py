@@ -1,7 +1,7 @@
 """The HAXcms instance's own MCP policy (Phase 0 of the OAuth plan, haxtheweb/issues#3140).
 
-HAXcms carries `config.mcp = {enabled, readOnly}` (disabled by default on HAXiam-managed
-deployments, read-only by default everywhere) and publishes it on the open system
+HAXcms carries `config.mcp = {enabled, readOnly}` (disabled by default on every deployment,
+and read-only once enabled unless set otherwise) and publishes it on the open system
 discovery route, `GET /system/api/v1` -> `data.mcp`. This server obeys it:
 
 * `enabled: false` -> every tool, resource and prompt is refused with `MCP_DISABLED`;

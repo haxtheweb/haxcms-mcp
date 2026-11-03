@@ -202,17 +202,20 @@ blocks startup and never disables a tool: most upstream spec edits are descripti
 HAXcms has its own MCP setting in its `config.json` (both backends):
 
 ```json
-"mcp": { "enabled": true, "readOnly": true }
+"mcp": { "enabled": false, "readOnly": true }
 ```
+
+That is the stock setting: **MCP is off on every HAXcms until its operator turns it on**
+(a HAXcms plugin will later make this an explicit opt-in that says what it enables). To let this
+server operate an instance, set `"enabled": true` in that instance's `config.json`.
 
 It publishes that setting on the open discovery route (`GET /system/api/v1` → `data.mcp`), and
 this server obeys it:
 
 - `enabled: false`: every tool and resource is refused with `MCP_DISABLED`. Only
-  `get_server_info` still answers, so you can see why. HAXiam-managed deployments default to
-  this.
-- `readOnly: true`: Read-Only Mode is on, whatever `HAXCMS_MCP_READ_ONLY` says. **Stock HAXcms
-  ships read-only**, so to let an agent edit your sites, set `"readOnly": false` in the
+  `get_server_info` still answers, so you can see why. This is the default.
+- `readOnly: true`: Read-Only Mode is on, whatever `HAXCMS_MCP_READ_ONLY` says. Enabling MCP
+  keeps it read-only, so to let an agent edit your sites, also set `"readOnly": false` in the
   instance's `config.json`.
 - The local `HAXCMS_MCP_READ_ONLY=true` can still make this server stricter than the instance,
   never looser.

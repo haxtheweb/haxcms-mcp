@@ -11,6 +11,8 @@ from typing import Any
 import httpx
 import pytest
 
+from tests.conftest import test_backend as selected_backend
+from tests.harness.haxcms_php_runtime import HaxcmsPhpRuntime
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 
 pytestmark = pytest.mark.integration
@@ -99,7 +101,10 @@ async def test_login_and_list_sites(haxcms: HaxcmsRuntime) -> None:
 
 
 async def test_teardown_removes_runtime_dir() -> None:
-    runtime = HaxcmsRuntime()
+    # the selected backend's runtime: under HAXCMS_MCP_TEST_BACKEND=php this used to boot a
+    # NodeJS runtime from the npm package, which only worked by silently installing 26.8.1
+    runtime_class = HaxcmsPhpRuntime if selected_backend() == "php" else HaxcmsRuntime
+    runtime = runtime_class()
     async with runtime:
         root = runtime.runtime_root
         assert root is not None and root.is_dir()

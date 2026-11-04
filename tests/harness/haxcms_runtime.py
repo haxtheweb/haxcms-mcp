@@ -1,8 +1,10 @@
 """Install, spawn, and tear down a real HAXcms NodeJS instance for tests.
 
 Implements PLAN.md Section 6.2 and API-REF Section 11 (steps 1-5) exactly. Works on Windows,
-macOS, and Linux. The npm package is installed once into `.haxcms-runtime/` (gitignored) unless
-`HAXCMS_MCP_TEST_HAXCMS_DIR` points at a local `haxcms-nodejs` checkout.
+macOS, and Linux. The target is always explicit: `HAXCMS_MCP_TEST_HAXCMS_DIR` points at a local
+`haxcms-nodejs` checkout (the normal case: current `main`), or `HAXCMS_MCP_TEST_HAXCMS_VERSION`
+names a published npm release to install once into `.haxcms-runtime/` (gitignored). With neither
+set, the live suites refuse to start instead of quietly testing an old release.
 """
 
 from __future__ import annotations
@@ -64,23 +66,68 @@ def _node() -> str:
     return found
 
 
+MISSING_TARGET = (
+    "the live test suites need an explicit HAXcms target. Set HAXCMS_MCP_TEST_HAXCMS_DIR to a "
+    "haxtheweb/haxcms-nodejs checkout of main (git clone "
+    "https://github.com/haxtheweb/haxcms-nodejs), or set HAXCMS_MCP_TEST_HAXCMS_VERSION to "
+    "test a published npm release on purpose. (Run only the unit tests with -m unit.)"
+)
+
+
 def _test_haxcms_dir() -> Path | None:
-    """The HAXcms checkout to test against, or None to use the published npm package.
+    """The HAXcms checkout to test against, or None.
 
     The target is EXPLICIT: set `HAXCMS_MCP_TEST_HAXCMS_DIR` to a `haxtheweb/haxcms-nodejs`
     checkout. The MCP targets current HAXcms `main` (the files.json datastore, file
-    operations and the page-break rejection all post-date the npm-published 26.8.1), so CI
-    checks `main` out and points this variable at it. A sibling `../haxcms-nodejs` is NOT
-    picked up implicitly any more: that hid the npm-dist failures locally while CI was red.
+    operations, the page-break rejection and the published MCP policy all post-date the
+    npm-published 26.8.1), so CI checks `main` out and points this variable at it. A sibling
+    `../haxcms-nodejs` is NOT picked up implicitly: that hid the npm-dist failures locally
+    while CI was red.
     """
-    value = os.environ.get("HAXCMS_MCP_TEST_HAXCMS_DIR")
+    value = os.environ.get("HAXCMS_MCP_TEST_HAXCMS_DIR", "").strip()
     if value:
         return Path(value).resolve()
     return None
 
 
-def _test_version() -> str:
-    return os.environ.get("HAXCMS_MCP_TEST_HAXCMS_VERSION", "26.8.1")
+def _explicit_npm_version() -> str | None:
+    """A published release someone asked for by name, or None (never a silent default)."""
+    value = os.environ.get("HAXCMS_MCP_TEST_HAXCMS_VERSION", "").strip()
+    return value or None
+
+
+def has_haxcms_target() -> bool:
+    return _test_haxcms_dir() is not None or _explicit_npm_version() is not None
+
+
+def _git(checkout: Path, *args: str) -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(checkout), *args],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return result.stdout.strip() or None
+
+
+def describe_haxcms_target() -> str:
+    """One line naming the HAXcms NodeJS the live suites will run against."""
+    checkout = _test_haxcms_dir()
+    if checkout is not None:
+        branch = _git(checkout, "rev-parse", "--abbrev-ref", "HEAD") or "?"
+        commit = _git(checkout, "rev-parse", "--short", "HEAD") or "?"
+        return f"HAXcms NodeJS checkout {checkout} ({branch} @ {commit})"
+    version = _explicit_npm_version()
+    if version is not None:
+        return (
+            f"HAXcms NodeJS npm release @haxtheweb/haxcms-nodejs@{version} "
+            "(a published release, not main)"
+        )
+    return "no HAXcms NodeJS target set: live suites will not run"
 
 
 def ensure_haxcms() -> Path:
@@ -97,8 +144,15 @@ def ensure_haxcms() -> Path:
             INSTALL_SECONDS = time.perf_counter() - started
         return app_js
 
+    version = _explicit_npm_version()
+    if version is None:
+        raise RuntimeError(MISSING_TARGET)
     package = RUNTIME_CACHE / "node_modules" / "@haxtheweb" / "haxcms-nodejs"
     app_js = package / "dist" / "app.js"
+    installed = _installed_version(package)
+    if installed is not None and installed != version and version[:1].isdigit():
+        # the cache holds a different exact release than the one asked for: reinstall
+        shutil.rmtree(RUNTIME_CACHE, ignore_errors=True)
     if not app_js.is_file():
         RUNTIME_CACHE.mkdir(exist_ok=True)
         started = time.perf_counter()
@@ -108,20 +162,29 @@ def ensure_haxcms() -> Path:
                 "install",
                 "--prefix",
                 str(RUNTIME_CACHE),
-                f"@haxtheweb/haxcms-nodejs@{_test_version()}",
+                f"@haxtheweb/haxcms-nodejs@{version}",
             ],
             cwd=str(RUNTIME_CACHE),
             check=True,
         )
         INSTALL_SECONDS = time.perf_counter() - started
         print(
-            f"[harness] npm install of @haxtheweb/haxcms-nodejs@{_test_version()} "
+            f"[harness] npm install of @haxtheweb/haxcms-nodejs@{version} "
             f"took {INSTALL_SECONDS:.1f}s",
             file=sys.stderr,
         )
     if not app_js.is_file():
         raise RuntimeError(f"npm install succeeded but {app_js} is missing")
     return app_js
+
+
+def _installed_version(package: Path) -> str | None:
+    try:
+        manifest = json.loads((package / "package.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    version = manifest.get("version") if isinstance(manifest, dict) else None
+    return version if isinstance(version, str) else None
 
 
 def boilerplate_dir(app_js: Path) -> Path:

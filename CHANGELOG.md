@@ -9,6 +9,12 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- The live test suites never pick a HAXcms on their own: without `HAXCMS_MCP_TEST_HAXCMS_DIR`
+  (a `haxcms-nodejs` checkout) or a deliberate `HAXCMS_MCP_TEST_HAXCMS_VERSION` (an npm release),
+  a run that includes them stops up front with instructions instead of silently installing
+  `@haxtheweb/haxcms-nodejs@26.8.1`, whose failures looked like MCP bugs. Every run's header
+  names the HAXcms under test (`haxcms target: ...`, with branch and commit).
+
 - Standard HAX community files: `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`, `GOVERNANCE.md`,
   `CODE_OF_CONDUCT.md`, a pull request template, an issue-form redirect to the
   [unified issue queue](https://github.com/haxtheweb/issues/issues), `CODEOWNERS`, the CLA Assistant

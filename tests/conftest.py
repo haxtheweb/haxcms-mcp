@@ -25,7 +25,12 @@ from haxcms_mcp.server import build_server
 from haxcms_mcp.services import pages as pages_service
 from haxcms_mcp.services import sites as sites_service
 from tests.harness.haxcms_php_runtime import HaxcmsPhpRuntime
-from tests.harness.haxcms_runtime import HaxcmsRuntime
+from tests.harness.haxcms_runtime import (
+    MISSING_TARGET,
+    HaxcmsRuntime,
+    describe_haxcms_target,
+    has_haxcms_target,
+)
 from tests.harness.mcp_client import McpTestClient
 
 # NOTE: the --snapshot-update flag comes from the syrupy pytest plugin (installed);
@@ -35,7 +40,41 @@ from tests.harness.mcp_client import McpTestClient
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
+LIVE_MARKERS = ("integration", "functional", "e2e")
+
+
+def pytest_report_header(config: pytest.Config) -> list[str]:
+    """Say which HAXcms the live suites run against, on every run."""
+    if test_backend() == "php":
+        php_dir = os.environ.get("HAXCMS_MCP_TEST_HAXCMS_PHP_DIR", "").strip() or "(unset)"
+        return [f"haxcms target: HAXcms PHP checkout {php_dir}"]
+    return [f"haxcms target: {describe_haxcms_target()}"]
+
+
+def _needs_live_haxcms(item: pytest.Item) -> bool:
+    return "haxcms" in getattr(item, "fixturenames", ()) or any(
+        marker in item.keywords for marker in LIVE_MARKERS
+    )
+
+
+@pytest.hookimpl(trylast=True)  # after -m/-k deselection, so `-m unit` never trips this
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Refuse to start live suites without an explicit HAXcms NodeJS target.
+
+    Without HAXCMS_MCP_TEST_HAXCMS_DIR (or a deliberate HAXCMS_MCP_TEST_HAXCMS_VERSION) the
+    harness used to install an old npm release silently, and its failures looked like MCP
+    bugs. Now the run stops once, up front, with instructions.
+    """
+    if (
+        test_backend() == "node"
+        and not has_haxcms_target()
+        and any(_needs_live_haxcms(item) for item in items)
+    ):
+        raise pytest.UsageError(MISSING_TARGET)
+    _skip_network_and_parity_gaps(items)
+
+
+def _skip_network_and_parity_gaps(items: list[pytest.Item]) -> None:
     """Skip `network`-marked tests unless HAXCMS_MCP_TEST_NETWORK=1 (PLAN §6.1)."""
     _skip_php_parity_gaps(items)
     if os.environ.get("HAXCMS_MCP_TEST_NETWORK", "").lower() in {"1", "true", "yes"}:

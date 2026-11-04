@@ -336,8 +336,16 @@ export HAXCMS_MCP_TEST_HAXCMS_DIR=$PWD/../haxcms-nodejs   # explicit; never pick
 uv run pytest -m "integration or functional"
 ```
 
-With the variable unset, the harness installs `@haxtheweb/haxcms-nodejs@$HAXCMS_MCP_TEST_HAXCMS_VERSION`
-from npm (default `26.8.1`). CI sets the variable to a fresh `main` checkout; the ref lives in
+The target is never picked for you. With the variable unset, a run that includes live tests
+stops before it starts and says how to set one; `-m unit` runs need no target. To test a
+published release on purpose, name it instead:
+
+```bash
+export HAXCMS_MCP_TEST_HAXCMS_VERSION=26.8.1   # installs @haxtheweb/haxcms-nodejs@26.8.1 from npm
+```
+
+Every run's header says which HAXcms it is testing (`haxcms target: ...`, with the checkout's
+branch and commit). CI sets the variable to a fresh `main` checkout; the ref lives in
 `HAXCMS_NODEJS_REF` at the top of `.github/workflows/ci.yml`.
 
 The generated tool reference in [`docs/tools.md`](docs/tools.md) and the generated converters in

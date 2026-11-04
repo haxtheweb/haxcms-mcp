@@ -47,7 +47,9 @@ uv run python scripts/gen_tools.py --check         # converter drift (ADR-0002)
 uv run python scripts/gen_routes.py --check        # client route drift (ADR-0005)
 uv run python scripts/gen_tool_docs.py --check     # docs/tools.md drift
 uv run pytest -m unit
-uv run pytest -m "integration or functional"       # needs Node + npm
+# needs Node + npm and a haxcms-nodejs checkout of main (see the README, "Which HAXcms the
+# tests run against"); without HAXCMS_MCP_TEST_HAXCMS_DIR this stops with instructions
+HAXCMS_MCP_TEST_HAXCMS_DIR=../haxcms-nodejs uv run pytest -m "integration or functional"
 ```
 
 If a change needs a HAXcms backend change, it must land in both [haxcms-nodejs](https://github.com/haxtheweb/haxcms-nodejs) and [haxcms-php](https://github.com/haxtheweb/haxcms-php) with the same behavior, and both OpenAPI specs kept identical.

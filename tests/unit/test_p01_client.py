@@ -148,7 +148,7 @@ async def test_budget_consumed_per_request_including_auth_calls() -> None:
 @respx.mock
 async def test_cookie_jar_persists_across_requests() -> None:
     mock_auth()
-    refresh_route = respx.get(f"{BASE}/system/api/v1/session/refresh").mock(
+    refresh_route = respx.post(f"{BASE}/system/api/v1/session/refresh").mock(
         return_value=httpx.Response(
             200,
             json={"status": 200, "jwt": "jwt-2"},

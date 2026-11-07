@@ -36,7 +36,10 @@ class ReadOnlyMiddleware(Middleware):
         self.policy = policy
 
     async def _policy(self) -> InstancePolicy | None:
-        if self.policy is None or self.settings.no_auth:
+        # The policy comes from the open discovery route (no credentials needed), so it is
+        # honoured in NO_AUTH mode too: an instance with JWT checks disabled can still have
+        # MCP turned off or read-only, and that verdict must not be bypassed.
+        if self.policy is None:
             return None
         return await self.policy.current()
 

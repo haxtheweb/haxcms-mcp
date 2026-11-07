@@ -58,6 +58,7 @@ working directory.
 | `DEFAULT_SITE` | unset | Site used by site-scoped tools when no `site` argument is passed |
 | `NO_AUTH` | `false` | Instance runs with `HAXCMS_DISABLE_JWT_CHECKS`; send no auth headers |
 | `READ_ONLY` | `false` | Read-Only Mode: every non-read-only tool is rejected |
+| `DENY_TOOLS` | none | Comma-separated tool names to unregister at startup (e.g. `archive_site,delete_page`); an unknown name fails startup. See [docs/tools.md](docs/tools.md) for the names |
 | `RATE_LIMIT_RPS` | `4` | Outbound Budget refill rate (requests/second to HAXcms) |
 | `RATE_LIMIT_BURST` | `8` | Outbound Budget capacity |
 | `RATE_LIMIT_MAX_WAIT_S` | `30` | Longest a request waits for a budget token before `RATE_LIMITED` |
@@ -283,6 +284,15 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   as `INVALID_ARGUMENT`); raw HTML passed to `set_page_content`, `replace_block` and
   `add_block` has `<script>` elements and `on*=` handlers removed; and content arguments are
   capped at `MAX_HTML_BYTES`.
+- **Content read back from a site is data, not instructions.** `get_page_content`,
+  `search_site` and the page resource flag or delimit the page HTML they return, the
+  `hax_author` prompt says so, and the Block Catalog takes only attribute/slot schemas from
+  the instance: a block's description, agent notes and example always come from the
+  bundled catalog in this repository.
+- **Tool annotations are conservative**: `idempotentHint` is false for every write unless
+  the tool opts in because repeating it converges (settings, renames, attribute updates);
+  transforms that overwrite a stored file are destructive. `DENY_TOOLS` removes tools an
+  operator never wants an agent to see.
 - **Read-Only Mode** (`HAXCMS_MCP_READ_ONLY=true`) rejects every tool that is not annotated
   read-only, at the middleware level — a hard guarantee, not a convention. Converters that write a
   file (`convert_html_to_docx`, `convert_html_to_pdf`, `convert_docx_to_pdf`) count as writes.

@@ -19,6 +19,7 @@ from haxcms_mcp.client import HaxcmsClient
 from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
 from haxcms_mcp.http_auth import PrincipalMiddleware, build_auth_provider
+from haxcms_mcp.logging import get_logger
 from haxcms_mcp.middleware import (
     ArgumentSizeMiddleware,
     ErrorTranslationMiddleware,
@@ -42,6 +43,25 @@ from haxcms_mcp.tools.outline import register_outline_tools
 from haxcms_mcp.tools.pages import register_pages_tools
 from haxcms_mcp.tools.settings import register_settings_tools
 from haxcms_mcp.tools.sites import register_sites_tools
+
+logger = get_logger(__name__)
+
+
+def _apply_deny_list(mcp: FastMCP, settings: Settings) -> None:
+    """Unregister every tool named in HAXCMS_MCP_DENY_TOOLS (security audit).
+
+    Unknown names are a configuration error and fail startup loudly: a typo must not leave
+    a tool the operator meant to remove in place.
+    """
+    for name in settings.deny_tools:
+        try:
+            mcp.local_provider.remove_tool(name)
+        except KeyError:
+            raise ValueError(
+                f"HAXCMS_MCP_DENY_TOOLS names an unknown tool {name!r}; "
+                "see docs/tools.md for the registered tool names"
+            ) from None
+        logger.info("tool %s removed by HAXCMS_MCP_DENY_TOOLS", name)
 
 
 def _register_downloads(mcp: FastMCP, settings: Settings) -> None:
@@ -125,5 +145,6 @@ def build_server(settings: Settings) -> FastMCP:
     register_catalog_resources(mcp, settings, client, catalog)
     register_site_resources(mcp, settings, client)
     register_prompts(mcp)
+    _apply_deny_list(mcp, settings)
 
     return mcp

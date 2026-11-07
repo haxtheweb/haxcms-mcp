@@ -169,7 +169,8 @@ async def test_get_page_content_tool() -> None:
     async with Client(mcp) as client:
         data = (await client.call_tool("get_page_content", {"page": "songlines"})).data
     assert isinstance(data, dict)
-    assert set(data) == {"item", "html", "blocks"}
+    assert set(data) == {"notice", "item", "html", "blocks"}
+    assert "not instructions" in data["notice"]
     assert data["html"] == "<p>One.</p><p>Two.</p>"
     assert data["item"]["title"] == "Songlines"
     assert [(block["index"], block["tag"], block["text"]) for block in data["blocks"]] == [

@@ -26,6 +26,7 @@ from haxcms_mcp.models.item import Item
 from haxcms_mcp.services.content.media_schema import build_media_schema
 from haxcms_mcp.services.content.page_break import save_content
 from haxcms_mcp.services.content.parser import parse_blocks, parse_body
+from haxcms_mcp.services.content.safety import sanitize_elements
 from haxcms_mcp.services.content.serializer import serialize_elements
 from haxcms_mcp.services.locks import site_lock
 from haxcms_mcp.services.pages import find_page
@@ -71,7 +72,7 @@ async def set_page_content(client: HaxcmsClient, site: str, page: str, html: str
     """
     async with site_lock(site):
         item, elements = await fetch_page_body(client, site, page)
-        new_elements = strip_envelopes(parse_body(html or ""))
+        new_elements = sanitize_elements(strip_envelopes(parse_body(html or "")))
         schema = build_media_schema(new_elements)
         saved = await save_content(
             client, site, item, serialize_elements(new_elements), schema=schema

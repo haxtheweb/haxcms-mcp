@@ -66,7 +66,8 @@ def register_content_tools(
         The media schema (metadata.images/videos) is recomputed from the new body. One
         git revision is committed; restore_page_revision can undo. Returns the fresh
         `{item, html, blocks}`. For targeted changes prefer the block tools (add_block,
-        replace_block, update_block, ...).
+        replace_block, update_block, ...). `<script>` elements, `on*` handlers and
+        `javascript:`/`data:` URLs are removed before the save (HAXcms sanitises again).
         """
         name = resolve_site(site, settings.default_site)
         content = await content_service.set_page_content(client, name, page, html)
@@ -138,8 +139,9 @@ def register_content_tools(
         block's place (the tutorial's paragraph → heading conversion is
         `replace_block(page, anchor="The First Secret", html='<h2>The First Secret is
         Noticing</h2>')`). The replacement is NOT catalog-validated (raw HTML escape
-        hatch); prefer remove + add_block for validated rebuilds. Returns the standard
-        block-operation result with the new blocks in `affected`.
+        hatch); prefer remove + add_block for validated rebuilds. `<script>` elements,
+        `on*` handlers and `javascript:`/`data:` URLs are removed before the save. Returns
+        the standard block-operation result with the new blocks in `affected`.
         """
         name = resolve_site(site, settings.default_site)
         result = await blocks_service.replace_block(
@@ -215,7 +217,8 @@ def register_content_tools(
         Names are validated as XML names; for catalog-level checks call
         get_block_schema first. The tutorial's "set image source, alt, caption" step is
         one update_block with all of them in `set`. At least one of `set`/`unset` is
-        required.
+        required. URL attributes (`source`, `href`, `src`, `link`, ...) must be http(s),
+        mailto, tel or site-relative; `on*` handlers are refused.
         """
         name = resolve_site(site, settings.default_site)
         result = await blocks_service.update_block_attributes(

@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 from haxcms_mcp.services.content.parser import parse_blocks
+from haxcms_mcp.tools._common import CONTENT_BEGIN, CONTENT_END
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 from tests.harness.mcp_client import McpTestClient
 
@@ -196,7 +197,8 @@ async def test_rebuild_tutorial_page(mcp: McpTestClient, site: str, haxcms: Haxc
 
     # --- verify: the page resource renders the same blocks ----------------------------
     resource = await mcp.read_resource(f"haxcms://sites/{site}/pages/{slug}")
-    assert resource.startswith("<!-- block 0: p -->")
+    assert resource.startswith(CONTENT_BEGIN + "\n<!-- block 0: p -->")  # data delimiters
+    assert resource.endswith(CONTENT_END)
     assert "<!-- block 3: media-image -->" in resource
     assert "<!-- block 5: h2 -->" in resource
     assert "<!-- block 10: video-player -->" in resource

@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 from haxcms_mcp.middleware.errors import ErrorTranslationMiddleware
+from haxcms_mcp.middleware.limits import ArgumentSizeMiddleware
 from haxcms_mcp.middleware.logging import ToolLoggingMiddleware
 from haxcms_mcp.middleware.read_only import ReadOnlyMiddleware
 
-__all__ = ["ErrorTranslationMiddleware", "ReadOnlyMiddleware", "ToolLoggingMiddleware"]
+__all__ = [
+    "ArgumentSizeMiddleware",
+    "ErrorTranslationMiddleware",
+    "ReadOnlyMiddleware",
+    "ToolLoggingMiddleware",
+]

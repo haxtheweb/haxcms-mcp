@@ -9,6 +9,14 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- Client-side content filtering (defence in depth; HAXcms still sanitises on save):
+  `add_link`, `add_image`, `add_video`, `add_audio` and every other typed tool with a URL
+  argument, `update_block` `set={href|src|source|...}` and `add_block` attributes accept
+  `http(s)`, `mailto`, `tel` and relative paths only, refusing `javascript:`, `data:` and
+  `vbscript:` (case, whitespace and entity insensitive) with `INVALID_ARGUMENT`; raw HTML
+  given to `set_page_content`, `replace_block` and `add_block` loses `<script>` elements and
+  `on*=` attributes before the PATCH; and a new `HAXCMS_MCP_MAX_HTML_BYTES` (default 2 MB)
+  caps `html` / `inner_html` / `text` arguments.
 - The live test suites never pick a HAXcms on their own: without `HAXCMS_MCP_TEST_HAXCMS_DIR`
   (a `haxcms-nodejs` checkout) or a deliberate `HAXCMS_MCP_TEST_HAXCMS_VERSION` (an npm release),
   a run that includes them stops up front with instructions instead of silently installing

@@ -166,6 +166,43 @@ async def test_an_older_haxcms_without_a_policy_falls_back_to_local_settings() -
             assert (await client.call_tool("fake_write", {"x": 1})).data == 2
 
 
+async def test_no_auth_mode_still_obeys_mcp_disabled() -> None:
+    """NO_AUTH only drops the auth headers; the open discovery route still carries the policy."""
+    mcp = build_server(Settings(base_url=BASE, no_auth=True))
+    add_tools(mcp)
+    with respx.mock(base_url=BASE, assert_all_called=False) as router:
+        route = router.get(DISCOVERY).mock(return_value=discovery({"enabled": False}))
+        async with Client(mcp) as client:
+            with pytest.raises(ToolError, match="MCP_DISABLED"):
+                await client.call_tool("fake_read", {})
+            with pytest.raises(ToolError, match="MCP_DISABLED"):
+                await client.call_tool("fake_write", {"x": 1})
+    assert route.called
+    assert "authorization" not in route.calls.last.request.headers
+
+
+async def test_no_auth_mode_still_obeys_instance_read_only() -> None:
+    mcp = build_server(Settings(base_url=BASE, no_auth=True, read_only=False))
+    add_tools(mcp)
+    with respx.mock(base_url=BASE) as router:
+        router.get(DISCOVERY).mock(return_value=discovery({"enabled": True, "readOnly": True}))
+        async with Client(mcp) as client:
+            assert (await client.call_tool("fake_read", {})).data == "ok"
+            with pytest.raises(ToolError) as excinfo:
+                await client.call_tool("fake_write", {"x": 1})
+    assert "[READ_ONLY]" in str(excinfo.value)
+    assert "config.mcp.readOnly" in str(excinfo.value)
+
+
+async def test_no_auth_mode_with_a_permissive_instance_allows_writes() -> None:
+    mcp = build_server(Settings(base_url=BASE, no_auth=True))
+    add_tools(mcp)
+    with respx.mock(base_url=BASE) as router:
+        router.get(DISCOVERY).mock(return_value=discovery({"enabled": True, "readOnly": False}))
+        async with Client(mcp) as client:
+            assert (await client.call_tool("fake_write", {"x": 1})).data == 2
+
+
 async def test_every_request_identifies_the_server_as_an_agent() -> None:
     """HAXcms commit attribution (haxtheweb/issues#3191): X-HAX-Actor: agent."""
     async with HaxcmsClient(Settings(base_url=BASE, no_auth=True)) as client:

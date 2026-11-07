@@ -275,7 +275,9 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   Access tokens are held in memory only, and no token or password ever reaches a log line
   (all logging goes to stderr).
 - **The instance's own MCP policy wins** (`config.mcp` in HAXcms): MCP turned off there
-  refuses everything; read-only there forces Read-Only Mode here.
+  refuses everything; read-only there forces Read-Only Mode here. This holds in `NO_AUTH`
+  mode too: the policy comes from the open discovery route, so no credentials are needed to
+  read it and disabling JWT checks on the instance does not bypass it.
 - **Read-Only Mode** (`HAXCMS_MCP_READ_ONLY=true`) rejects every tool that is not annotated
   read-only, at the middleware level — a hard guarantee, not a convention. Converters that write a
   file (`convert_html_to_docx`, `convert_html_to_pdf`, `convert_docx_to_pdf`) count as writes.

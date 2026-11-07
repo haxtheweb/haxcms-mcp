@@ -102,7 +102,7 @@ async def test_cookie_jar_holds_refresh_token_after_login() -> None:
 async def test_proactive_refresh_at_12_minutes() -> None:
     clock = FakeClock()
     respx.post(LOGIN_URL).mock(return_value=login_response(jwt="jwt-1"))
-    refresh_route = respx.get(REFRESH_URL).mock(return_value=refresh_response(jwt="jwt-2"))
+    refresh_route = respx.post(REFRESH_URL).mock(return_value=refresh_response(jwt="jwt-2"))
     async with make_client(make_settings(), clock) as client:
         await client.auth.ensure_access()
         assert client.auth.access_token == "jwt-1"
@@ -119,7 +119,7 @@ async def test_proactive_refresh_at_12_minutes() -> None:
 @respx.mock
 async def test_refresh_sends_cookie_and_rotates_it() -> None:
     respx.post(LOGIN_URL).mock(return_value=login_response(cookie="r1"))
-    refresh_route = respx.get(REFRESH_URL).mock(return_value=refresh_response(cookie="r2"))
+    refresh_route = respx.post(REFRESH_URL).mock(return_value=refresh_response(cookie="r2"))
     async with make_client(make_settings()) as client:
         await client.auth.login("u", "p")
         assert await client.auth.refresh() is True
@@ -131,12 +131,29 @@ async def test_refresh_sends_cookie_and_rotates_it() -> None:
 
 
 @respx.mock
+async def test_refresh_uses_post_never_get() -> None:
+    """Both backends tighten GET refresh against browser CSRF; POST is the non-browser path."""
+    respx.post(LOGIN_URL).mock(return_value=login_response(cookie="r1"))
+    get_route = respx.get(REFRESH_URL).mock(return_value=httpx.Response(405))
+    post_route = respx.post(REFRESH_URL).mock(return_value=refresh_response(jwt="jwt-2"))
+    async with make_client(make_settings()) as client:
+        await client.auth.login("u", "p")
+        assert await client.auth.refresh() is True
+        assert client.auth.access_token == "jwt-2"
+    assert post_route.call_count == 1
+    assert post_route.calls.last.request.method == "POST"
+    assert not get_route.called
+    headers = post_route.calls.last.request.headers
+    assert "origin" not in headers and "referer" not in headers
+
+
+@respx.mock
 async def test_refresh_failure_falls_back_to_login() -> None:
     clock = FakeClock()
     login_route = respx.post(LOGIN_URL).mock(
         side_effect=[login_response(jwt="jwt-1"), login_response(jwt="jwt-3")]
     )
-    respx.get(REFRESH_URL).mock(
+    respx.post(REFRESH_URL).mock(
         return_value=httpx.Response(401, json={"status": 401, "data": {"message": "expired"}})
     )
     async with make_client(make_settings(), clock) as client:
@@ -150,7 +167,7 @@ async def test_refresh_failure_falls_back_to_login() -> None:
 async def test_reactive_refresh_on_403_invalid_bearer() -> None:
     session_url = f"{BASE}/system/api/v1/session"
     respx.post(LOGIN_URL).mock(return_value=login_response(jwt="jwt-1"))
-    respx.get(REFRESH_URL).mock(return_value=refresh_response(jwt="jwt-2"))
+    respx.post(REFRESH_URL).mock(return_value=refresh_response(jwt="jwt-2"))
     session_route = respx.get(session_url).mock(
         side_effect=[
             httpx.Response(403, json={"status": 403, "data": {"message": "Invalid bearer token"}}),

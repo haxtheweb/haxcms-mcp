@@ -210,15 +210,17 @@ class AuthManager:
         return jwt
 
     async def refresh(self) -> bool:
-        """GET session/refresh using the cookie jar; False when the refresh token is refused.
+        """POST session/refresh using the cookie jar; False when the refresh token is refused.
 
-        Never send Origin/Referer on this call (API-REF ??2.2); httpx adds neither. Refresh tokens
-        rotate per use, so a failed refresh must not be retried with the stale cookie.
+        POST is the stable path for non-browser clients: both backends are tightening the GET
+        form against browser CSRF. Never send Origin/Referer on this call (API-REF §2.2);
+        httpx adds neither. Refresh tokens rotate per use, so a failed refresh must not be
+        retried with the stale cookie (and `no_retry` keeps the transport layer from doing so).
         """
         if self.no_auth:
             return False
         try:
-            response = await self._client.call(routes.session_refresh_get(), no_retry=True)
+            response = await self._client.call(routes.session_refresh_post(), no_retry=True)
             body = unwrap_full(response)
         except HaxcmsMcpError as exc:
             logger.debug("refresh failed: %s", exc.code.value)

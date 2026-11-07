@@ -83,7 +83,7 @@ async def test_a_refused_caller_token_is_auth_failed_not_a_login() -> None:
                 )
             )
             login = router.post("/system/api/v1/session/login")
-            refresh = router.get("/system/api/v1/session/refresh")
+            refresh = router.post("/system/api/v1/session/refresh")
             reset = current_principal.set(Principal("expired-token"))
             try:
                 with pytest.raises(HaxcmsMcpError) as excinfo:

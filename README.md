@@ -80,7 +80,7 @@ working directory.
 | `RATE_LIMIT_TOTAL_RPS` | `16` | Per-caller HTTP mode: `RATE_LIMIT_RPS`/`BURST` apply to each user, and this caps all users together |
 | `DOWNLOAD_MAX_MB` | `500` | Largest site zip / export read from HAXcms (streamed; bigger is refused, compressed bodies are counted decoded) |
 | `URL_SOURCES_PROXY` | none | Send URL sources through this egress proxy (`http://host:port`). The proxy then does DNS and must block internal addresses itself; only IP-literal URLs are still checked here |
-| `OUTPUT_TTL_S`, `OUTPUT_CALLER_QUOTA_MB`, `DOWNLOAD_TTL_S` | `3600`, `200`, `900` | Per-caller HTTP mode: results expire after `OUTPUT_TTL_S`, each user may keep `OUTPUT_CALLER_QUOTA_MB` on the server, and download links live `DOWNLOAD_TTL_S` |
+| `OUTPUT_TTL_S`, `OUTPUT_CALLER_QUOTA_MB`, `DOWNLOAD_TTL_S` | `3600`, `200`, `300` | Per-caller HTTP mode: results expire after `OUTPUT_TTL_S`, each user may keep `OUTPUT_CALLER_QUOTA_MB` on the server, and download links live `DOWNLOAD_TTL_S` (a link is an unauthenticated bearer capability: anyone holding it can download the file until it expires, so treat it as a shareable secret) |
 | `LOG_LEVEL` | `INFO` | stderr logging (stdout belongs to the stdio transport) |
 | `CATALOG_LIVE_TTL_S` | `600` | Live block-catalog cache lifetime |
 
@@ -146,7 +146,9 @@ server ([ADR-0004](docs/adr/0004-haxcms-is-the-oauth-authorization-server.md)). 
 - `login` and `logout` are unavailable.
 - Read-Only Mode still applies.
 - Exports and converter files land in the caller's own folder (quota, expiry) and come back
-  as a short-lived signed `download_url` served by this server, not as a server path.
+  as a short-lived signed `download_url` served by this server, not as a server path. The
+  link itself is the credential (no login needed to fetch it, 5 minutes by default): share
+  it only with whoever should have the file.
 - A non-loopback bind needs `PUBLIC_URL=https://...`: put TLS in front of the server.
 - Repeatedly refused tokens from one address are throttled (`429`), and token checks have
   their own budget, so made-up tokens cannot use up the budget real callers' tools draw on.

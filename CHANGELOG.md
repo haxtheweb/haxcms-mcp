@@ -13,6 +13,16 @@ hand-written from `git log` for the initial release (PLAN T9.6).
   token (`jwt`), so the tool put a live credential into the model context. `session` is now
   `{authenticated, user}` only.
 
+### Changed
+
+- Token refresh uses `POST /session/refresh` instead of the GET form: both backends are
+  tightening GET refresh against browser CSRF, and POST is the stable path for non-browser
+  clients.
+- `DOWNLOAD_TTL_S` defaults to 300 s (was 900): a download link is an unauthenticated bearer
+  capability, documented as a shareable secret in the README.
+- `login` declares `openWorldHint: false` explicitly and its description warns that the
+  password transits as a tool argument (prefer server-side `USERNAME`/`PASSWORD`).
+
 ### Added
 
 - Client-side content filtering (defence in depth; HAXcms still sanitises on save):

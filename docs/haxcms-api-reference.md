@@ -76,7 +76,7 @@ valid, else 401.
 ### 2.2 Refresh
 
 ```
-GET {base}/system/api/v1/session/refresh
+POST {base}/system/api/v1/session/refresh
 Cookie: haxcms_refresh_token=<refresh jwt>
 
 200 -> {"status":200,"jwt":"<new access token>"}  + rotated Set-Cookie
@@ -84,7 +84,9 @@ Cookie: haxcms_refresh_token=<refresh jwt>
 403 -> Origin/Referer present and not same-origin
 ```
 
-Rules for the MCP client: keep the cookie jar; do **not** send `Origin` or `Referer` on this call
+Rules for the MCP client: use the POST form (both backends are tightening GET refresh against
+browser CSRF; POST is the stable path for non-browser clients); keep the cookie jar; do **not**
+send `Origin` or `Referer` on this call
 (absent headers are allowed, mismatched ones are refused). Refresh proactively when the access token
 is older than 12 minutes, and reactively on a 403 `"Invalid bearer token"` from any authenticated
 route. If refresh fails, log in again with the configured credentials. Refresh tokens are rotated per

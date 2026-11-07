@@ -64,15 +64,19 @@ def register_auth_tools(
     policy_checker = policy or PolicyChecker(client)
 
     @mcp.tool(
-        annotations=tool_annotations("Login", read_only=False, destructive=False),
+        annotations=tool_annotations("Login", read_only=False, destructive=False, open_world=False),
     )
     async def login(username: str, password: str) -> dict[str, Any]:
         """Log in to the HAXcms instance and start an authenticated session.
 
-        Replaces any environment-configured credentials for this process. Call it when other
-        tools fail with AUTH_REQUIRED or AUTH_FAILED. Returns the user and the access-token
-        lifetime; failures surface as AUTH_FAILED (bad credentials) or RATE_LIMITED (too many
-        failed attempts — wait out the retry-after window).
+        SECURITY: the password travels as a tool argument, so it passes through the model
+        context and may be retained in the client's conversation history or logs. Prefer
+        HAXCMS_MCP_USERNAME / HAXCMS_MCP_PASSWORD on the server (auto-login) and call this
+        only when the person explicitly provides credentials for this session. Replaces any
+        environment-configured credentials for this process. Call it when other tools fail
+        with AUTH_REQUIRED or AUTH_FAILED. Returns the user and the access-token lifetime;
+        failures surface as AUTH_FAILED (bad credentials) or RATE_LIMITED (too many failed
+        attempts — wait out the retry-after window).
         """
         _refuse_in_per_caller_mode(settings, "login")
         await client.auth.login(username, password)

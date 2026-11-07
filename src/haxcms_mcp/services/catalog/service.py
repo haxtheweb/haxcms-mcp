@@ -173,27 +173,33 @@ def _union_by_name(
     return [*live, *(entry for entry in bundled if entry.get("name") not in names)]
 
 
-def _merge_live(bundled: CatalogEntry | None, live: dict[str, Any], tag: str) -> CatalogEntry:
-    """Non-empty live fields win; curated title/description/category/agent_notes stay.
+# The live instance contributes STRUCTURE only. Prose fields (title, description,
+# agent_notes, example_html) are read by the agent as guidance, so for a bundled block they
+# always come from this repository: a site's wc-registry or haxProperties endpoint is
+# authored data and must not be able to rewrite the instructions an agent follows
+# (security audit, prompt injection through the catalog).
+_SCHEMA_FIELDS = ("attributes", "slots")
 
-    A live schema without a demoSchema must not wipe the bundled example, so empty
-    live values ("", None, [], {}) never overwrite a bundled one. Attributes and slots
-    merge as a union by name (live definition wins, bundled-only names are kept).
+
+def _merge_live(bundled: CatalogEntry | None, live: dict[str, Any], tag: str) -> CatalogEntry:
+    """Bundled prose stays; live attribute/slot schemas merge in as a union by name.
+
+    For a bundled block only `attributes` and `slots` are taken from the instance (live
+    definition wins per name, bundled-only names are kept, so validation never depends on
+    whether a site is addressed); title/description/agent_notes/example_html are the
+    curated ones. For a block the bundle does not know, the live entry is used whole.
     """
-    data: dict[str, Any] = bundled.model_dump() if bundled is not None else {}
-    for field, value in live.items():
-        if value not in ("", None, [], {}):
-            data[field] = value
+    if bundled is None:
+        data: dict[str, Any] = {k: v for k, v in live.items() if v not in ("", None, [], {})}
+        data["tag"] = tag
+        return CatalogEntry.model_validate(data)
+    data = bundled.model_dump()
     data["tag"] = tag
-    if bundled is not None:
-        original = bundled.model_dump()
-        for field in ("title", "description", "category", "agent_notes"):
-            value = getattr(bundled, field)
-            if value:
-                data[field] = value
-        for field in ("attributes", "slots"):
-            # union is a no-op when live did not replace the bundled list
-            data[field] = _union_by_name(data.get(field) or [], original[field])
+    original = bundled.model_dump()
+    for field in _SCHEMA_FIELDS:
+        live_value = live.get(field)
+        if live_value:
+            data[field] = _union_by_name(list(live_value), original[field])
     return CatalogEntry.model_validate(data)
 
 

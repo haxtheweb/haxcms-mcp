@@ -17,6 +17,7 @@ from mcp.shared.exceptions import MCPError
 from haxcms_mcp.config import Settings
 from haxcms_mcp.models.item import Item
 from haxcms_mcp.server import build_server
+from haxcms_mcp.tools._common import delimit_content
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 from tests.harness.mcp_client import McpTestClient
 
@@ -124,7 +125,9 @@ async def test_page_resource_block_index_comments(
         site=site,
     )
     assert [block["tag"] for block in result["blocks"]] == ["h2", "p"]
-    golden = "<!-- block 0: h2 -->\n<h2>Heading</h2>\n<!-- block 1: p -->\n<p>Body &amp; more.</p>"
+    golden = delimit_content(
+        "<!-- block 0: h2 -->\n<h2>Heading</h2>\n<!-- block 1: p -->\n<p>Body &amp; more.</p>"
+    )
     assert await mcp.read_resource(f"haxcms://sites/{site}/pages/{page.slug}") == golden
     # the same page resolves by id
     assert await mcp.read_resource(f"haxcms://sites/{site}/pages/{page.id}") == golden

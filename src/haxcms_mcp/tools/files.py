@@ -99,7 +99,7 @@ def register_files_tools(
         record = await files_service.get_file(client, name, uuid)
         return dump_model(record)
 
-    @mcp.tool(annotations=tool_annotations("Rename file", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Rename file", destructive=True, idempotent=True))
     async def rename_file(uuid: str, new_name: str, site: str | None = None) -> dict[str, Any]:
         """Rename a file (changes its stored name and `files/<name>` URL).
 
@@ -111,7 +111,7 @@ def register_files_tools(
         name = resolve_site(site, settings.default_site)
         return await files_service.rename_file(client, name, uuid, new_name)
 
-    @mcp.tool(annotations=tool_annotations("Transform file", idempotent=False))
+    @mcp.tool(annotations=tool_annotations("Transform file", destructive=True))
     async def transform_file(
         uuid: str,
         operation: str,

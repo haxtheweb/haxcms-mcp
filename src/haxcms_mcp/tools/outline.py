@@ -39,7 +39,7 @@ def register_outline_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClien
         nodes = await outline_service.get_outline(client, name)
         return _tree_payload(name, nodes)
 
-    @mcp.tool(annotations=tool_annotations("Reorder pages", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Reorder pages", destructive=True, idempotent=True))
     async def reorder_pages(
         ordered_ids: list[str], parent: str | None = None, site: str | None = None
     ) -> dict[str, Any]:
@@ -67,7 +67,7 @@ def register_outline_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClien
         item = await outline_service.move_page(client, name, page, direction)
         return dump_model(item)
 
-    @mcp.tool(annotations=tool_annotations("Set page parent"))
+    @mcp.tool(annotations=tool_annotations("Set page parent", idempotent=True))
     async def set_page_parent(
         page: str, parent: str | None = None, order: int | None = None, site: str | None = None
     ) -> dict[str, Any]:
@@ -81,7 +81,7 @@ def register_outline_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClien
         item = await outline_service.set_page_parent(client, name, page, parent, order)
         return dump_model(item)
 
-    @mcp.tool(annotations=tool_annotations("Normalize slugs", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Normalize slugs", destructive=True, idempotent=True))
     async def normalize_slugs(preview: bool = False, site: str | None = None) -> dict[str, Any]:
         """Regenerate every page slug from its title, following the site's Pathauto pattern.
 

@@ -63,7 +63,7 @@ def register_auth_tools(
         return {"user": username, "expires_in_s": ACCESS_TOKEN_TTL_S}
 
     @mcp.tool(
-        annotations=tool_annotations("Logout", read_only=False, destructive=False),
+        annotations=tool_annotations("Logout", read_only=False, destructive=False, idempotent=True),
     )
     async def logout() -> dict[str, Any]:
         """Log out of the HAXcms instance and discard all cached tokens.

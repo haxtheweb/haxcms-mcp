@@ -5161,7 +5161,7 @@
       "read_only_hint": false,
       "title": "Login"
     },
-    "description": "Log in to the HAXcms instance and start an authenticated session.\n\nReplaces any environment-configured credentials for this process. Call it when other\ntools fail with AUTH_REQUIRED or AUTH_FAILED. Returns the user and the access-token\nlifetime; failures surface as AUTH_FAILED (bad credentials) or RATE_LIMITED (too many\nfailed attempts — wait out the retry-after window).",
+    "description": "Log in to the HAXcms instance and start an authenticated session.\n\nSECURITY: the password travels as a tool argument, so it passes through the model\ncontext and may be retained in the client's conversation history or logs. Prefer\nHAXCMS_MCP_USERNAME / HAXCMS_MCP_PASSWORD on the server (auto-login) and call this\nonly when the person explicitly provides credentials for this session. Replaces any\nenvironment-configured credentials for this process. Call it when other tools fail\nwith AUTH_REQUIRED or AUTH_FAILED. Returns the user and the access-token lifetime;\nfailures surface as AUTH_FAILED (bad credentials) or RATE_LIMITED (too many failed\nattempts — wait out the retry-after window).",
     "parameters": {
       "additionalProperties": false,
       "properties": {

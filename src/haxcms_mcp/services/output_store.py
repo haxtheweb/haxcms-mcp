@@ -13,6 +13,11 @@ callers who cannot read it, so:
 * the tool result carries a short-lived, signed `download_url` served by this server
   (`GET /downloads/<token>`) and a path relative to the Output Directory, never the server's
   absolute filesystem layout.
+
+A download link is a bearer capability: anyone holding it can fetch the file until it
+expires (`DOWNLOAD_TTL_S`, default 5 minutes), with no further authentication. Treat it as
+a shareable secret: it is meant to be opened right away, not pasted into chat logs or
+tickets.
 """
 
 from __future__ import annotations

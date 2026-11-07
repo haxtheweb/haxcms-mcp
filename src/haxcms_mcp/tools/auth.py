@@ -25,6 +25,22 @@ def _budget_stats(client: HaxcmsClient) -> dict[str, Any]:
     }
 
 
+def _session_summary(session_data: Any) -> dict[str, Any]:
+    """Project `GET /session` onto `{authenticated, user}`.
+
+    HAXcms echoes the bearer token back as `jwt` in that body. The access token is a
+    credential and must never reach the model context (README, Security notes), so only the
+    two descriptive fields are kept; `status` is HTTP plumbing and is dropped too.
+    """
+    if not isinstance(session_data, dict):
+        return {"authenticated": None, "user": None}
+    user = session_data.get("user")
+    return {
+        "authenticated": session_data.get("authenticated"),
+        "user": str(user) if user is not None else None,
+    }
+
+
 def _refuse_in_per_caller_mode(settings: Settings, tool: str) -> None:
     """Over authenticated HTTP the connection's own token IS the session (#3140)."""
     if settings.per_caller_auth:
@@ -82,8 +98,10 @@ def register_auth_tools(
         """Validate the current session and report who is logged in.
 
         Returns the user, access-token age in seconds, outbound-budget statistics, the
-        Read-Only Mode flag, and the Default Site. With environment credentials configured but
-        no session yet, it logs in automatically. Fails with AUTH_REQUIRED after an explicit
+        Read-Only Mode flag, and the Default Site. `session` is HAXcms's own view of the
+        session, reduced to `{authenticated, user}`: the access token itself is never
+        returned. With environment credentials configured but no session yet, it logs in
+        automatically. Fails with AUTH_REQUIRED after an explicit
         logout or when no credentials are available.
         """
         if settings.no_auth:
@@ -102,7 +120,7 @@ def register_auth_tools(
         return {
             "user": client.auth.username,
             "authenticated": True,
-            "session": session_data,
+            "session": _session_summary(session_data),
             "token_age_s": round(age, 1) if age is not None else None,
             "budget": _budget_stats(client),
             "read_only": settings.read_only,

@@ -5523,7 +5523,7 @@
       "read_only_hint": false,
       "title": "Replace block"
     },
-    "description": "Replace the anchored block with new HTML (DESTRUCTIVE for that block).\n\n`html` may contain several top-level elements — they all take the anchored\nblock's place (the tutorial's paragraph → heading conversion is\n`replace_block(page, anchor=\"The First Secret\", html='<h2>The First Secret is\nNoticing</h2>')`). The replacement is NOT catalog-validated (raw HTML escape\nhatch); prefer remove + add_block for validated rebuilds. Returns the standard\nblock-operation result with the new blocks in `affected`.",
+    "description": "Replace the anchored block with new HTML (DESTRUCTIVE for that block).\n\n`html` may contain several top-level elements — they all take the anchored\nblock's place (the tutorial's paragraph → heading conversion is\n`replace_block(page, anchor=\"The First Secret\", html='<h2>The First Secret is\nNoticing</h2>')`). The replacement is NOT catalog-validated (raw HTML escape\nhatch); prefer remove + add_block for validated rebuilds. `<script>` elements,\n`on*` handlers and `javascript:`/`data:` URLs are removed before the save. Returns\nthe standard block-operation result with the new blocks in `affected`.",
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -5884,7 +5884,7 @@
       "read_only_hint": false,
       "title": "Set page content"
     },
-    "description": "Replace a page's ENTIRE body (DESTRUCTIVE — read get_page_content first).\n\n`html` is the new body as top-level elements (`<p>`, `<h2>`, `<media-image>`,\n...); any `<page-break>` tags in it are stripped — the envelope is rebuilt from\nthe page's current record, so title, published flag and other details survive.\nThe media schema (metadata.images/videos) is recomputed from the new body. One\ngit revision is committed; restore_page_revision can undo. Returns the fresh\n`{item, html, blocks}`. For targeted changes prefer the block tools (add_block,\nreplace_block, update_block, ...).",
+    "description": "Replace a page's ENTIRE body (DESTRUCTIVE — read get_page_content first).\n\n`html` is the new body as top-level elements (`<p>`, `<h2>`, `<media-image>`,\n...); any `<page-break>` tags in it are stripped — the envelope is rebuilt from\nthe page's current record, so title, published flag and other details survive.\nThe media schema (metadata.images/videos) is recomputed from the new body. One\ngit revision is committed; restore_page_revision can undo. Returns the fresh\n`{item, html, blocks}`. For targeted changes prefer the block tools (add_block,\nreplace_block, update_block, ...). `<script>` elements, `on*` handlers and\n`javascript:`/`data:` URLs are removed before the save (HAXcms sanitises again).",
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -6325,7 +6325,7 @@
       "read_only_hint": false,
       "title": "Update block attributes"
     },
-    "description": "Set and/or remove attributes on the anchored block; tag, text and children stay.\n\n`set` maps attribute → value (values are stringified; HAX boolean flags want\ntheir own name as the value: `{\"card\": \"card\"}` — stored bodies use that form);\n`unset` lists attribute names to remove (absent names are a silent no-op).\nNames are validated as XML names; for catalog-level checks call\nget_block_schema first. The tutorial's \"set image source, alt, caption\" step is\none update_block with all of them in `set`. At least one of `set`/`unset` is\nrequired.",
+    "description": "Set and/or remove attributes on the anchored block; tag, text and children stay.\n\n`set` maps attribute → value (values are stringified; HAX boolean flags want\ntheir own name as the value: `{\"card\": \"card\"}` — stored bodies use that form);\n`unset` lists attribute names to remove (absent names are a silent no-op).\nNames are validated as XML names; for catalog-level checks call\nget_block_schema first. The tutorial's \"set image source, alt, caption\" step is\none update_block with all of them in `set`. At least one of `set`/`unset` is\nrequired. URL attributes (`source`, `href`, `src`, `link`, ...) must be http(s),\nmailto, tel or site-relative; `on*` handlers are refused.",
     "parameters": {
       "additionalProperties": false,
       "properties": {

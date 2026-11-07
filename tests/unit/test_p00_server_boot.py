@@ -349,12 +349,13 @@ async def test_files_tool_annotations() -> None:
         assert tool_ann.read_only_hint is True, name
         assert tool_ann.destructive_hint is False, name
 
-    # uploads/transforms/duplicates/composite repeat to new state -> not idempotent
+    # uploads/transforms/duplicates/composite repeat to new state -> not idempotent; a
+    # transform overwrites the stored file in place -> destructive (security audit)
     for name in ["upload_file", "transform_file", "duplicate_file", "add_image_from_file"]:
         tool_ann = by_name[name].annotations
         assert tool_ann is not None, name
         assert tool_ann.read_only_hint is False, name
-        assert tool_ann.destructive_hint is False, name
+        assert tool_ann.destructive_hint is (name == "transform_file"), name
         assert tool_ann.idempotent_hint is False, name
         # a `source` may be a URL this server fetches -> open world (security audit)
         assert tool_ann.open_world_hint is (name in {"upload_file", "add_image_from_file"}), name
@@ -437,7 +438,8 @@ async def test_converter_tool_annotations() -> None:
 async def test_export_tool_annotations() -> None:
     """Phase 8 annotation matrix (PLAN T8.4): exports are read-only-hint FALSE (they
     produce Output Directory files; save-as-template writes server-side) but never
-    destructive, and repeats are safe (collisions take a new -<n> filename slot)."""
+    destructive. Repeats are safe but not idempotent: every call produces a NEW file
+    (collisions take a new -<n> filename slot), like the file-writing converters."""
     mcp = build_server(_settings())
     async with Client(mcp) as client:
         tools = await client.list_tools()
@@ -453,7 +455,44 @@ async def test_export_tool_annotations() -> None:
         assert ann is not None, name
         assert ann.read_only_hint is False, name
         assert ann.destructive_hint is False, name
-        assert ann.idempotent_hint is True, name
+        assert ann.idempotent_hint is False, name
+
+
+async def test_idempotent_hint_defaults_to_false_for_writes() -> None:
+    """Security audit: `idempotentHint` is opt-in for writes. Every read-only tool is
+    idempotent; every tool that is not read-only and not on the explicit converging-write
+    list reports False, so a retrying client never duplicates a create or an append."""
+    mcp = build_server(_settings())
+    async with Client(mcp) as client:
+        tools = await client.list_tools()
+    converging_writes = {
+        "logout",
+        "move_block",
+        "update_block",
+        "set_block_text",
+        "set_page_parent",
+        "normalize_slugs",
+        "reorder_pages",
+        "update_page_details",
+        "rename_file",
+        "update_site_info",
+        "update_author_info",
+        "set_site_theme",
+        "set_theme_regions",
+        "update_seo_settings",
+        "set_editor_audience",
+        "set_allowed_blocks",
+        "set_platform_features",
+        "configure_site_git",
+        "regenerate_alternate_formats",
+    }
+    for tool in tools:
+        ann = tool.annotations
+        assert ann is not None, tool.name
+        if ann.read_only_hint:
+            assert ann.idempotent_hint is True, tool.name
+        else:
+            assert ann.idempotent_hint is (tool.name in converging_writes), tool.name
 
 
 async def test_converter_tool_schemas_hide_bound_params() -> None:

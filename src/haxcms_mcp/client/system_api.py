@@ -40,8 +40,8 @@ async def login(client: HaxcmsClient, username: str, password: str) -> dict[str,
 
 
 async def refresh(client: HaxcmsClient) -> dict[str, Any]:
-    """GET session/refresh using the cookie jar -> `{status, jwt}` + rotated cookie."""
-    response = await client.call(routes.session_refresh_get(), no_retry=True)
+    """POST session/refresh using the cookie jar -> `{status, jwt}` + rotated cookie."""
+    response = await client.call(routes.session_refresh_post(), no_retry=True)
     return unwrap_full(response)
 
 

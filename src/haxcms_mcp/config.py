@@ -95,7 +95,8 @@ class Settings(BaseSettings):
     # Per-caller mode: results expire, are capped per user, and are fetched via signed links.
     output_ttl_s: int = 3600
     output_caller_quota_mb: int = 200
-    download_ttl_s: int = 900
+    # Download links are unauthenticated bearer capabilities (output_store.py): keep them short.
+    download_ttl_s: int = 300
     # Largest HAXcms response read as a binary download (site zips, exports), streamed.
     download_max_mb: int = 500
 

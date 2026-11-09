@@ -20,6 +20,7 @@ from haxcms_mcp.compat import CompatChecker
 from haxcms_mcp.config import Settings
 from haxcms_mcp.http_auth import PrincipalMiddleware, build_auth_provider
 from haxcms_mcp.middleware import (
+    ArgumentSizeMiddleware,
     ErrorTranslationMiddleware,
     ReadOnlyMiddleware,
     ToolLoggingMiddleware,
@@ -103,6 +104,7 @@ def build_server(settings: Settings) -> FastMCP:
     # Order matters: read-only gate outermost, then logging, then error translation
     # closest to the tool functions.
     mcp.add_middleware(ReadOnlyMiddleware(settings, policy))
+    mcp.add_middleware(ArgumentSizeMiddleware(settings))
     mcp.add_middleware(ToolLoggingMiddleware())
     mcp.add_middleware(ErrorTranslationMiddleware())
 

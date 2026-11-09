@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     # (security audit). Dotfiles and key files are refused even inside a root.
     input_roots: Annotated[list[Path], NoDecode] = Field(default_factory=list)
     max_inline_base64_mb: int = 10
+    # Largest `html` / `inner_html` / `text` (and other *_html) argument one tool call may
+    # carry, in UTF-8 bytes (security audit): bounds what the lxml pipeline parses.
+    max_html_bytes: int = 2 * 1024 * 1024
 
     # --- Transport ------------------------------------------------------------
     transport: Literal["stdio", "http"] = "stdio"

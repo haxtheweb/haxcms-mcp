@@ -33,6 +33,12 @@ from haxcms_mcp.services.content.anchors import resolve_anchor
 from haxcms_mcp.services.content.media_schema import build_media_schema
 from haxcms_mcp.services.content.page_break import save_content
 from haxcms_mcp.services.content.parser import parse_body, to_blocks
+from haxcms_mcp.services.content.safety import (
+    check_url_attribute,
+    check_url_attributes,
+    is_url_attribute,
+    sanitize_elements,
+)
 from haxcms_mcp.services.content.serializer import serialize_elements
 from haxcms_mcp.services.content.service import fetch_page_body, strip_envelopes
 from haxcms_mcp.services.locks import site_lock
@@ -67,8 +73,12 @@ async def _run_block_op(
 
 
 def _parse_new_blocks(html: str) -> list[HtmlElement]:
-    """Parse incoming block HTML (one or more top-level elements; envelopes dropped)."""
-    elements = strip_envelopes(parse_body(html or ""))
+    """Parse incoming block HTML (one or more top-level elements; envelopes dropped).
+
+    Scripts and event-handler attributes are removed first (safety.py): HAXcms strips
+    them again on save, this just keeps them out of the request.
+    """
+    elements = sanitize_elements(strip_envelopes(parse_body(html or "")))
     if not elements:
         raise HaxcmsMcpError(
             ErrorCode.INVALID_ARGUMENT,
@@ -101,6 +111,17 @@ def _validate_placement(placement: str, anchor: str | None) -> str:
     return placement
 
 
+def _refuse_event_handler(name: str) -> None:
+    """`on*` attributes are script hooks; HAX blocks are configured through their own."""
+    if name.lower().startswith("on"):
+        raise HaxcmsMcpError(
+            ErrorCode.INVALID_ARGUMENT,
+            f"event-handler attribute {name!r} cannot be set",
+            hint="on* attributes are never saved; HAX blocks are configured through "
+            "their own attributes (see get_block_schema)",
+        )
+
+
 def build_block_html(
     tag: str, attributes: dict[str, Any] | None = None, inner_html: str = ""
 ) -> str:
@@ -119,7 +140,8 @@ def build_block_html(
             f"invalid block tag {tag!r}",
             hint="tags are XML names, e.g. p, h2, media-image",
         )
-    parsed = strip_envelopes(parse_body(f"<{name}>{inner_html or ''}</{name}>"))
+    check_url_attributes(attributes)
+    parsed = sanitize_elements(strip_envelopes(parse_body(f"<{name}>{inner_html or ''}</{name}>")))
     if not parsed:
         raise HaxcmsMcpError(
             ErrorCode.INVALID_ARGUMENT,
@@ -142,6 +164,7 @@ def build_block_html(
                 hint="attribute names are XML names: letters, digits, -, _, ., : — "
                 "no spaces, quotes or =",
             )
+        _refuse_event_handler(attribute_name)
         if value is True:
             element.set(attribute_name, attribute_name)  # HAX boolean flag form
         elif value is False or value is None:
@@ -297,6 +320,10 @@ async def update_block_attributes(
                 hint="attribute names are XML names: letters, digits, -, _, ., : — "
                 "no spaces, quotes or =",
             )
+    for name, value in changes.items():
+        _refuse_event_handler(name)
+        if is_url_attribute(name):
+            check_url_attribute(name, str(value))
 
     def mutate(elements: list[HtmlElement]) -> list[Block]:
         index, _ = _resolve_index(elements, anchor, occurrence)
@@ -418,6 +445,7 @@ async def wrap_text_with_link(
         raise HaxcmsMcpError(
             ErrorCode.INVALID_ARGUMENT, "url must not be empty", hint="e.g. https://example.com"
         )
+    check_url_attribute("href", href)
 
     def mutate(elements: list[HtmlElement]) -> list[Block]:
         index, target = _resolve_index(elements, anchor, occurrence)

@@ -67,6 +67,7 @@ working directory.
 | `OUTPUT_DIR` | `./haxcms-mcp-output` | Where exports and converted files are written (on the **server** host) |
 | `INPUT_ROOTS` | none (local paths off) | `os.pathsep`-separated folders local-path sources may come from. Unset means agents cannot upload files by path at all; hidden files/folders (`.env`, `.git`, `.ssh`, ...) and key/credential files are refused even inside a root |
 | `MAX_INLINE_BASE64_MB` | `10` | Cap for inline `base64:` sources |
+| `MAX_HTML_BYTES` | `2097152` (2 MB) | Largest `html` / `inner_html` / `text` (and other `*_html`) argument one tool call may carry, in UTF-8 bytes |
 | `TRANSPORT` | `stdio` | `stdio` or `http` (CLI flags override) |
 | `HTTP_HOST`, `HTTP_PORT`, `HTTP_PATH` | `127.0.0.1`, `8765`, `/mcp` | HTTP transport bind address |
 | `HTTP_AUTH` | `none` | `haxcms`: every HTTP caller must send their own HAXcms access token (see [Serving over HTTP to other people](#serving-over-http-to-other-people)); required to bind beyond loopback |
@@ -276,6 +277,12 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   (all logging goes to stderr).
 - **The instance's own MCP policy wins** (`config.mcp` in HAXcms): MCP turned off there
   refuses everything; read-only there forces Read-Only Mode here.
+- **Content is filtered before it is sent** (defence in depth; HAXcms's own save-time
+  sanitiser remains the authority): link and media-source arguments accept `http(s)`,
+  `mailto`, `tel` and site-relative paths only (`javascript:`, `data:`, `vbscript:` are refused
+  as `INVALID_ARGUMENT`); raw HTML passed to `set_page_content`, `replace_block` and
+  `add_block` has `<script>` elements and `on*=` handlers removed; and content arguments are
+  capped at `MAX_HTML_BYTES`.
 - **Read-Only Mode** (`HAXCMS_MCP_READ_ONLY=true`) rejects every tool that is not annotated
   read-only, at the middleware level — a hard guarantee, not a convention. Converters that write a
   file (`convert_html_to_docx`, `convert_html_to_pdf`, `convert_docx_to_pdf`) count as writes.

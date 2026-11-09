@@ -12,6 +12,10 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 - `whoami` no longer forwards the HAXcms session body verbatim: that body echoes the bearer
   token (`jwt`), so the tool put a live credential into the model context. `session` is now
   `{authenticated, user}` only.
+- The instance's MCP policy (`config.mcp`) is enforced in `NO_AUTH` mode too. The policy is
+  published on the open discovery route and needs no credentials, so an instance running with
+  `HAXCMS_DISABLE_JWT_CHECKS` no longer lets the server bypass `mcp.enabled: false` or
+  `mcp.readOnly: true`.
 
 ### Added
 

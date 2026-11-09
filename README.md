@@ -276,7 +276,9 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   Access tokens are held in memory only, and no token or password ever reaches a log line
   (all logging goes to stderr).
 - **The instance's own MCP policy wins** (`config.mcp` in HAXcms): MCP turned off there
-  refuses everything; read-only there forces Read-Only Mode here.
+  refuses everything; read-only there forces Read-Only Mode here. This holds in `NO_AUTH`
+  mode too: the policy comes from the open discovery route, so no credentials are needed to
+  read it and disabling JWT checks on the instance does not bypass it.
 - **Content is filtered before it is sent** (defence in depth; HAXcms's own save-time
   sanitiser remains the authority): link and media-source arguments accept `http(s)`,
   `mailto`, `tel` and site-relative paths only (`javascript:`, `data:`, `vbscript:` are refused

@@ -6828,7 +6828,7 @@
       "read_only_hint": true,
       "title": "Who am I"
     },
-    "description": "Validate the current session and report who is logged in.\n\nReturns the user, access-token age in seconds, outbound-budget statistics, the\nRead-Only Mode flag, and the Default Site. With environment credentials configured but\nno session yet, it logs in automatically. Fails with AUTH_REQUIRED after an explicit\nlogout or when no credentials are available.",
+    "description": "Validate the current session and report who is logged in.\n\nReturns the user, access-token age in seconds, outbound-budget statistics, the\nRead-Only Mode flag, and the Default Site. `session` is HAXcms's own view of the\nsession, reduced to `{authenticated, user}`: the access token itself is never\nreturned. With environment credentials configured but no session yet, it logs in\nautomatically. Fails with AUTH_REQUIRED after an explicit\nlogout or when no credentials are available.",
     "parameters": {
       "additionalProperties": false,
       "properties": {},

@@ -41,6 +41,7 @@ from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
 from haxcms_mcp.services.content.parser import parse_blocks
+from haxcms_mcp.tools._common import CONTENT_BEGIN, CONTENT_END
 from tests.harness.haxcms_runtime import HaxcmsRuntime
 from tests.harness.mcp_process import HttpMcpProcess, server_env, stdio_client
 
@@ -266,7 +267,9 @@ async def test_tutorial_smoke_over_stdio(stdio: tuple[Client, Path], haxcms: Hax
         contents = await client.read_resource(f"haxcms://sites/{SITE}/pages/{slug}")
         first = contents[0] if isinstance(contents, list | tuple) else contents
         resource = getattr(first, "text", first)
-        assert resource.startswith("<!-- block 0: p -->")
+        # the resource wraps the page in data delimiters (security audit)
+        assert resource.startswith(CONTENT_BEGIN + "\n<!-- block 0: p -->")
+        assert resource.endswith(CONTENT_END)
         assert "<!-- block 3: media-image -->" in resource
         assert "<!-- block 8: h2 -->" in resource
         assert "<!-- block 10: video-player -->" in resource

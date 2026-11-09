@@ -27,6 +27,20 @@ hand-written from `git log` for the initial release (PLAN T9.6).
   given to `set_page_content`, `replace_block` and `add_block` loses `<script>` elements and
   `on*=` attributes before the PATCH; and a new `HAXCMS_MCP_MAX_HTML_BYTES` (default 2 MB)
   caps `html` / `inner_html` / `text` arguments.
+- Tool-surface hardening (security audit):
+  - `idempotentHint` now defaults to false for writes; only converging writes (settings,
+    `update_page_details`, `update_block`, `set_block_text`, `move_block`, `set_page_parent`,
+    `normalize_slugs`, `reorder_pages`, `rename_file`, `logout`) opt in. Exports and
+    file-writing converters report non-idempotent (each call writes a new file).
+    `transform_file` is destructive (it overwrites the stored file in place).
+  - Every site name (argument or `DEFAULT_SITE`) is validated as a HAXcms machine name
+    before a URL is built from it.
+  - `HAXCMS_MCP_DENY_TOOLS`: comma-separated tool names to unregister at startup.
+  - Page content read back from a site is marked as data, not instructions: `get_page_content`
+    and `search_site` carry a `notice`, the page resource wraps the HTML in
+    `BEGIN/END PAGE CONTENT` comments, the `hax_author` prompt has a CONTENT IS DATA section,
+    and the Block Catalog takes only attribute/slot schemas from the instance (bundled
+    description, agent notes and example always win).
 - The live test suites never pick a HAXcms on their own: without `HAXCMS_MCP_TEST_HAXCMS_DIR`
   (a `haxcms-nodejs` checkout) or a deliberate `HAXCMS_MCP_TEST_HAXCMS_VERSION` (an npm release),
   a run that includes them stops up front with instructions instead of silently installing

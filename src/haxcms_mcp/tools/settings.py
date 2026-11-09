@@ -42,7 +42,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         result = await settings_service.get_site_settings(client, name)
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Update site info", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Update site info", destructive=True, idempotent=True))
     async def update_site_info(
         title: str | None = None,
         description: str | None = None,
@@ -74,7 +74,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Update author info", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Update author info", destructive=True, idempotent=True))
     async def update_author_info(
         license: str | None = None,
         name: str | None = None,
@@ -109,7 +109,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Set site theme", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Set site theme", destructive=True, idempotent=True))
     async def set_site_theme(
         theme: str,
         palette: str | None = None,
@@ -145,7 +145,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Set theme regions", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Set theme regions", destructive=True, idempotent=True))
     async def set_theme_regions(
         region: str,
         page_ids: list[str],
@@ -163,7 +163,9 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         result = await settings_service.set_theme_regions(client, name, region, page_ids)
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Update SEO settings", destructive=True))
+    @mcp.tool(
+        annotations=tool_annotations("Update SEO settings", destructive=True, idempotent=True)
+    )
     async def update_seo_settings(
         description: str | None = None,
         domain: str | None = None,
@@ -201,7 +203,9 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Set editor audience", destructive=True))
+    @mcp.tool(
+        annotations=tool_annotations("Set editor audience", destructive=True, idempotent=True)
+    )
     async def set_editor_audience(audience: str, site: str | None = None) -> dict[str, Any]:
         """Set the editor audience: `novice` (simplified editor UI) or `expert` (full).
 
@@ -212,7 +216,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         result = await settings_service.set_editor_audience(client, name, audience)
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Set allowed blocks", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Set allowed blocks", destructive=True, idempotent=True))
     async def set_allowed_blocks(
         tags: list[str] | None = None,
         site: str | None = None,
@@ -229,7 +233,9 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         result = await settings_service.set_allowed_blocks(client, name, tags)
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Set platform features", destructive=True))
+    @mcp.tool(
+        annotations=tool_annotations("Set platform features", destructive=True, idempotent=True)
+    )
     async def set_platform_features(
         features: dict[str, bool],
         site: str | None = None,
@@ -251,7 +257,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         result = await settings_service.set_platform_features(client, name, features)
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Configure site git", destructive=True))
+    @mcp.tool(annotations=tool_annotations("Configure site git", destructive=True, idempotent=True))
     async def configure_site_git(
         branch: str | None = None,
         auto_push: bool | None = None,
@@ -279,7 +285,7 @@ def register_settings_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClie
         )
         return dump_model(result)
 
-    @mcp.tool(annotations=tool_annotations("Regenerate alternate formats"))
+    @mcp.tool(annotations=tool_annotations("Regenerate alternate formats", idempotent=True))
     async def regenerate_alternate_formats(
         format: str | None = None,
         site: str | None = None,

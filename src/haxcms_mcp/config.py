@@ -36,6 +36,9 @@ class Settings(BaseSettings):
 
     # --- Behaviour ----------------------------------------------------------
     read_only: bool = False
+    # Tool names to unregister at startup (comma-separated), e.g. "archive_site,delete_page":
+    # an operator can narrow the surface an agent sees without forking the server.
+    deny_tools: Annotated[list[str], NoDecode] = Field(default_factory=list)
     rate_limit_rps: float = 4.0
     rate_limit_burst: int = 8
     rate_limit_max_wait_s: float = 30.0
@@ -124,7 +127,7 @@ class Settings(BaseSettings):
             return list(value)
         return value
 
-    @field_validator("http_allowed_hosts", "http_allowed_origins", mode="before")
+    @field_validator("http_allowed_hosts", "http_allowed_origins", "deny_tools", mode="before")
     @classmethod
     def _split_csv(cls, value: Any) -> Any:
         if isinstance(value, str):

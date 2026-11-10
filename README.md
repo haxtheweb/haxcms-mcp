@@ -262,8 +262,9 @@ HAXCMS_MCP_TEST_BACKEND=php HAXCMS_MCP_TEST_HAXCMS_PHP_DIR=/path/to/haxcms-php \
 ### Keeping up with HAXcms
 
 A nightly workflow ([`upstream-drift.yml`](.github/workflows/upstream-drift.yml)) fails when the
-vendored specs differ from `haxcms-nodejs` `main` or when the live suites fail against it. To
-reconcile:
+vendored specs differ from `haxcms-nodejs` `main`, or when the live suites fail against a fresh
+`haxcms-nodejs` `main` or a fresh `haxcms-php` `master` (separate jobs, so one backend failing
+does not hide the other). To reconcile spec drift:
 
 ```bash
 uv run python scripts/sync_specs.py --from ../haxcms-nodejs   # specs/, VERSION, generated spec_info.py

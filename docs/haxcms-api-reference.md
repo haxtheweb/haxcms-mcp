@@ -428,11 +428,13 @@ Attribute rules from `saveNode.js` L83-330:
 - When Pathauto is on and `override-pathauto` is not set, the slug is regenerated from the title.
 - `item-id` must equal the item being saved; other ids in extra page breaks create new pages
   (multi-page splitting), which the MCP must not use.
-- The content after `</page-break>` is sanitised with DOMPurify: `script, svg, frame, frameset,
-  applet, meta, link, base, style` tags are removed; `on*` and `style` attributes are removed; URL
-  attributes must be `http`, `https`, `mailto`, `tel`, or `#`; iframes keep only `src, title, width,
-  height, loading, allow, allowfullscreen, referrerpolicy, sandbox`. Custom element tags and
-  hyphenated attributes survive. `code-sample`, `runkit-embed`, `web-container` `<template>`
+- The content after `</page-break>` is sanitised by the storage policy haxcms-nodejs and
+  haxcms-php share (haxtheweb/issues#3273; DOMPurify stays as a backstop in NodeJS): `script,
+  svg, math, frame, frameset, applet, meta, link, base, style, noscript` tags are removed; `on*`
+  and `style` attributes are removed; URL attributes must be `http`, `https`, `mailto`, `tel`, or
+  `#`; iframes keep only `src, title, width, height, loading, allow, allowfullscreen,
+  referrerpolicy, sandbox`. Custom element tags and other attributes (including
+  `target="_blank"` and `preserve-content`) survive as sent. `code-sample`, `runkit-embed`, `web-container` `<template>`
   contents are escaped.
 - `schema` (optional array of `{tag, properties}`) is used only to fill `metadata.images` and
   `metadata.videos` for `img`, `a11y-gif-player`, `media-image` (`source`), `video-player`
@@ -546,10 +548,9 @@ Visible (not hidden) machine names: `bootstrap-theme`, `clean-one` (Course, defa
 `haxor-slevin`, `journey-sidebar-theme`, `journey-topbar-theme`, `outline-player`, `simple-blog`,
 `training-theme`. Always fetch the live list; never hard-code beyond defaults.
 
-Bundled skeletons (`src/coreConfig/skeletons/`): `default-starter`, `online-course-clean-one`,
-`Clean-One-Blog-Skeleton`, `Art-Portfolio-Skeleton`, `portfolio-skeleton`,
-`resume-journey-skeleton`, `Student-Club-Skeleton`, `iscgraduateportfolio`,
-`docs-haxma-hax-create`. Skeleton file shape: `{ meta:{name, machineName?, description, useCaseTitle,
+Bundled skeletons (`src/coreConfig/skeletons/`, renamed to use-case names in
+haxtheweb/issues#3235): `default-starter`, `online-course`, `blog`, `art-portfolio`,
+`portfolio`, `resume-journey`, `club-website`, `isc-graduate-portfolio`, `docs`. Skeleton file shape: `{ meta:{name, machineName?, description, useCaseTitle,
 category[], tags[]}, site:{name, description, theme, license?}, build:{type:"skeleton",
 structure:"from-skeleton", items:[...]}, theme:{hexCode, cssVariable, icon, image} }`.
 

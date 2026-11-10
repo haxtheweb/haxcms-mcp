@@ -92,13 +92,14 @@ SANITISATION_INPUT = (
 )
 
 # the live saveNode rewrite of SANITISATION_INPUT (T4.7, byte-exact from the instance):
-# target="_blank" dropped, <template preserve-content> dropped, the bare boolean
-# `correct` on assessment inputs preserved as `correct=""` (HAXcms main; older builds
-# dropped it), single-quoted JSON attributes re-quoted.
+# target="_blank" and <template preserve-content> kept as sent (shared storage policy,
+# haxtheweb/issues#3273; older builds dropped both), the bare boolean `correct` on
+# assessment inputs preserved as `correct=""`, single-quoted JSON attributes re-quoted.
 SANITISED_STORED = (
-    '<p>Link <a href="https://example.com/notes">Watch it here.</a></p>\n'
+    '<p>Link <a href="https://example.com/notes" target="_blank">Watch it here.</a></p>\n'
     '<code-sample type="javascript" copy-clipboard-button="copy-clipboard-button">'
-    "<template>const a = 1 &lt; 2;</template></code-sample>\n"
+    '<template preserve-content="preserve-content">const a = 1 &lt; 2;</template>'
+    "</code-sample>\n"
     '<vocab-term term="T" information="I"'
     ' links="[{&quot;title&quot;: &quot;S&quot;, &quot;href&quot;: &quot;https://x&quot;}]">'
     "</vocab-term>\n"

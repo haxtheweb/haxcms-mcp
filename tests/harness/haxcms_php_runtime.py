@@ -7,8 +7,10 @@ HAXcms PHP is normally served by Apache (see its Dockerfile). The harness instea
 built-in web server (`php -S`) with `php_router.php` standing in for the .htaccess rewrites, so
 the suite needs only the `php` binary (8.3, gd/curl/mbstring/dom/zip) and no Docker or Apache.
 The instance is installed through its own `install.php` using the hosting-provider direct
-install path (`_installtoken.txt` + `install_token`), so the real installer code builds
-`_config/` exactly as in production.
+install path, so the real installer code builds `_config/` exactly as in production: the
+harness drops a random token into `_config/_installtoken.txt` (where haxcms-php reads it,
+haxcms-php#745) and sends it as `install_token` on EVERY installer request, because the
+installer refuses any prepare/advance call without it once the file exists (haxcms-php#737).
 """
 
 from __future__ import annotations
@@ -85,8 +87,11 @@ class HaxcmsPhpRuntime(HaxcmsRuntime):
         # runtime state lives beside the code; the installer creates _config/ and friends
         for sub in ("_sites", "_published", "_archived"):
             (root / sub).mkdir(exist_ok=True)
+        # the installer reads the token from _config/ (never served over HTTP) and deletes
+        # it after a successful install; it only ever lives in this throwaway runtime root
         install_token = secrets.token_hex(16)
-        (root / "_installtoken.txt").write_text(install_token, encoding="utf-8")
+        (root / "_config").mkdir(exist_ok=True)
+        (root / "_config" / "_installtoken.txt").write_text(install_token, encoding="utf-8")
 
         port = _free_port()
         home = Path(tempfile.mkdtemp(prefix="haxcms-mcp-home-"))
@@ -169,16 +174,27 @@ class HaxcmsPhpRuntime(HaxcmsRuntime):
         )
 
     def _install(self, install_token: str) -> None:
-        """Drive the real installer: prepare runtime dirs, then the token-gated direct install."""
+        """Drive the real installer: prepare runtime dirs, then the token-gated direct install.
+
+        Every prepare/advance request carries `install_token`: with a token file present the
+        installer answers 403 to any state-changing request without it.
+        """
         base = f"{self.base_url}/install.php"
         with httpx.Client(timeout=120.0) as http:
-            prepare = http.post(f"{base}?op=prepare")
+            prepare = http.post(f"{base}?op=prepare", json={"install_token": install_token})
             if prepare.status_code != 200:
                 raise RuntimeError(
                     f"installer prepare failed: {prepare.status_code} {prepare.text}"
                 )
             for step in (1, 2, 3):
-                http.post(f"{base}?op=advance", json={"toStep": step, "language": "en"})
+                advance = http.post(
+                    f"{base}?op=advance",
+                    json={"toStep": step, "language": "en", "install_token": install_token},
+                )
+                if advance.status_code != 200:
+                    raise RuntimeError(
+                        f"installer step {step} failed: {advance.status_code} {advance.text[:500]}"
+                    )
             done = http.post(
                 f"{base}?op=advance",
                 json={

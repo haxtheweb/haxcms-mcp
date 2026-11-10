@@ -26,6 +26,7 @@ from haxcms_mcp.config import Settings
 from haxcms_mcp.middleware import ErrorTranslationMiddleware
 from haxcms_mcp.resources.sites import register_site_resources
 from haxcms_mcp.server import build_server
+from haxcms_mcp.tools._common import CONTENT_BEGIN, CONTENT_END
 
 pytestmark = pytest.mark.unit
 
@@ -162,8 +163,11 @@ async def test_page_resource_prefixes_every_block_with_its_index() -> None:
     mock_instance()
     html = await read(build_server(make_settings()), "haxcms://sites/demo/pages/a")
     lines = html.splitlines()
-    assert lines[0] == "<!-- block 0: h2 -->"
-    assert lines[1] == "<h2>Welcome</h2>"
+    # the page body sits between the data delimiters (security audit)
+    assert lines[0] == CONTENT_BEGIN
+    assert lines[-1] == CONTENT_END
+    assert lines[1] == "<!-- block 0: h2 -->"
+    assert lines[2] == "<h2>Welcome</h2>"
     assert "<!-- block 1: p -->" in lines
     assert "<!-- block 2: media-image -->" in lines
     assert html.count("<!-- block ") == 3

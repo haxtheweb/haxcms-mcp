@@ -246,8 +246,6 @@ Known differences (upstream parity gaps, not MCP behavior; the PHP test leg skip
   answer HTTP 500 to every page create (`HAXCMSSite::itemFromParams` metadata bug); use
   `master` or a release that includes it
 - no login rate limiting (repeated wrong passwords never answer 429)
-- content is stored as sent: the NodeJS sanitiser's rewrites (`target`, `preserve-content`,
-  attribute re-quoting) do not happen
 - converters and document imports produce different HTML/Markdown (heading style,
   pretty-printing, PDF/PPTX/DOCX structure), and file records carry no `uuid`
 

@@ -47,10 +47,10 @@ PARAGRAPHS = [
 ]
 
 LECTURE_LINK = '<a href="https://example.com/lecture">Watch it here.</a>'
-# the fixture's second link carries target="_blank" (its authored form); saveNode
-# sanitisation strips target on save (live-verified T4.7 fact), so the STORED page —
-# and the disk file — hold the link without it
-NOTES_LINK_STORED = '<a href="https://example.com/notes">Watch it here.</a>'
+# the fixture's second link carries target="_blank" (its authored form); the storage
+# sanitiser keeps it (shared policy, haxtheweb/issues#3273), so the STORED page — and the
+# disk file — hold the link exactly as authored
+NOTES_LINK_STORED = '<a href="https://example.com/notes" target="_blank">Watch it here.</a>'
 
 
 async def test_rebuild_tutorial_page(mcp: McpTestClient, site: str, haxcms: HaxcmsRuntime) -> None:
@@ -193,7 +193,7 @@ async def test_rebuild_tutorial_page(mcp: McpTestClient, site: str, haxcms: Haxc
     body = str(final["html"])
     assert LECTURE_LINK in body
     assert NOTES_LINK_STORED in body
-    assert 'target="_blank"' not in body  # stripped by saveNode sanitisation
+    assert body.count('target="_blank"') == 1  # only the new-tab link carries it
 
     # --- verify: the page resource renders the same blocks ----------------------------
     resource = await mcp.read_resource(f"haxcms://sites/{site}/pages/{slug}")

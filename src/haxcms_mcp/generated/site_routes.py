@@ -86,6 +86,16 @@ def update_site_alternative_formats(site: str) -> Route:
     )
 
 
+def check_site_links(site: str) -> Route:
+    """POST /x/api/v1/site/check-links"""
+    return Route(
+        "checkSiteLinks",
+        "POST",
+        f"/_sites/{q(site)}/x/api/v1/site/check-links",
+        "bearer+site",
+    )
+
+
 def update_site_appearance(site: str) -> Route:
     """PATCH /x/api/v1/site/appearance - Update site appearance settings"""
     return Route(
@@ -334,6 +344,26 @@ def update_content_by_id_or_slug(site: str, id_or_slug: str) -> Route:
         "updateContentByIdOrSlug",
         "PATCH",
         f"/_sites/{q(site)}/x/api/v1/content/{q(id_or_slug)}",
+        "bearer+site",
+    )
+
+
+def list_content_blocks(site: str, id_or_slug: str) -> Route:
+    """GET /x/api/v1/content/{idOrSlug}/blocks"""
+    return Route(
+        "listContentBlocks",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/content/{q(id_or_slug)}/blocks",
+        "bearer+site",
+    )
+
+
+def update_content_blocks(site: str, id_or_slug: str) -> Route:
+    """PATCH /x/api/v1/content/{idOrSlug}/blocks"""
+    return Route(
+        "updateContentBlocks",
+        "PATCH",
+        f"/_sites/{q(site)}/x/api/v1/content/{q(id_or_slug)}/blocks",
         "bearer+site",
     )
 
@@ -602,6 +632,7 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
         "/_sites/{site}/x/api/v1/site/updateAlternativeFormats",
         "bearer+site",
     ),
+    "checkSiteLinks": ("POST", "/_sites/{site}/x/api/v1/site/check-links", "bearer+site"),
     "updateSiteAppearance": ("PATCH", "/_sites/{site}/x/api/v1/site/appearance", "bearer+site"),
     "updateSitePlatform": ("PATCH", "/_sites/{site}/x/api/v1/site/platform", "bearer+site"),
     "updateSiteAllowedBlocks": ("PATCH", "/_sites/{site}/x/api/v1/site/blocks", "bearer+site"),
@@ -649,6 +680,16 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "updateContentByIdOrSlug": (
         "PATCH",
         "/_sites/{site}/x/api/v1/content/{idOrSlug}",
+        "bearer+site",
+    ),
+    "listContentBlocks": (
+        "GET",
+        "/_sites/{site}/x/api/v1/content/{idOrSlug}/blocks",
+        "bearer+site",
+    ),
+    "updateContentBlocks": (
+        "PATCH",
+        "/_sites/{site}/x/api/v1/content/{idOrSlug}/blocks",
         "bearer+site",
     ),
     "listFiles": ("GET", "/_sites/{site}/x/api/v1/files", "bearer+site"),

@@ -224,7 +224,7 @@ async def create_site_from_skeleton(
     """Create a site pre-populated from an installed skeleton (API-REF §9).
 
     `name` defaults to the skeleton machine name; the skeleton's theme/description/license/pages
-    win over anything requested (verified Phase 2: online-course-clean-one yields 5 pages).
+    win over anything requested (verified Phase 2: online-course yields 5 pages).
     """
     skeleton_name = (skeleton or "").strip()
     if not skeleton_name:

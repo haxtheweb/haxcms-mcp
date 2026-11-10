@@ -95,15 +95,6 @@ PHP_PARITY_GAPS: dict[str, str] = {
     "tests/integration/test_p01_live_auth.py::test_repeated_wrong_passwords_are_rate_limited": (
         "PHP has no login rate limiter (12 wrong logins all answer 401)"
     ),
-    "tests/integration/test_p04_content_roundtrip.py::test_sanitisation_rewrites_are_exactly_the_documented_ones": (  # noqa: E501
-        "golden of the NodeJS saveNode sanitiser; PHP stores these attributes as sent"
-    ),
-    "tests/integration/test_p04_typed_blocks_live.py": (
-        "stored forms asserted per the NodeJS sanitiser golden"
-    ),
-    "tests/functional/test_p04_rebuild_tutorial_page.py": (
-        "asserts the NodeJS sanitiser's link rewrite"
-    ),
     "tests/integration/test_p05_files.py::test_file_lifecycle": (
         "PHP file responses carry no uuid"
     ),

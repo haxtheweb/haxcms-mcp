@@ -43,8 +43,8 @@ def stored_form(block_html: str) -> str:
     Every Core Block TAG survives storage unchanged; these forms are rewritten on save
     (GET body and on-disk file agree byte-for-byte):
 
-    * `target="_blank"` on `<a>` is dropped;
-    * `preserve-content` on `<template>` (code-sample) is dropped;
+    * `target="_blank"` on `<a>` and `preserve-content` on `<template>` (code-sample) are
+      KEPT (shared storage policy, haxtheweb/issues#3273; older builds dropped both);
     * the bare boolean `correct` on assessment `<input>`s is PRESERVED but re-serialised in
       the empty-value form `correct=""` (HAXcms main; older builds dropped it);
     * attribute VALUES are entity-decoded and re-escaped with only `&` and `"`: JSON
@@ -52,9 +52,7 @@ def stored_form(block_html: str) -> str:
       `&quot;` and raw `<p>` inside, `&lt;` inside plain values becomes raw `<`,
       while text nodes keep their escaping.
     """
-    out = block_html.replace(' target="_blank"', "")
-    out = out.replace(' preserve-content="preserve-content"', "")
-    out = re.sub(r" correct(?=>)", ' correct=""', out)
+    out = re.sub(r" correct(?=>)", ' correct=""', block_html)
     return _ATTR_RE.sub(_normalise_attr, out)
 
 

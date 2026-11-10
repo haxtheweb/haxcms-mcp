@@ -68,9 +68,9 @@ PARAGRAPHS = [
 ]
 
 LECTURE_LINK = '<a href="https://example.com/lecture">Watch it here.</a>'
-# saveNode sanitisation strips target="_blank" on save (live-verified T4.7 fact), so the
-# STORED page — and the disk file — hold the second link without it
-NOTES_LINK_STORED = '<a href="https://example.com/notes">Watch it here.</a>'
+# the storage sanitiser keeps target="_blank" (shared policy, haxtheweb/issues#3273), so
+# the STORED page — and the disk file — hold the second (new-tab) link exactly as sent
+NOTES_LINK_STORED = '<a href="https://example.com/notes" target="_blank">Watch it here.</a>'
 
 
 @pytest.fixture(scope="module")
@@ -262,7 +262,7 @@ async def test_tutorial_smoke_over_stdio(stdio: tuple[Client, Path], haxcms: Hax
         body = str(final["html"])
         assert LECTURE_LINK in body
         assert NOTES_LINK_STORED in body
-        assert 'target="_blank"' not in body  # stripped by saveNode sanitisation
+        assert body.count('target="_blank"') == 1  # only the new-tab link carries it
 
         contents = await client.read_resource(f"haxcms://sites/{SITE}/pages/{slug}")
         first = contents[0] if isinstance(contents, list | tuple) else contents

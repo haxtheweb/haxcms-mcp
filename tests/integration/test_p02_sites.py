@@ -109,12 +109,12 @@ async def test_theme_and_skeleton_reads(client: HaxcmsClient) -> None:
 
     skeletons = await sites_service.list_skeletons(client)
     names = [entry.machine_name for entry in skeletons]
-    assert "online-course-clean-one" in names
-    course = next(entry for entry in skeletons if entry.machine_name == "online-course-clean-one")
+    assert "online-course" in names
+    course = next(entry for entry in skeletons if entry.machine_name == "online-course")
     assert course.category == ["Course"]
     assert course.title == "Online Course"
 
-    detail = await sites_service.get_skeleton(client, "online-course-clean-one")
+    detail = await sites_service.get_skeleton(client, "online-course")
     assert detail.meta.title == "Online Course"
     assert detail.site["theme"] == "clean-one"
     items = detail.build.get("items")
@@ -130,9 +130,7 @@ async def test_create_from_skeleton_builds_the_journey_pages(
 ) -> None:
     name = f"p2-sk-{SUFFIX}"
     try:
-        detail = await sites_service.create_site_from_skeleton(
-            client, "online-course-clean-one", name
-        )
+        detail = await sites_service.create_site_from_skeleton(client, "online-course", name)
         assert detail.name == name
         # the skeleton's description and pages win (verified: 5 pages, course description)
         assert detail.page_count == 5

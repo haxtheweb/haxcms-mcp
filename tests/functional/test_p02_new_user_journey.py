@@ -68,12 +68,12 @@ async def test_new_user_creates_their_first_sites(
         categories = {tuple(entry.get("category") or ()) for entry in skeletons["skeletons"]}
         assert any("Course" in category for category in categories)
 
-        skeleton = await mcp.call("get_skeleton", skeleton="online-course-clean-one")
+        skeleton = await mcp.call("get_skeleton", skeleton="online-course")
         assert skeleton["meta"]["title"] == "Online Course"
 
         journey = await mcp.call(
             "create_site_from_skeleton",
-            skeleton="online-course-clean-one",
+            skeleton="online-course",
             name=SKELETON_SITE,
         )
         created.append(journey["name"])

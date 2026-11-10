@@ -1,11 +1,26 @@
 # Keeps the SHA-pinned actions and the uv lock current (security audit, October 2026).
+# Grouped so each weekly run opens at most three PRs (actions, uv dev, uv prod)
+# instead of one PR per package. Security updates are still raised individually.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: uv
     directory: /
     schedule:
       interval: weekly
+    groups:
+      uv-dev:
+        dependency-type: development
+        patterns:
+          - "*"
+      uv-prod:
+        dependency-type: production
+        patterns:
+          - "*"

@@ -19,6 +19,8 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Changed
 
+- The nightly upstream-drift workflow also runs the live suites against a fresh HAXcms PHP
+  `master`, as its own job (`workflow_dispatch` takes `haxcms_php_ref`).
 - Token refresh uses `POST /session/refresh` instead of the GET form: both backends are
   tightening GET refresh against browser CSRF, and POST is the stable path for non-browser
   clients.

@@ -86,6 +86,26 @@ def session_logout() -> Route:
     )
 
 
+def session_magic_link_confirm() -> Route:
+    """GET /system/api/v1/session/magic-link"""
+    return Route(
+        "sessionMagicLinkConfirm",
+        "GET",
+        "/system/api/v1/session/magic-link",
+        "none",
+    )
+
+
+def session_magic_link_consume() -> Route:
+    """POST /system/api/v1/session/magic-link"""
+    return Route(
+        "sessionMagicLinkConsume",
+        "POST",
+        "/system/api/v1/session/magic-link",
+        "none",
+    )
+
+
 def session_refresh_get() -> Route:
     """GET /system/api/v1/session/refresh - Refresh dashboard access token"""
     return Route(
@@ -936,6 +956,8 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "sessionAuthGet": ("GET", "/system/api/v1/session", "none"),
     "sessionAuthPost": ("POST", "/system/api/v1/session", "none"),
     "sessionLogout": ("POST", "/system/api/v1/session/logout", "none"),
+    "sessionMagicLinkConfirm": ("GET", "/system/api/v1/session/magic-link", "none"),
+    "sessionMagicLinkConsume": ("POST", "/system/api/v1/session/magic-link", "none"),
     "sessionRefreshGet": ("GET", "/system/api/v1/session/refresh", "none"),
     "sessionRefreshPost": ("POST", "/system/api/v1/session/refresh", "none"),
     "sessionUserGet": ("GET", "/system/api/v1/session/user", "bearer+user"),

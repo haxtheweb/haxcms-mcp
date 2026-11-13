@@ -19,6 +19,9 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Changed
 
+- Vendored specs re-synced from haxcms-nodejs `main` (5efebfc8; identical to haxcms-php): adds
+  the magic-link session routes and `replaceFileContent`, and `listEntityDescriptors` now
+  declares the site-token auth it enforces. No tool behavior changes.
 - `scripts/gen_tools.py` takes the spec version in the generated header from `specs/VERSION`
   instead of a hard-coded `26.8.1`, so a release that re-syncs the specs labels it correctly.
 - The nightly upstream-drift workflow also runs the live suites against a fresh HAXcms PHP

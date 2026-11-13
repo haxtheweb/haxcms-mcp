@@ -468,7 +468,27 @@ paths:
       tags:
         - site
       operationId: updateSiteOutline
-      summary: Update site outline structure as a single atomic operation
+      summary: Update site outline structure, page contents and deletions in one request
+      description: |
+        The whole payload is validated before anything is written. `items`
+        must be an array of objects, each with an `id` that is a non-blank
+        string (a new page sends a client id; idMap maps it to the id the
+        server gives the page). Ids are opaque and kept exactly as sent (never
+        trimmed); a number is not an id. Page ids in the site's own site.json
+        are strings too: a site.json written with integer ids is read as
+        their strings (7 becomes "7"). A new page's id may appear only once,
+        and no page may become its own ancestor (the site's parents with the
+        sent ones applied); an invalid payload answers 400 and changes
+        nothing. An existing id sent twice is one page (the last entry wins);
+        a parent that does not exist puts the page at the top level.
+
+        The save is checkpointed, not atomic as a whole: the new structure
+        (titles, parents, order, new pages) is written to site.json in one
+        write, then page contents, duplicates and deletions are applied. A
+        failure after that write answers an error and leaves the new
+        structure saved. Every site.json write is atomic (a temp file renamed
+        over it), so a failed write leaves the previous site.json as it was,
+        and a failed save leaves no page folder that site.json does not list.
       security:
         - bearerAuth: []
           siteTokenHeader: []
@@ -518,6 +538,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
   /x/api/v1/site/normalize-slugs:
     post:
       tags:
@@ -654,6 +676,14 @@ paths:
         Optional ?scope=site|system filters the merged set by scope. Each
         descriptor mirrors the extended EntityDescriptor schema, including the
         storage block that declares how the entity is (or will be) persisted.
+        The merged set and ?scope= filtering are for a signed-in caller that
+        also sends this site's X-HAXCMS-Site-Token. Any other caller gets the
+        site-scope descriptors only, whatever ?scope= asks for. A bearer token
+        without a valid X-HAXCMS-Site-Token for this site is refused with 403.
+      security:
+        - bearerAuth: []
+          siteTokenHeader: []
+        - {}
       parameters:
         - name: scope
           in: query
@@ -661,7 +691,10 @@ paths:
           schema:
             type: string
             enum: [site, system]
-          description: Filter the merged descriptor set by scope.
+          description: >
+            Filter the merged descriptor set by scope (signed-in callers with
+            this site's X-HAXCMS-Site-Token only; other callers always get
+            site scope).
       responses:
         "200":
           description: Entity descriptor collection
@@ -674,6 +707,8 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/EntityCollection"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
   /x/api/v1/schemas:
@@ -773,7 +808,10 @@ paths:
                 The back-end requires either a non-empty items array (bulk
                 create, e.g. docx import) or a node object (single page
                 create); site.name is injected by the v1 wrapper from the
-                request path when omitted.
+                request path when omitted. An empty items array is not a bulk
+                payload (the node is created instead), and an items array
+                whose entries are all marked delete creates nothing and
+                answers 400.
               properties:
                 site:
                   $ref: "#/components/schemas/SiteReference"
@@ -1994,6 +2032,55 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /x/api/v1/files/{fileUuid}/content:
+    post:
+      tags:
+        - files
+      operationId: replaceFileContent
+      summary: Replace an image's contents, keeping its uuid, path and name
+      description: >-
+        Replaces a JPG, PNG or WebP image with an uploaded raster image (for
+        example a crop made in the browser). The server re-encodes the upload
+        into the existing file's own format, so every page that uses the file
+        shows the new image. Animated and vector images are not accepted.
+      security:
+        - bearerAuth: []
+          siteTokenHeader: []
+      parameters:
+        - $ref: "#/components/parameters/FileUuid"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                upload:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Replaced file result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiEnvelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        additionalProperties: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /x/api/v1/tags:
     get:
       tags:
@@ -2924,6 +3011,12 @@ components:
             $ref: "#/components/schemas/ApiError"
     NotFound:
       description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    ServerError:
+      description: The request failed on the server (for example a write that could not be completed); nothing was saved past the last completed write
       content:
         application/json:
           schema:
@@ -4166,7 +4259,17 @@ components:
       properties:
         field:
           type: string
-          enum: ["title", "description", "slug", "parent", "order", "published", "hideInMenu", "locked"]
+          enum:
+            [
+              "title",
+              "description",
+              "slug",
+              "parent",
+              "order",
+              "published",
+              "hideInMenu",
+              "locked",
+            ]
           description: description only appears in compareItemRevisions results
         from:
           type: string

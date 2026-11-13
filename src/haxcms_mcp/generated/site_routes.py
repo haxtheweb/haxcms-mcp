@@ -182,7 +182,7 @@ def list_entity_descriptors(site: str) -> Route:
         "listEntityDescriptors",
         "GET",
         f"/_sites/{q(site)}/x/api/v1/entities",
-        "none",
+        "bearer+site",
     )
 
 
@@ -418,6 +418,16 @@ def delete_file_by_uuid(site: str, file_uuid: str) -> Route:
     )
 
 
+def replace_file_content(site: str, file_uuid: str) -> Route:
+    """POST /x/api/v1/files/{fileUuid}/content"""
+    return Route(
+        "replaceFileContent",
+        "POST",
+        f"/_sites/{q(site)}/x/api/v1/files/{q(file_uuid)}/content",
+        "bearer+site",
+    )
+
+
 def list_tags(site: str) -> Route:
     """GET /x/api/v1/tags - List tags and frequencies"""
     return Route(
@@ -645,7 +655,7 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
         "/_sites/{site}/x/api/v1/items/{idOrSlug}/export/{format}",
         "none",
     ),
-    "listEntityDescriptors": ("GET", "/_sites/{site}/x/api/v1/entities", "none"),
+    "listEntityDescriptors": ("GET", "/_sites/{site}/x/api/v1/entities", "bearer+site"),
     "listSchemas": ("GET", "/_sites/{site}/x/api/v1/schemas", "none"),
     "listItems": ("GET", "/_sites/{site}/x/api/v1/items", "none"),
     "createItem": ("POST", "/_sites/{site}/x/api/v1/items", "bearer+site"),
@@ -697,6 +707,11 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "getFileByUuid": ("GET", "/_sites/{site}/x/api/v1/files/{fileUuid}", "bearer+site"),
     "updateFileByUuid": ("PATCH", "/_sites/{site}/x/api/v1/files/{fileUuid}", "bearer+site"),
     "deleteFileByUuid": ("DELETE", "/_sites/{site}/x/api/v1/files/{fileUuid}", "bearer+site"),
+    "replaceFileContent": (
+        "POST",
+        "/_sites/{site}/x/api/v1/files/{fileUuid}/content",
+        "bearer+site",
+    ),
     "listTags": ("GET", "/_sites/{site}/x/api/v1/tags", "none"),
     "searchContent": ("GET", "/_sites/{site}/x/api/v1/search", "bearer"),
     "listCustomElements": ("GET", "/_sites/{site}/x/api/v1/custom-elements", "none"),

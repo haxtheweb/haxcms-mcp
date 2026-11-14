@@ -19,6 +19,8 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Changed
 
+- Minimum versions for three packages FastMCP pulls in (`authlib`, `joserfc`, `dnspython`), so
+  an install resolves to releases with no known advisory.
 - Vendored specs re-synced from haxcms-nodejs `main` (5efebfc8; identical to haxcms-php): adds
   the magic-link session routes and `replaceFileContent`, and `listEntityDescriptors` now
   declares the site-token auth it enforces. No tool behavior changes.

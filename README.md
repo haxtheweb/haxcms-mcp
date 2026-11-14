@@ -8,6 +8,8 @@
 
 # haxcms-mcp
 
+<!-- mcp-name: io.github.haxtheweb/haxcms-mcp -->
+
 An MCP (Model Context Protocol) server that lets an AI agent operate a self-hosted
 [HAXcms NodeJS](https://github.com/haxtheweb/haxcms-nodejs) instance the way a human author does
 through the HAX dashboard and editor: create and manage sites, build outlines, author page content
@@ -38,10 +40,10 @@ git clone https://github.com/haxtheweb/haxcms-mcp && cd haxcms-mcp
 uv tool install .
 
 # or straight from git
-uv tool install git+<repo-url>
+uv tool install git+https://github.com/haxtheweb/haxcms-mcp
 
 # or run it once without installing
-uvx --from git+<repo-url> haxcms-mcp
+uvx --from git+https://github.com/haxtheweb/haxcms-mcp haxcms-mcp
 ```
 
 `uv tool install` puts the `haxcms-mcp` command on your PATH.
@@ -180,7 +182,31 @@ Add to `claude_desktop_config.json` (stdio; env carries the credentials):
 ```
 
 If `haxcms-mcp` is not on the PATH Desktop sees, use the absolute path (`uv tool dir` shows where
-tools live) or `"command": "uvx", "args": ["--from", "git+<repo-url>", "haxcms-mcp"]`.
+tools live) or `"command": "uvx", "args": ["--from", "git+https://github.com/haxtheweb/haxcms-mcp", "haxcms-mcp"]`.
+
+### Other agents
+
+Any MCP client that starts a stdio server takes the same command and environment. The usual
+`mcpServers` entry (Cursor, VS Code, Windsurf, Cline and others use this shape):
+
+```json
+{
+  "mcpServers": {
+    "haxcms": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/haxtheweb/haxcms-mcp", "haxcms-mcp"],
+      "env": {
+        "HAXCMS_MCP_BASE_URL": "http://localhost:3000",
+        "HAXCMS_MCP_USERNAME": "admin",
+        "HAXCMS_MCP_PASSWORD": "secret"
+      }
+    }
+  }
+}
+```
+
+[`server.json`](server.json) describes the server for MCP registries;
+[`docs/registries.md`](docs/registries.md) says where it is listed and how a listing is made.
 
 ## Supported HAXcms
 

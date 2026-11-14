@@ -3,6 +3,8 @@ name = "haxcms-mcp"
 version = "0.1.0"
 description = "MCP server that lets an AI agent operate a self-hosted HAXcms NodeJS instance like a human author."
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
     { name = "Trivi Sunil", email = "120649138+Cloudhoppr@users.noreply.github.com" }
 ]

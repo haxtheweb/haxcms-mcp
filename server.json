@@ -1,0 +1,56 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.haxtheweb/haxcms-mcp",
+  "title": "HAXcms",
+  "description": "Build and edit self-hosted HAXcms sites: outlines, pages, blocks, files, themes, imports, exports.",
+  "websiteUrl": "https://haxtheweb.org/",
+  "repository": {
+    "url": "https://github.com/haxtheweb/haxcms-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "haxcms-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "HAXCMS_MCP_BASE_URL",
+          "description": "Root URL of the running HAXcms instance, for example http://localhost:3000",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "HAXCMS_MCP_USERNAME",
+          "description": "HAXcms user to sign in as. Leave unset to have the agent call the login tool",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "HAXCMS_MCP_PASSWORD",
+          "description": "Password for HAXCMS_MCP_USERNAME",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "HAXCMS_MCP_DEFAULT_SITE",
+          "description": "Site used by site-scoped tools when no site argument is passed",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "HAXCMS_MCP_READ_ONLY",
+          "description": "Set to true to reject every tool that changes anything",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

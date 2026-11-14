@@ -1,0 +1,76 @@
+name: Compliance
+
+# Dependency licenses and known advisories for everything `uv sync` installs.
+#
+# pull_request and push: licenses fail the run (a new dependency whose license cannot ship
+# with an Apache-2.0 project must not merge); advisories are reported in the job summary
+# without failing, so an advisory published against an existing dependency does not block
+# unrelated work.
+#
+# schedule (weekly, Sunday) and workflow_dispatch: both fail the run. An advisory failure
+# is the signal to raise a floor in pyproject.toml and relock.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 22 * * 0" # weekly, Sunday 22:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  licenses:
+    name: Dependency licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync
+      - name: Check project and dependency licenses
+        run: uv run python scripts/check_licenses.py
+
+  advisories:
+    name: Known advisories (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Export the locked dependencies
+        run: uv export --no-hashes --no-emit-project --output-file requirements-audit.txt
+      - name: Audit
+        env:
+          REPORT_ONLY: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+        run: |
+          set +e
+          uvx pip-audit==2.10.1 -r requirements-audit.txt --no-deps --disable-pip > audit.txt 2>&1
+          status=$?
+          {
+            echo '### Known advisories in the locked dependencies'
+            echo '```'
+            tail -n 60 audit.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat audit.txt
+          if [ "$status" -ne 0 ] && [ "$REPORT_ONLY" = "true" ]; then
+            echo "::warning title=Dependency advisories::pip-audit found known advisories (reported only on pushes and pull requests)."
+            exit 0
+          fi
+          exit "$status"

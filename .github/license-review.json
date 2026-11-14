@@ -1,0 +1,20 @@
+{
+  "about": "Dependencies a maintainer reviewed and accepted although scripts/check_licenses.py flags their license. Each entry: {\"name\": \"<package>\", \"license\": \"<exact license string the check reports>\", \"reason\": \"<why it is acceptable>\"}.",
+  "reviewed": [
+    {
+      "name": "certifi",
+      "license": "Mozilla Public License 2.0 (MPL 2.0)",
+      "reason": "Mozilla's CA certificate bundle, used unmodified as a separate package for TLS verification. MPL-2.0 applies per file and puts no terms on this project's own code."
+    },
+    {
+      "name": "fpdf2",
+      "license": "LGPL-3.0-only",
+      "reason": "Development only: builds PDF fixtures for the test suite. It is not a runtime dependency and is not installed with the package."
+    },
+    {
+      "name": "pathspec",
+      "license": "Mozilla Public License 2.0 (MPL 2.0)",
+      "reason": "Development only: pulled in by mypy. It is not a runtime dependency and is not installed with the package."
+    }
+  ]
+}

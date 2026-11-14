@@ -17,6 +17,13 @@ hand-written from `git log` for the initial release (PLAN T9.6).
   `HAXCMS_DISABLE_JWT_CHECKS` no longer lets the server bypass `mcp.enabled: false` or
   `mcp.readOnly: true`.
 
+### Added
+
+- The package declares its license (`Apache-2.0`) in its metadata, so installers and license
+  scanners no longer report it as unknown.
+- CI checks dependency licenses (`scripts/check_licenses.py`) and known advisories
+  (`pip-audit`), and runs CodeQL on the Python source and the workflows.
+
 ### Changed
 
 - Minimum versions for three packages FastMCP pulls in (`authlib`, `joserfc`, `dnspython`), so

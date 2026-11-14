@@ -1,0 +1,6 @@
+name: "haxtheweb/haxcms-mcp CodeQL config"
+
+# tests/ spawns throwaway HAXcms instances with fixture credentials and is not
+# part of the installed package.
+paths-ignore:
+  - tests/**

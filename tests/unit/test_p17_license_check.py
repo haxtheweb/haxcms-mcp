@@ -63,4 +63,3 @@ def test_everything_else_needs_a_review(license_string: str) -> None:
 
 def test_the_project_declares_apache_2() -> None:
     assert check_licenses.project_problems() == []
-

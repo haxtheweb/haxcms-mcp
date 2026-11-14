@@ -14,6 +14,11 @@ dependencies = [
     # certifi PYSEC-2026-4320 (distrusted emSign root)
     "opentelemetry-api>=1.45.1",
     "certifi>=2026.10.19",
+    # pulled in by fastmcp's auth and email extras; floors keep them on
+    # releases with no known advisory (pip-audit reports none)
+    "authlib>=1.9.1",
+    "joserfc>=1.7.6",
+    "dnspython>=2.9.2",
     "httpx>=0.27",
     "pydantic>=2",
     "pydantic-settings>=2",

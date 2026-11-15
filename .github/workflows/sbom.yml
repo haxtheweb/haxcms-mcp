@@ -1,0 +1,61 @@
+name: sbom
+# CycloneDX SBOM for the haxcms-mcp Python package, generated from uv.lock
+# (haxtheweb/issues#3092), runtime dependencies only. Same shape as the other
+# HAX repos' SBOM workflows:
+#  - pull_request (dependency changes) / push / workflow_dispatch: generate and
+#    upload as a workflow artifact
+#  - release published: additionally attach sbom.cdx.json to that GitHub release
+# `uv export` reads the lockfile, so nothing is installed and no package code runs.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/sbom.yml"
+  workflow_dispatch:
+  release:
+    types: [published]
+permissions:
+  contents: read
+jobs:
+  generate:
+    name: Generate CycloneDX SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Generate SBOM (runtime dependencies only)
+        run: uv export --frozen --no-dev --format cyclonedx1.5 --output-file "$RUNNER_TEMP/sbom.cdx.json"
+      - name: Show SBOM summary
+        run: |
+          python3 -I -c 'import json, os; d = json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "sbom.cdx.json"))); print(d["bomFormat"], d["specVersion"] + ":", len(d.get("components", [])), "components")'
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-cyclonedx
+          path: ${{ runner.temp }}/sbom.cdx.json
+          if-no-files-found: error
+
+  attach:
+    name: Attach SBOM to release
+    if: github.event_name == 'release'
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # required to upload release assets; only this job has it
+    steps:
+      - name: Download SBOM artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sbom-cyclonedx
+      - name: Upload SBOM to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          REPO: ${{ github.repository }}
+        run: gh release upload "$TAG" sbom.cdx.json --repo "$REPO" --clobber

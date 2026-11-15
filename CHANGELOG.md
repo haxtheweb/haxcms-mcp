@@ -7,6 +7,14 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ## [Unreleased]
 
+### CI
+
+- The live suites run against haxcms-nodejs on Node.js 22, 24 and 26 and against haxcms-php on PHP
+  8.3, 8.4, 8.5 and 8.6 (8.6 report-only until its GA), the versions those backends support; unit,
+  lint and mypy also run on Python 3.14.
+- A CycloneDX SBOM of the runtime dependencies (from `uv.lock`) is built on dependency changes and
+  attached to each release; OSSF Scorecard runs weekly and on pushes to `main`.
+
 ### Fixed
 
 - `whoami` no longer forwards the HAXcms session body verbatim: that body echoes the bearer

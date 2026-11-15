@@ -129,16 +129,19 @@ async def test_create_from_skeleton_builds_the_journey_pages(
     client: HaxcmsClient, haxcms: HaxcmsRuntime
 ) -> None:
     name = f"p2-sk-{SUFFIX}"
+    # expectations come from the skeleton itself, so upstream can reword its pages freely
+    skeleton = await sites_service.get_skeleton(client, "online-course")
+    outline = [item["title"] for item in skeleton.build["items"]]
+    assert outline
     try:
         detail = await sites_service.create_site_from_skeleton(client, "online-course", name)
         assert detail.name == name
-        # the skeleton's description and pages win (verified: 5 pages, course description)
-        assert detail.page_count == 5
-        assert detail.counts is not None and detail.counts.items == 5
-        assert "online course" in detail.description.lower()
+        # the skeleton's description and pages win over the defaults
+        assert detail.page_count == len(outline)
+        assert detail.counts is not None and detail.counts.items == len(outline)
+        assert detail.description == skeleton.site["description"]
         titles = public_titles(haxcms.base_url, name)
-        assert "Syllabus" in titles
-        assert any(title.startswith("Lesson 1") for title in titles)
+        assert set(outline) <= set(titles), (outline, titles)
     finally:
         with contextlib.suppress(HaxcmsMcpError):
             await sites_service.archive_site(client, name)

@@ -1,7 +1,7 @@
 # Listing haxcms-mcp in MCP registries
 
 Agents and their users find MCP servers through registries. This page says what a listing needs
-and what is still missing. Nothing here is automated yet.
+and what is still missing. Publishing to PyPI has a manual workflow; the registry entry does not.
 
 ## What is in the repository
 
@@ -18,8 +18,20 @@ and what is still missing. Nothing here is automated yet.
 be somewhere it can check. For a Python server that is PyPI.
 
 1. **Publish the package to PyPI as `haxcms-mcp`.** It is not there yet (the name was free on
-   2026-11-14). `uv build && uv publish`, ideally from a release workflow with PyPI trusted
-   publishing so no token is stored. The published README must contain the `mcp-name` line.
+   2026-11-14). [`.github/workflows/release.yml`](../.github/workflows/release.yml) does it with
+   PyPI trusted publishing, so no token is stored. It runs only by hand:
+   1. Once, on PyPI: add a pending publisher with owner `haxtheweb`, repository `haxcms-mcp`,
+      workflow `release.yml`, environment `pypi`. Until then the workflow's publish step fails
+      and nothing is uploaded.
+   2. Optionally, in GitHub (Settings > Environments > `pypi`), add required reviewers so a
+      publish waits for approval.
+   3. Make sure `pyproject.toml` and both versions in `server.json` hold the new version, then
+      run **Release to PyPI** from the Actions tab and type that version. The workflow refuses
+      if the three disagree, runs lint and unit tests, builds, checks that the package README
+      carries the `mcp-name` line, and publishes.
+
+   PyPI never lets a version be replaced: a fix after publishing needs a new version number.
+   Tags and GitHub Releases (including the HAX ubiquity tags) do not trigger this workflow.
 2. **Set the version** in `server.json` (both places) to the version just published.
 3. **Publish the entry** with the registry's CLI:
 

@@ -63,13 +63,16 @@ async def test_new_user_creates_their_first_sites(
         assert "clean-one" in machines
         assert themes["count"] == len(themes["themes"])
 
-        # 4. skeletons are the ready-made journeys; the course one builds Syllabus + Lesson pages
+        # 4. skeletons are the ready-made journeys; the course one builds its lesson pages
         skeletons = await mcp.call("list_skeletons")
         categories = {tuple(entry.get("category") or ()) for entry in skeletons["skeletons"]}
         assert any("Course" in category for category in categories)
 
         skeleton = await mcp.call("get_skeleton", skeleton="online-course")
         assert skeleton["meta"]["title"] == "Online Course"
+        # checked against the skeleton itself, so its wording can change in HAXcms
+        skeleton_titles = [item["title"] for item in skeleton["build"]["items"]]
+        assert skeleton_titles
 
         journey = await mcp.call(
             "create_site_from_skeleton",
@@ -78,16 +81,16 @@ async def test_new_user_creates_their_first_sites(
         )
         created.append(journey["name"])
         assert journey["name"] == SKELETON_SITE
-        assert journey["page_count"] == 5
+        assert journey["page_count"] == len(skeleton_titles)
         titles = public_titles(haxcms.base_url, SKELETON_SITE)
-        assert "Syllabus" in titles
+        assert set(skeleton_titles) <= set(titles)
         assert any(title.startswith("Lesson 1") for title in titles)
 
         # 5. cloning makes an editable copy under a new name
         cloned = await mcp.call("clone_site", site=SKELETON_SITE)
         created.append(cloned["name"])
         assert cloned["name"] != SKELETON_SITE
-        assert cloned["site"]["page_count"] == 5
+        assert cloned["site"]["page_count"] == len(skeleton_titles)
     finally:
         # 6. archiving removes the sites from the listing (destructive tool path)
         for name in created:

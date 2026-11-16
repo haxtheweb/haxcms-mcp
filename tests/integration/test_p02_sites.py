@@ -129,15 +129,23 @@ async def test_create_from_skeleton_builds_the_journey_pages(
     client: HaxcmsClient, haxcms: HaxcmsRuntime
 ) -> None:
     name = f"p2-sk-{SUFFIX}"
+    # what the skeleton holds is checked against the skeleton itself, so an
+    # edit to its pages or wording in HAXcms does not break this test
+    skeleton = await sites_service.get_skeleton(client, "online-course")
+    skeleton_items = skeleton.build.get("items")
+    assert isinstance(skeleton_items, list) and skeleton_items
+    skeleton_titles = [item["title"] for item in skeleton_items]
     try:
         detail = await sites_service.create_site_from_skeleton(client, "online-course", name)
         assert detail.name == name
-        # the skeleton's description and pages win (verified: 5 pages, course description)
-        assert detail.page_count == 5
-        assert detail.counts is not None and detail.counts.items == 5
-        assert "online course" in detail.description.lower()
+        # the skeleton's description and pages win
+        assert detail.page_count == len(skeleton_items)
+        assert detail.counts is not None and detail.counts.items == len(skeleton_items)
+        skeleton_description = skeleton.site.get("description")
+        if skeleton_description:
+            assert detail.description == skeleton_description
         titles = public_titles(haxcms.base_url, name)
-        assert "Syllabus" in titles
+        assert set(skeleton_titles) <= set(titles)
         assert any(title.startswith("Lesson 1") for title in titles)
     finally:
         with contextlib.suppress(HaxcmsMcpError):

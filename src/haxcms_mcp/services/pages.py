@@ -146,13 +146,9 @@ async def create_page(
     slugifies the title); the follow-up also sets `overridePathauto`, so the explicit slug
     survives later title changes.
     """
+    # a blank title (empty, white space, or the text "null") is not refused:
+    # the backend stores the default "New page", as every other surface does
     clean_title = (title or "").strip()
-    if not clean_title:
-        raise HaxcmsMcpError(
-            ErrorCode.INVALID_ARGUMENT,
-            "title must not be empty",
-            hint='the tutorial "Add > Page" creates a page titled "page"',
-        )
     items = await fetch_all_items(client, site)
     parent_id: str | None = None
     if parent is not None and str(parent).strip():
@@ -250,8 +246,7 @@ def build_detail_operations(
     (setTitle regenerates slugs only while `metadata.overridePathauto` is unset, and
     setSlug is what sets it).
     """
-    if title is not None and not title.strip():
-        raise HaxcmsMcpError(ErrorCode.INVALID_ARGUMENT, "title must not be empty")
+    # a blank title is sent as is; the backend stores the default "New page"
     if slug is not None and not slug.strip():
         raise HaxcmsMcpError(ErrorCode.INVALID_ARGUMENT, "slug must not be empty")
     candidates: list[tuple[str, dict[str, Any] | None]] = [

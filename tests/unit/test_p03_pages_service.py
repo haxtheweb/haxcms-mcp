@@ -170,20 +170,43 @@ async def test_update_page_details_nothing_to_update_is_rejected() -> None:
 
 
 @respx.mock
-async def test_update_page_details_rejects_blank_title_and_slug() -> None:
+async def test_update_page_details_sends_a_blank_title_and_rejects_a_blank_slug() -> None:
+    """A blank title goes to the backend, which stores "New page" as every other
+    surface does; a blank slug is still refused."""
     mock_auth()
     patch_route = respx.patch(url__regex=ITEM_RE).mock(
-        return_value=httpx.Response(200, json={"status": 200, "data": record("item-1")})
+        return_value=httpx.Response(200, json={"status": 200, "data": record("item-1", "New page")})
     )
 
     async with HaxcmsClient(make_settings()) as client:
-        with pytest.raises(HaxcmsMcpError) as excinfo:
-            await pages_service.update_page_details(client, "demo", "item-1", title="   ")
-        assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT
+        item = await pages_service.update_page_details(client, "demo", "item-1", title="   ")
+        assert item.title == "New page"
+        assert patch_route.call_count == 1
+        sent = json.loads(patch_route.calls.last.request.content)
+        assert sent["operation"] == "setTitle"
+        assert sent["title"] == ""
         with pytest.raises(HaxcmsMcpError) as excinfo:
             await pages_service.update_page_details(client, "demo", "item-1", slug="")
         assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT
-    assert patch_route.call_count == 0
+    assert patch_route.call_count == 1
+
+
+@respx.mock
+async def test_create_page_sends_a_blank_title_to_the_backend() -> None:
+    mock_auth()
+    respx.get(ITEMS_URL).mock(return_value=httpx.Response(200, json=items_body([])))
+    post_route = respx.post(ITEMS_URL).mock(
+        return_value=httpx.Response(
+            200, json={"status": 200, "data": record("item-new", "New page")}
+        )
+    )
+
+    async with HaxcmsClient(make_settings()) as client:
+        item = await pages_service.create_page(client, "demo", "  ")
+
+    sent = json.loads(post_route.calls.last.request.content)
+    assert sent["node"]["title"] == ""
+    assert item.title == "New page"
 
 
 def test_build_detail_operations_full_order() -> None:
@@ -356,21 +379,6 @@ async def test_create_page_unpublished_sends_metadata_and_set_published() -> Non
     body = json.loads(patch_route.calls.last.request.content)
     assert body == {"site": {"name": "demo"}, "operation": "setPublished", "published": False}
     assert item.published is False
-
-
-@respx.mock
-async def test_create_page_empty_title_rejected_before_any_request() -> None:
-    mock_auth()
-    post_route = respx.post(ITEMS_URL).mock(
-        return_value=httpx.Response(200, json={"status": 200, "data": record("item-new")})
-    )
-
-    async with HaxcmsClient(make_settings()) as client:
-        with pytest.raises(HaxcmsMcpError) as excinfo:
-            await pages_service.create_page(client, "demo", "   ")
-
-    assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT
-    assert post_route.call_count == 0
 
 
 @respx.mock

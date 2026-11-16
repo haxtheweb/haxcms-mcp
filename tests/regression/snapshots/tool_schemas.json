@@ -4058,7 +4058,7 @@
       "read_only_hint": false,
       "title": "Create site"
     },
-    "description": "Create a new blank site with one starting page.\n\n`name` must be a lowercase machine name: a-z, 0-9, - and _ only — names cannot contain\nspaces; use - or _ (for example `first-underscore-course`). If `name` is already taken\nthe server creates `<name>-1` instead and the result carries a warning — always read the\nreturned `name`. `theme` must be a machine name from list_themes (default `clean-one`);\nan unknown theme fails with INVALID_ARGUMENT before anything is written. `license` is a\nCreative Commons code (`by`, `by-sa`, `by-nd`, `by-nc`, `by-nc-sa`, `by-nc-nd`; default\n`by-sa`). Returns the created site's record — use its `name` for all later calls.",
+    "description": "Create a new blank site with one starting page.\n\nWithout `first_page_title` or `first_page_content` the site gets HAXcms's default first\npage, the same one the dashboard and the CLI give a new site. Give either to start with\nyour own page instead (title default `Home`, content default an empty paragraph).\n\n`name` must be a lowercase machine name: a-z, 0-9, - and _ only — names cannot contain\nspaces; use - or _ (for example `first-underscore-course`). If `name` is already taken\nthe server creates `<name>-1` instead and the result carries a warning — always read the\nreturned `name`. `theme` must be a machine name from list_themes (default `clean-one`);\nan unknown theme fails with INVALID_ARGUMENT before anything is written. `license` is a\nCreative Commons code (`by`, `by-sa`, `by-nd`, `by-nc`, `by-nc-sa`, `by-nc-nd`; default\n`by-sa`). Returns the created site's record — use its `name` for all later calls.",
     "parameters": {
       "additionalProperties": false,
       "properties": {
@@ -4067,12 +4067,26 @@
           "type": "string"
         },
         "first_page_content": {
-          "default": "<p></p>",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "first_page_title": {
-          "default": "Home",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "license": {
           "anyOf": [

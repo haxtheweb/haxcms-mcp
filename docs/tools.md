@@ -1031,8 +1031,8 @@ Create a new blank site with one starting page.
 | `description` | string | no | "" |
 | `theme` | string | no | "clean-one" |
 | `license` | string \| null | no | null |
-| `first_page_title` | string | no | "Home" |
-| `first_page_content` | string | no | "<p></p>" |
+| `first_page_title` | string \| null | no | null |
+| `first_page_content` | string \| null | no | null |
 
 ## `create_site_from_document`
 

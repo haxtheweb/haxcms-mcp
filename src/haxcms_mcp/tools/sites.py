@@ -47,10 +47,14 @@ def register_sites_tools(mcp: FastMCP, settings: Settings, client: HaxcmsClient)
         description: str = "",
         theme: str = "clean-one",
         license: str | None = None,
-        first_page_title: str = "Home",
-        first_page_content: str = "<p></p>",
+        first_page_title: str | None = None,
+        first_page_content: str | None = None,
     ) -> dict[str, Any]:
         """Create a new blank site with one starting page.
+
+        Without `first_page_title` or `first_page_content` the site gets HAXcms's default first
+        page, the same one the dashboard and the CLI give a new site. Give either to start with
+        your own page instead (title default `Home`, content default an empty paragraph).
 
         `name` must be a lowercase machine name: a-z, 0-9, - and _ only — names cannot contain
         spaces; use - or _ (for example `first-underscore-course`). If `name` is already taken

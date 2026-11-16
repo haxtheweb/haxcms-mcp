@@ -215,8 +215,8 @@ async def test_create_site_happy_path() -> None:
     sent = json.loads(create_route.calls.last.request.content)
     assert sent["site"]["name"] == "demo"
     assert sent["site"]["license"] == "by-sa"
-    assert sent["build"]["items"][0]["title"] == "Home"
-    assert "skeletonMachineName" not in sent["build"]
+    # no first-page arguments: no build, HAXcms gives the default first page
+    assert "build" not in sent
 
 
 @respx.mock

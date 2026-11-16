@@ -1,0 +1,99 @@
+name: Release to PyPI
+
+# Manual only: nothing publishes until someone runs this workflow from the Actions tab and types
+# the version. Tags and GitHub Releases (including the HAX ubiquity tags) never trigger it.
+#
+# Uses PyPI trusted publishing, so no token is stored in the repository. It does nothing useful
+# until a maintainer adds the publisher on PyPI (owner haxtheweb, repository haxcms-mcp, workflow
+# release.yml, environment pypi); before that the publish step fails and nothing is uploaded.
+# See docs/registries.md.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish; must equal pyproject.toml and server.json (e.g. 0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-pypi
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Check and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Versions agree
+        env:
+          WANTED: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import json, os, sys, tomllib
+          wanted = os.environ["WANTED"].strip()
+          project = tomllib.load(open("pyproject.toml", "rb"))["project"]["version"]
+          server = json.load(open("server.json"))
+          found = {
+              "pyproject.toml": project,
+              "server.json version": server["version"],
+              "server.json packages[0].version": server["packages"][0]["version"],
+          }
+          bad = {k: v for k, v in found.items() if v != wanted}
+          if bad:
+              sys.exit(f"Requested {wanted}, but these differ: {bad}")
+          print(f"All versions are {wanted}")
+          PY
+      - name: Lint and unit tests
+        run: |
+          uv sync
+          uv run ruff check .
+          uv run pytest -m unit
+      - name: Build
+        run: uv build
+      - name: The README in the package carries the registry ownership line
+        run: |
+          python - <<'PY'
+          import glob, sys, zipfile
+          wheel = glob.glob("dist/*.whl")[0]
+          with zipfile.ZipFile(wheel) as z:
+              meta = next(n for n in z.namelist() if n.endswith(".dist-info/METADATA"))
+              text = z.read(meta).decode()
+          if "mcp-name: io.github.haxtheweb/haxcms-mcp" not in text:
+              sys.exit("The wheel's long description lacks the mcp-name line the MCP Registry checks")
+          print("mcp-name line present")
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    # A GitHub environment, so publishing can require a reviewer's approval
+    # (Settings > Environments > pypi > Required reviewers).
+    environment:
+      name: pypi
+      url: https://pypi.org/project/haxcms-mcp/${{ inputs.version }}/
+    permissions:
+      id-token: write  # trusted publishing; nothing else
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Publish
+        run: uv publish --trusted-publishing always dist/*

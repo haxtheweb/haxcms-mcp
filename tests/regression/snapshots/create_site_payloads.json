@@ -29,26 +29,6 @@
     }
   },
   "blank_defaults": {
-    "build": {
-      "items": [
-        {
-          "content": "<p></p>",
-          "id": "item-home-golden",
-          "indent": 0,
-          "metadata": {
-            "hideInMenu": false,
-            "published": true,
-            "tags": []
-          },
-          "order": 0,
-          "parent": null,
-          "slug": "home",
-          "title": "Home"
-        }
-      ],
-      "structure": "from-skeleton",
-      "type": "skeleton"
-    },
     "site": {
       "description": "",
       "domain": null,

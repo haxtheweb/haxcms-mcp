@@ -80,14 +80,17 @@ def build_create_payload(
     theme: str = DEFAULT_THEME,
     license: str = DEFAULT_LICENSE,
     skeleton: str | None = None,
-    first_page_title: str = DEFAULT_PAGE_TITLE,
-    first_page_content: str = DEFAULT_PAGE_CONTENT,
+    first_page_title: str | None = None,
+    first_page_content: str | None = None,
     home_id: str | None = None,
 ) -> dict[str, Any]:
     """The `POST sites` body (pure function — regression-goldened).
 
-    Blank site: ``build.items`` holds one home item. Skeleton site: ``build.skeletonMachineName``
-    and NO items — the skeleton's theme/description/license/pages win over the request.
+    Blank site with no first-page arguments: NO ``build`` — HAXcms gives the site its default
+    first page (the default-starter skeleton's), the same one the dashboard and the CLI get.
+    Blank site with a first page title or content: ``build.items`` holds one home item.
+    Skeleton site: ``build.skeletonMachineName`` and NO items — the skeleton's
+    theme/description/license/pages win over the request.
     """
     site: dict[str, Any] = {
         "name": name,
@@ -96,11 +99,19 @@ def build_create_payload(
         "license": license,
         "domain": None,
     }
+    if skeleton is None and first_page_title is None and first_page_content is None:
+        return {"site": site}
     build: dict[str, Any] = {"type": "skeleton", "structure": "from-skeleton"}
     if skeleton is not None:
         build["skeletonMachineName"] = skeleton
     else:
-        build["items"] = [build_home_item(first_page_title, first_page_content, item_id=home_id)]
+        build["items"] = [
+            build_home_item(
+                DEFAULT_PAGE_TITLE if first_page_title is None else first_page_title,
+                DEFAULT_PAGE_CONTENT if first_page_content is None else first_page_content,
+                item_id=home_id,
+            )
+        ]
     return {"site": site, "build": build}
 
 
@@ -162,8 +173,8 @@ async def create_site(
     theme: str = DEFAULT_THEME,
     license: str | None = None,
     skeleton: str | None = None,
-    first_page_title: str = DEFAULT_PAGE_TITLE,
-    first_page_content: str = DEFAULT_PAGE_CONTENT,
+    first_page_title: str | None = None,
+    first_page_content: str | None = None,
 ) -> SiteDetail:
     """Create a site and return its merged detail record (API-REF §3.3).
 

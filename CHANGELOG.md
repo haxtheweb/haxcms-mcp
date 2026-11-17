@@ -27,6 +27,9 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Added
 
+- A manual **Release to PyPI** workflow (`.github/workflows/release.yml`) publishes the package
+  with PyPI trusted publishing once a maintainer sets up the publisher; see
+  `docs/registries.md`. Nothing runs it automatically.
 - `server.json` describes the server for MCP registries, and `docs/registries.md` lists the
   steps to publish a listing. The install commands in the README now carry the repository URL
   instead of a placeholder, and there is a copy-paste `mcpServers` entry for other agents.

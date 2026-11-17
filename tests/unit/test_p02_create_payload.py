@@ -13,16 +13,22 @@ from haxcms_mcp.services.sites import build_create_payload, build_home_item
 pytestmark = pytest.mark.unit
 
 
-def test_blank_payload_defaults() -> None:
+def test_blank_payload_defaults_send_no_build() -> None:
+    # no first-page arguments: HAXcms gives the site its default first page
     payload = build_create_payload("demo", home_id="item-home-fixed")
-    site = payload["site"]
-    assert site == {
-        "name": "demo",
-        "description": "",
-        "theme": "clean-one",
-        "license": "by-sa",
-        "domain": None,
+    assert payload == {
+        "site": {
+            "name": "demo",
+            "description": "",
+            "theme": "clean-one",
+            "license": "by-sa",
+            "domain": None,
+        }
     }
+
+
+def test_blank_payload_with_a_first_page_title_builds_one_home_item() -> None:
+    payload = build_create_payload("demo", first_page_title="Home", home_id="item-home-fixed")
     build = payload["build"]
     assert build["type"] == "skeleton"
     assert build["structure"] == "from-skeleton"

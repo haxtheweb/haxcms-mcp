@@ -3,7 +3,7 @@
 "As a new user I create my first site" — expressed only through Tool calls against the live
 instance: the human name fails with the machine-name hint, the corrected name succeeds with one
 configurable starting page, themes are discoverable, and the online-course skeleton produces the
-Syllabus/Lesson journey pages. Ends by archiving through the tool (destructive path included).
+journey pages its skeleton lists. Ends by archiving through the tool (destructive path included).
 """
 
 from __future__ import annotations
@@ -63,13 +63,16 @@ async def test_new_user_creates_their_first_sites(
         assert "clean-one" in machines
         assert themes["count"] == len(themes["themes"])
 
-        # 4. skeletons are the ready-made journeys; the course one builds Syllabus + Lesson pages
+        # 4. skeletons are the ready-made journeys; the course one builds the pages its outline
+        #    lists (titles come from the skeleton, so its wording can change upstream)
         skeletons = await mcp.call("list_skeletons")
         categories = {tuple(entry.get("category") or ()) for entry in skeletons["skeletons"]}
         assert any("Course" in category for category in categories)
 
         skeleton = await mcp.call("get_skeleton", skeleton="online-course")
         assert skeleton["meta"]["title"] == "Online Course"
+        outline = [item["title"] for item in skeleton["build"]["items"]]
+        assert outline
 
         journey = await mcp.call(
             "create_site_from_skeleton",
@@ -78,16 +81,15 @@ async def test_new_user_creates_their_first_sites(
         )
         created.append(journey["name"])
         assert journey["name"] == SKELETON_SITE
-        assert journey["page_count"] == 5
+        assert journey["page_count"] == len(outline)
         titles = public_titles(haxcms.base_url, SKELETON_SITE)
-        assert "Syllabus" in titles
-        assert any(title.startswith("Lesson 1") for title in titles)
+        assert set(outline) <= set(titles), (outline, titles)
 
         # 5. cloning makes an editable copy under a new name
         cloned = await mcp.call("clone_site", site=SKELETON_SITE)
         created.append(cloned["name"])
         assert cloned["name"] != SKELETON_SITE
-        assert cloned["site"]["page_count"] == 5
+        assert cloned["site"]["page_count"] == len(outline)
     finally:
         # 6. archiving removes the sites from the listing (destructive tool path)
         for name in created:

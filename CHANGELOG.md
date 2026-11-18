@@ -7,6 +7,14 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ## [Unreleased]
 
+### Added
+
+- `list_importers` (read-only): the platforms `create_site_from_platform` takes, plus the importer
+  plugins a HAXcms instance offers to MCP (`GET plugins/contributions?surface=mcp`), each with what
+  it asks for (`input`) and the file types it takes (`uploads`). On a backend without the plugin
+  platform it reports `plugin_platform: false` and lists only the built-in platforms. Plugin
+  importers are listed, not yet runnable through `create_site_from_platform`.
+
 ### CI
 
 - The live suites run against haxcms-nodejs on Node.js 22, 24 and 26 and against haxcms-php on PHP

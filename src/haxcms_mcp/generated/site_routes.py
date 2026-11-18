@@ -628,6 +628,116 @@ def get_block_usage(site: str, webcomponent_name: str) -> Route:
     )
 
 
+def list_site_plugins(site: str) -> Route:
+    """GET /x/api/v1/plugins - List installed plugins and whether each is on for this site"""
+    return Route(
+        "listSitePlugins",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins",
+        "bearer+site",
+    )
+
+
+def get_site_plugin_contributions(site: str) -> Route:
+    """GET /x/api/v1/plugins/contributions"""
+    return Route(
+        "getSitePluginContributions",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/contributions",
+        "bearer+site",
+    )
+
+
+def get_site_plugins_open_api_json(site: str) -> Route:
+    """GET /x/api/v1/plugins/openapi.json"""
+    return Route(
+        "getSitePluginsOpenApiJson",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/openapi.json",
+        "bearer+site",
+    )
+
+
+def get_site_plugins_open_api_yaml(site: str) -> Route:
+    """GET /x/api/v1/plugins/openapi.yaml"""
+    return Route(
+        "getSitePluginsOpenApiYaml",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/openapi.yaml",
+        "bearer+site",
+    )
+
+
+def enable_site_plugin(site: str, plugin: str) -> Route:
+    """POST /x/api/v1/plugins/{plugin}/enable - Enable a plugin for this site"""
+    return Route(
+        "enableSitePlugin",
+        "POST",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/enable",
+        "bearer+site",
+    )
+
+
+def disable_site_plugin(site: str, plugin: str) -> Route:
+    """POST /x/api/v1/plugins/{plugin}/disable - Disable a plugin for this site"""
+    return Route(
+        "disableSitePlugin",
+        "POST",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/disable",
+        "bearer+site",
+    )
+
+
+def get_site_plugin_settings(site: str, plugin: str) -> Route:
+    """GET /x/api/v1/plugins/{plugin}/settings - Get a plugin's settings form and saved values"""
+    return Route(
+        "getSitePluginSettings",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/settings",
+        "bearer+site",
+    )
+
+
+def save_site_plugin_settings(site: str, plugin: str) -> Route:
+    """POST /x/api/v1/plugins/{plugin}/settings - Save a plugin's settings"""
+    return Route(
+        "saveSitePluginSettings",
+        "POST",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/settings",
+        "bearer+site",
+    )
+
+
+def get_site_plugin_open_api_json(site: str, plugin: str) -> Route:
+    """GET /x/api/v1/plugins/{plugin}/openapi.json"""
+    return Route(
+        "getSitePluginOpenApiJson",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/openapi.json",
+        "bearer+site",
+    )
+
+
+def get_site_plugin_open_api_yaml(site: str, plugin: str) -> Route:
+    """GET /x/api/v1/plugins/{plugin}/openapi.yaml"""
+    return Route(
+        "getSitePluginOpenApiYaml",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/openapi.yaml",
+        "bearer+site",
+    )
+
+
+def get_site_plugin_asset(site: str, plugin: str, asset_path: str) -> Route:
+    """GET /x/api/v1/plugins/{plugin}/assets/{assetPath}"""
+    return Route(
+        "getSitePluginAsset",
+        "GET",
+        f"/_sites/{q(site)}/x/api/v1/plugins/{q(plugin)}/assets/{q(asset_path)}",
+        "none",
+    )
+
+
 # operationId -> (METHOD, path template, required auth), for lookups by id
 OPERATIONS: dict[str, tuple[str, str, str]] = {
     "getSiteApiDiscovery": ("GET", "/_sites/{site}/x/api", "none"),
@@ -736,4 +846,51 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "listDisplaysAlias": ("GET", "/_sites/{site}/x/api/v1/displays", "none"),
     "getDisplayResultsAlias": ("GET", "/_sites/{site}/x/api/v1/displays/{viewId}/results", "none"),
     "getBlockUsage": ("GET", "/_sites/{site}/x/api/v1/blocks/{webcomponentName}/usage", "none"),
+    "listSitePlugins": ("GET", "/_sites/{site}/x/api/v1/plugins", "bearer+site"),
+    "getSitePluginContributions": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/contributions",
+        "bearer+site",
+    ),
+    "getSitePluginsOpenApiJson": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/openapi.json",
+        "bearer+site",
+    ),
+    "getSitePluginsOpenApiYaml": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/openapi.yaml",
+        "bearer+site",
+    ),
+    "enableSitePlugin": ("POST", "/_sites/{site}/x/api/v1/plugins/{plugin}/enable", "bearer+site"),
+    "disableSitePlugin": (
+        "POST",
+        "/_sites/{site}/x/api/v1/plugins/{plugin}/disable",
+        "bearer+site",
+    ),
+    "getSitePluginSettings": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/{plugin}/settings",
+        "bearer+site",
+    ),
+    "saveSitePluginSettings": (
+        "POST",
+        "/_sites/{site}/x/api/v1/plugins/{plugin}/settings",
+        "bearer+site",
+    ),
+    "getSitePluginOpenApiJson": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/{plugin}/openapi.json",
+        "bearer+site",
+    ),
+    "getSitePluginOpenApiYaml": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/{plugin}/openapi.yaml",
+        "bearer+site",
+    ),
+    "getSitePluginAsset": (
+        "GET",
+        "/_sites/{site}/x/api/v1/plugins/{plugin}/assets/{assetPath}",
+        "none",
+    ),
 }

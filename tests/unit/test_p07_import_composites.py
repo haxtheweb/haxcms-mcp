@@ -505,3 +505,70 @@ async def test_create_site_from_platform_passes_other_errors_through() -> None:
     assert "Unsupported structure" in err.message
     assert err.hint is None or "create_site_from_document" not in err.hint
     assert fake.create_bodies == []
+
+
+# --- list_importers: built-in platforms plus the importer plugins offered to MCP ---------
+
+CONTRIB_URL = f"{BASE}/system/api/v1/plugins/contributions"
+
+
+@respx.mock
+async def test_list_importers_reads_the_mcp_choices() -> None:
+    FakeInstance().install()
+    route = respx.get(CONTRIB_URL).mock(
+        return_value=ok(
+            {
+                "contributions": [],
+                "contracts": {},
+                "choices": {
+                    "import.platform": [
+                        {
+                            "id": "importer-hugo",
+                            "title": "Import from Hugo",
+                            "description": "Turns a Hugo site into a new site.",
+                            "input": ["url", "upload"],
+                            "uploads": [".zip"],
+                        },
+                        {"title": "no id, ignored"},
+                    ]
+                },
+            }
+        )
+    )
+    async with HaxcmsClient(make_settings()) as client:
+        result = await imports_service.list_importers(client)
+    assert route.calls.last.request.url.params["surface"] == "mcp"
+    assert result.plugin_platform is True
+    assert "quarto" in result.platforms and "drupal" in result.platforms
+    assert [p.model_dump() for p in result.plugin_importers] == [
+        {
+            "id": "importer-hugo",
+            "title": "Import from Hugo",
+            "description": "Turns a Hugo site into a new site.",
+            "input": ["url", "upload"],
+            "uploads": [".zip"],
+        }
+    ]
+
+
+@respx.mock
+async def test_list_importers_without_a_plugin_platform_lists_the_built_in_platforms() -> None:
+    FakeInstance().install()
+    respx.get(CONTRIB_URL).mock(
+        return_value=httpx.Response(404, json={"status": 404, "message": "Not Found"})
+    )
+    async with HaxcmsClient(make_settings()) as client:
+        result = await imports_service.list_importers(client)
+    assert result.plugin_platform is False
+    assert result.plugin_importers == []
+    assert result.platforms == list(imports_service.PLATFORMS)
+
+
+@respx.mock
+async def test_list_importers_with_no_importer_enabled_is_an_empty_list() -> None:
+    FakeInstance().install()
+    respx.get(CONTRIB_URL).mock(return_value=ok({"contributions": [], "choices": {}}))
+    async with HaxcmsClient(make_settings()) as client:
+        result = await imports_service.list_importers(client)
+    assert result.plugin_platform is True
+    assert result.plugin_importers == []

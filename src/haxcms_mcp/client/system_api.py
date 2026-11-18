@@ -132,6 +132,19 @@ async def get_skeleton(client: HaxcmsClient, name: str) -> dict[str, Any]:
     return unwrap_dict(response)
 
 
+async def plugin_contributions(client: HaxcmsClient, surface: str = "mcp") -> dict[str, Any]:
+    """GET plugins/contributions?surface= -> `{contributions, choices, contracts}`.
+
+    Only backends with the plugin platform answer (others: 404). `choices` maps a contract a
+    person picks one implementer for (`import.platform`) to the implementers offered on that
+    surface: `[{id, title, description, input, uploads?}]` (plugin spec, spec/07 "Choices").
+    """
+    response = await client.call(
+        routes.get_system_plugin_contributions(), params={"surface": surface}
+    )
+    return unwrap_dict(response)
+
+
 # --- Phase 7: imports and converter actions (T7.2) --------------------------------------------
 # All routes below are bearer + X-HAXCMS-User-Token per the spec security blocks (live-probed:
 # bearer-only gets the 403 "X-HAXCMS-User-Token header is required for this endpoint").

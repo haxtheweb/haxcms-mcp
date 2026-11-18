@@ -138,3 +138,14 @@ async def test_pressbooks_import_from_env_url(mcp: McpTestClient) -> None:
     finally:
         with contextlib.suppress(Exception):
             await mcp.call("archive_site", site=created)
+
+
+async def test_list_importers_against_the_live_instance(mcp: McpTestClient) -> None:
+    """list_importers answers on any backend: the built-in platforms always, and the
+    importer plugins offered to MCP when the instance has the plugin platform. A test
+    instance enables no plugin, so that list is empty either way."""
+    result = await mcp.call("list_importers")
+    assert "quarto" in result["platforms"]
+    assert "html" in result["platforms"]
+    assert result["plugin_importers"] == []
+    assert isinstance(result["plugin_platform"], bool)

@@ -946,6 +946,116 @@ def site_import_by_platform(platform: str) -> Route:
     )
 
 
+def list_system_plugins() -> Route:
+    """GET /system/api/v1/plugins"""
+    return Route(
+        "listSystemPlugins",
+        "GET",
+        "/system/api/v1/plugins",
+        "bearer+user",
+    )
+
+
+def get_system_plugin_contributions() -> Route:
+    """GET /system/api/v1/plugins/contributions - Get what enabled plugins add to the dashboard"""
+    return Route(
+        "getSystemPluginContributions",
+        "GET",
+        "/system/api/v1/plugins/contributions",
+        "bearer+user",
+    )
+
+
+def get_system_plugins_open_api_json() -> Route:
+    """GET /system/api/v1/plugins/openapi.json"""
+    return Route(
+        "getSystemPluginsOpenApiJson",
+        "GET",
+        "/system/api/v1/plugins/openapi.json",
+        "bearer+user",
+    )
+
+
+def get_system_plugins_open_api_yaml() -> Route:
+    """GET /system/api/v1/plugins/openapi.yaml"""
+    return Route(
+        "getSystemPluginsOpenApiYaml",
+        "GET",
+        "/system/api/v1/plugins/openapi.yaml",
+        "bearer+user",
+    )
+
+
+def enable_system_plugin(plugin: str) -> Route:
+    """POST /system/api/v1/plugins/{plugin}/enable - Enable a plugin for the whole system"""
+    return Route(
+        "enableSystemPlugin",
+        "POST",
+        f"/system/api/v1/plugins/{q(plugin)}/enable",
+        "bearer+user",
+    )
+
+
+def disable_system_plugin(plugin: str) -> Route:
+    """POST /system/api/v1/plugins/{plugin}/disable - Disable a plugin for the whole system"""
+    return Route(
+        "disableSystemPlugin",
+        "POST",
+        f"/system/api/v1/plugins/{q(plugin)}/disable",
+        "bearer+user",
+    )
+
+
+def get_system_plugin_settings(plugin: str) -> Route:
+    """GET /system/api/v1/plugins/{plugin}/settings"""
+    return Route(
+        "getSystemPluginSettings",
+        "GET",
+        f"/system/api/v1/plugins/{q(plugin)}/settings",
+        "bearer+user",
+    )
+
+
+def save_system_plugin_settings(plugin: str) -> Route:
+    """POST /system/api/v1/plugins/{plugin}/settings - Save a plugin's settings"""
+    return Route(
+        "saveSystemPluginSettings",
+        "POST",
+        f"/system/api/v1/plugins/{q(plugin)}/settings",
+        "bearer+user",
+    )
+
+
+def get_system_plugin_open_api_json(plugin: str) -> Route:
+    """GET /system/api/v1/plugins/{plugin}/openapi.json"""
+    return Route(
+        "getSystemPluginOpenApiJson",
+        "GET",
+        f"/system/api/v1/plugins/{q(plugin)}/openapi.json",
+        "bearer+user",
+    )
+
+
+def get_system_plugin_open_api_yaml(plugin: str) -> Route:
+    """GET /system/api/v1/plugins/{plugin}/openapi.yaml"""
+    return Route(
+        "getSystemPluginOpenApiYaml",
+        "GET",
+        f"/system/api/v1/plugins/{q(plugin)}/openapi.yaml",
+        "bearer+user",
+    )
+
+
+def get_system_plugin_asset(plugin: str, asset_path: str) -> Route:
+    """GET /system/api/v1/plugins/{plugin}/assets/{assetPath}"""
+    return Route(
+        "getSystemPluginAsset",
+        "GET",
+        f"/system/api/v1/plugins/{q(plugin)}/assets/{q(asset_path)}",
+        "none",
+    )
+
+
 # operationId -> (METHOD, path template, required auth), for lookups by id
 OPERATIONS: dict[str, tuple[str, str, str]] = {
     "systemApiDiscovery": ("GET", "/system/api/v1", "none"),
@@ -1078,4 +1188,23 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "quartoToSite": ("POST", "/system/api/v1/site/import/quarto", "bearer+user"),
     "openstaxToSite": ("POST", "/system/api/v1/site/import/openstax", "bearer+user"),
     "siteImportByPlatform": ("POST", "/system/api/v1/site/import/{platform}", "bearer+user"),
+    "listSystemPlugins": ("GET", "/system/api/v1/plugins", "bearer+user"),
+    "getSystemPluginContributions": ("GET", "/system/api/v1/plugins/contributions", "bearer+user"),
+    "getSystemPluginsOpenApiJson": ("GET", "/system/api/v1/plugins/openapi.json", "bearer+user"),
+    "getSystemPluginsOpenApiYaml": ("GET", "/system/api/v1/plugins/openapi.yaml", "bearer+user"),
+    "enableSystemPlugin": ("POST", "/system/api/v1/plugins/{plugin}/enable", "bearer+user"),
+    "disableSystemPlugin": ("POST", "/system/api/v1/plugins/{plugin}/disable", "bearer+user"),
+    "getSystemPluginSettings": ("GET", "/system/api/v1/plugins/{plugin}/settings", "bearer+user"),
+    "saveSystemPluginSettings": ("POST", "/system/api/v1/plugins/{plugin}/settings", "bearer+user"),
+    "getSystemPluginOpenApiJson": (
+        "GET",
+        "/system/api/v1/plugins/{plugin}/openapi.json",
+        "bearer+user",
+    ),
+    "getSystemPluginOpenApiYaml": (
+        "GET",
+        "/system/api/v1/plugins/{plugin}/openapi.yaml",
+        "bearer+user",
+    ),
+    "getSystemPluginAsset": ("GET", "/system/api/v1/plugins/{plugin}/assets/{assetPath}", "none"),
 }

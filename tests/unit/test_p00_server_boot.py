@@ -140,6 +140,7 @@ async def test_server_lists_the_registered_tools() -> None:
         "import_document",
         "list_blocks",
         "list_files",
+        "list_importers",
         "list_page_revisions",
         "list_pages",
         "list_sites",
@@ -199,7 +200,14 @@ async def test_site_tool_annotations() -> None:
         tools = await client.list_tools()
     by_name = {t.name: t for t in tools}
 
-    read_only = ["get_site", "list_sites", "list_themes", "list_skeletons", "get_skeleton"]
+    read_only = [
+        "get_site",
+        "list_sites",
+        "list_themes",
+        "list_skeletons",
+        "get_skeleton",
+        "list_importers",
+    ]
     for name in read_only:
         tool_ann = by_name[name].annotations
         assert tool_ann is not None, name

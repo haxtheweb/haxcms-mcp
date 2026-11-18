@@ -28,7 +28,14 @@ from haxcms_mcp.client import HaxcmsClient, system_api
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 from haxcms_mcp.models.common import dump_model
-from haxcms_mcp.models.imports import ImportData, ImportedItem, ImportResult, detect_import_kind
+from haxcms_mcp.models.imports import (
+    ImportData,
+    ImportedItem,
+    ImporterList,
+    ImportResult,
+    PluginImporter,
+    detect_import_kind,
+)
 from haxcms_mcp.models.site import SiteDetail
 from haxcms_mcp.services import sites as sites_service
 from haxcms_mcp.services.files.sources import resolve_source
@@ -336,3 +343,26 @@ async def create_site_from_platform(
         description=description,
         license=license,
     )
+
+
+async def list_importers(client: HaxcmsClient) -> ImporterList:
+    """The platforms create_site_from_platform takes, plus the importer plugins the
+    instance offers to MCP (`GET plugins/contributions?surface=mcp`, `choices`).
+
+    A backend without the plugin platform answers 404: that is reported as
+    `plugin_platform: False`, not as an error, since the built-in platforms still work.
+    """
+    try:
+        data = await system_api.plugin_contributions(client, "mcp")
+    except HaxcmsMcpError as exc:
+        if exc.code is ErrorCode.NOT_FOUND:
+            return ImporterList(platforms=list(PLATFORMS))
+        raise
+    choices = data.get("choices")
+    offered = choices.get("import.platform") if isinstance(choices, dict) else None
+    importers = [
+        PluginImporter.model_validate(row)
+        for row in (offered if isinstance(offered, list) else [])
+        if isinstance(row, dict) and isinstance(row.get("id"), str)
+    ]
+    return ImporterList(platforms=list(PLATFORMS), plugin_importers=importers, plugin_platform=True)

@@ -184,7 +184,8 @@ async def test_update_page_details_sends_a_blank_title_and_rejects_a_blank_slug(
         assert patch_route.call_count == 1
         sent = json.loads(patch_route.calls.last.request.content)
         assert sent["operation"] == "setTitle"
-        assert sent["title"] == ""
+        # one space, not "": the backend ignores an empty title on setTitle
+        assert sent["title"] == " "
         with pytest.raises(HaxcmsMcpError) as excinfo:
             await pages_service.update_page_details(client, "demo", "item-1", slug="")
         assert excinfo.value.code is ErrorCode.INVALID_ARGUMENT

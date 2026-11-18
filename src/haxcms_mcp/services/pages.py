@@ -246,11 +246,13 @@ def build_detail_operations(
     (setTitle regenerates slugs only while `metadata.overridePathauto` is unset, and
     setSlug is what sets it).
     """
-    # a blank title is sent as is; the backend stores the default "New page"
+    # a blank title is not refused: the backend stores the default "New page".
+    # It ignores an empty string on setTitle (the page keeps its title) but
+    # applies that rule to white space, so a blank title goes up as one space.
     if slug is not None and not slug.strip():
         raise HaxcmsMcpError(ErrorCode.INVALID_ARGUMENT, "slug must not be empty")
     candidates: list[tuple[str, dict[str, Any] | None]] = [
-        ("setTitle", {"title": title.strip()} if title is not None else None),
+        ("setTitle", {"title": title.strip() or " "} if title is not None else None),
         (
             "setDescription",
             {"description": description} if description is not None else None,

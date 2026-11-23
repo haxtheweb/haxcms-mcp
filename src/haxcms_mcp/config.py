@@ -1,7 +1,9 @@
 """Settings for the HAXcms MCP server.
 
-All settings come from environment variables (prefix ``HAXCMS_MCP_``) or a ``.env`` file in the
-working directory, via pydantic-settings. See PLAN.md Section 4 for the full table.
+All settings come from environment variables (prefix ``HAXCMS_MCP_``), via pydantic-settings.
+A dotenv file is read only when ``HAXCMS_MCP_ENV_FILE`` names one explicitly: a stdio server
+is started from whatever folder the agent has open, so an implicit ``.env`` in the working
+directory would let that folder reconfigure the server. See PLAN.md Section 4 for the table.
 """
 
 from __future__ import annotations
@@ -13,8 +15,16 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic_settings import (
+    BaseSettings,
+    DotEnvSettingsSource,
+    NoDecode,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
+
+ENV_FILE_VARIABLE = "HAXCMS_MCP_ENV_FILE"
 
 
 class Settings(BaseSettings):
@@ -22,15 +32,35 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="HAXCMS_MCP_",
-        env_file=".env",
-        env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Security: never read `.env` from the working directory implicitly. Only the file
+        the operator names in HAXCMS_MCP_ENV_FILE is loaded (real environment variables
+        still win over it)."""
+        sources: list[PydanticBaseSettingsSource] = [init_settings, env_settings]
+        explicit = os.environ.get(ENV_FILE_VARIABLE, "").strip()
+        if explicit:
+            sources.append(
+                DotEnvSettingsSource(settings_cls, env_file=explicit, env_file_encoding="utf-8")
+            )
+        sources.append(file_secret_settings)
+        return tuple(sources)
 
     # --- Connection -------------------------------------------------------
     base_url: str = Field(description="Instance root, e.g. http://localhost:3000")
     username: str | None = None
-    password: str | None = None
+    # SecretStr (security): the password never shows up in repr(), logs or validation errors
+    password: SecretStr | None = None
     default_site: str | None = None
     no_auth: bool = False
 
@@ -214,5 +244,5 @@ def is_loopback_host(host: str) -> bool:
 
 
 def load_settings(**overrides: Any) -> Settings:
-    """Load settings from environment/.env with optional keyword overrides."""
+    """Load settings from the environment (and HAXCMS_MCP_ENV_FILE) with keyword overrides."""
     return Settings(**overrides)

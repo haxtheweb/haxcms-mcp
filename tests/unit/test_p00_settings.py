@@ -73,7 +73,8 @@ def test_env_parsing(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings()
     assert settings.base_url == "https://cms.example.com"
     assert settings.username == "author"
-    assert settings.password == "s3cret"
+    assert settings.password is not None
+    assert settings.password.get_secret_value() == "s3cret"
     assert settings.default_site == "my-course"
     assert settings.no_auth is True
     assert settings.read_only is True

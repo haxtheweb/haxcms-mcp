@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import quote
 
+from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+
 AuthMode = Literal["none", "bearer", "bearer+user", "bearer+site"]
 
 
@@ -29,5 +31,17 @@ class Route:
 
 
 def q(value: str) -> str:
-    """Percent-encode one path segment (slashes too: nested slugs stay one segment)."""
-    return quote(str(value), safe="")
+    """Percent-encode one path segment (slashes too: nested slugs stay one segment).
+
+    Security: `.` and `..` survive percent-encoding and the HTTP client then collapses them,
+    so `items/..` would be sent to a different route than the one being built. They are
+    never a valid id, slug or name, so they are refused here, for every route.
+    """
+    text = str(value)
+    if text in {".", ".."}:
+        raise HaxcmsMcpError(
+            ErrorCode.INVALID_ARGUMENT,
+            f"{text!r} is not a valid id, slug or name",
+            hint="pass the id or slug of an existing item (list_pages, list_files, list_sites)",
+        )
+    return quote(text, safe="")

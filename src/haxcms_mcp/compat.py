@@ -63,9 +63,13 @@ async def check_spec_compatibility(client: HaxcmsClient) -> SpecCompatibility:
         return SpecCompatibility("unavailable", ref, expected, detail=exc.formatted)
     except Exception as exc:  # noqa: BLE001 - a best-effort diagnostic must never raise
         # e.g. the httpx client was already closed by a server shutdown racing this check
-        return SpecCompatibility(
-            "unavailable", ref, expected, detail=f"{type(exc).__name__}: {exc}"
-        )
+        detail = f"{type(exc).__name__}: {exc}"
+        if client.settings.per_caller_auth:
+            # Security: get_server_info returns this to remote callers, and raw exception
+            # text can name the instance's internal address. The full text stays in the log.
+            log.info("HAXcms spec compatibility check failed: %s", detail)
+            detail = type(exc).__name__
+        return SpecCompatibility("unavailable", ref, expected, detail=detail)
     if response.status_code != 200:
         return SpecCompatibility(
             "unavailable",

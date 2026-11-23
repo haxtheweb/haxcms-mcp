@@ -93,7 +93,9 @@ class AuthManager:
             self._password: str | None = None
         else:
             self.username = settings.username
-            self._password = settings.password
+            self._password = (
+                settings.password.get_secret_value() if settings.password is not None else None
+            )
         self.user_token_value: str | None = None
         self.site_tokens: dict[str, str] = {}
         self._logged_out = False

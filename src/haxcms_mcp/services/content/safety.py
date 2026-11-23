@@ -11,10 +11,12 @@ sanitiser being the single line of defence:
   INVALID_ARGUMENT, however they are cased, padded with whitespace/control characters,
   or written as HTML entities. Inline `data:` images belong in `upload_file`.
 * Raw HTML (`replace_block`, `set_page_content`, `add_block` inner HTML) has `<script>`
-  elements and `on*=` event-handler attributes removed before the PATCH. URL attributes
-  with a refused scheme are dropped from raw HTML rather than failing the whole call;
-  raster `data:image/*` URIs are kept there, as HAXcms's own sanitiser keeps them.
-  Everything else is kept as the agent wrote it.
+  and `<base>` elements, `<meta http-equiv>` elements, `on*=` event-handler attributes
+  and `srcdoc` attributes removed before the PATCH. URL attributes with a refused scheme
+  (`formaction`, `xlink:href`, `<object data>` and `srcset` candidates included) are
+  dropped from raw HTML rather than failing the whole call; raster `data:image/*` URIs
+  are kept there, as HAXcms's own sanitiser keeps them. Everything else, `style`
+  included, is kept as the agent wrote it.
 """
 
 from __future__ import annotations
@@ -28,8 +30,12 @@ from lxml.html import HtmlElement
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
 
 ALLOWED_URL_SCHEMES = frozenset({"http", "https", "mailto", "tel"})
-URL_ATTRIBUTE_NAMES = frozenset({"href", "src", "source", "link", "url", "action", "poster"})
+URL_ATTRIBUTE_NAMES = frozenset(
+    {"href", "src", "source", "link", "url", "action", "poster", "formaction", "xlink:href"}
+)
 URL_ATTRIBUTE_SUFFIXES = ("-src", "-source", "-href", "-url")
+# elements that run script or redirect the document on their own, dropped from raw HTML
+_DROPPED_TAGS = frozenset({"script", "base"})
 
 # raster image types HAXcms itself keeps in data: URIs (sanitizeContent.js)
 _RASTER_DATA_RE = re.compile(r"^data:image/(png|jpeg|gif|webp|avif|bmp)[;,]")
@@ -89,22 +95,50 @@ def check_url_attributes(attributes: dict[str, Any] | None) -> None:
 
 
 def _is_script(element: HtmlElement) -> bool:
-    return isinstance(element.tag, str) and element.tag.lower() == "script"
+    """Elements removed whole: `<script>`, `<base>` and `<meta http-equiv>` (a refresh
+    redirect or a CSP override has no place in a page body)."""
+    if not isinstance(element.tag, str):
+        return False
+    tag = element.tag.lower()
+    if tag in _DROPPED_TAGS:
+        return True
+    return tag == "meta" and any(name.lower() == "http-equiv" for name in element.attrib)
+
+
+def _is_allowed_raw_url(value: str) -> bool:
+    return is_allowed_url(value) or _is_raster_data_url(value)
+
+
+def _is_allowed_srcset(value: str) -> bool:
+    """Every `srcset` candidate (`<url> <descriptor>`, comma-separated) must be allowed.
+    The comma inside a `data:` URI splits it in two; the second half has no scheme."""
+    for candidate in value.split(","):
+        parts = candidate.split()
+        if parts and not _is_allowed_raw_url(parts[0]):
+            return False
+    return True
 
 
 def _scrub_attributes(element: HtmlElement) -> None:
+    tag = element.tag.lower() if isinstance(element.tag, str) else ""
     for name in list(element.attrib):
         lowered = name.lower()
-        if lowered.startswith("on"):
+        value = element.attrib[name]
+        # `srcdoc` is a whole document that this filter never parses
+        if lowered.startswith("on") or lowered == "srcdoc":
             del element.attrib[name]
-        elif is_url_attribute(lowered):
-            value = element.attrib[name]
-            if not is_allowed_url(value) and not _is_raster_data_url(value):
+        elif lowered == "srcset":
+            if not _is_allowed_srcset(value):
                 del element.attrib[name]
+        # `data` is the URL of an <object>; on other elements it is an ordinary attribute
+        elif (is_url_attribute(lowered) or (lowered == "data" and tag == "object")) and (
+            not _is_allowed_raw_url(value)
+        ):
+            del element.attrib[name]
 
 
 def sanitize_elements(elements: list[HtmlElement]) -> list[HtmlElement]:
-    """Drop `<script>` elements and `on*` attributes from the working element list.
+    """Drop script-bearing elements and attributes from the working element list.
 
     Mutates the elements in place and returns the surviving top-level list. Tail text of a
     removed nested `<script>` is kept (`drop_tree`), so surrounding prose is not lost.

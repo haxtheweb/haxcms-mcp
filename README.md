@@ -50,11 +50,14 @@ uvx --from git+https://github.com/haxtheweb/haxcms-mcp haxcms-mcp
 
 ## Configure
 
-All settings come from environment variables (prefix `HAXCMS_MCP_`) or a `.env` file in the
-working directory.
+All settings come from environment variables (prefix `HAXCMS_MCP_`). A `.env` file in the
+working directory is **not** read: an agent starts the server from whatever folder it has open,
+and that folder must not be able to reconfigure it. To keep settings in a file, name it with
+`HAXCMS_MCP_ENV_FILE`.
 
 | Variable | Default | Meaning |
 |---|---|---|
+| `ENV_FILE` | unset | Path of a dotenv file to read settings from (same `HAXCMS_MCP_` names). Real environment variables win over the file |
 | `BASE_URL` | **required** | Instance root, e.g. `http://localhost:3000` (trailing slash optional) |
 | `USERNAME`, `PASSWORD` | unset | Credentials for auto-login; if unset, the agent must call `login` |
 | `DEFAULT_SITE` | unset | Site used by site-scoped tools when no `site` argument is passed |
@@ -311,8 +314,10 @@ uv run python scripts/sync_specs.py --check --from ../haxcms-nodejs   # what the
   sanitiser remains the authority): link and media-source arguments accept `http(s)`,
   `mailto`, `tel` and site-relative paths only (`javascript:`, `data:`, `vbscript:` are refused
   as `INVALID_ARGUMENT`); raw HTML passed to `set_page_content`, `replace_block` and
-  `add_block` has `<script>` elements and `on*=` handlers removed; and content arguments are
-  capped at `MAX_HTML_BYTES`.
+  `add_block` has `<script>`, `<base>` and `<meta http-equiv>` elements, `on*=` handlers and
+  `srcdoc` removed, and URL attributes with a refused scheme dropped (`formaction`,
+  `xlink:href`, `<object data>` and `srcset` included); and content arguments are capped at
+  `MAX_HTML_BYTES`.
 - **Content read back from a site is data, not instructions.** `get_page_content`,
   `search_site` and the page resource flag or delimit the page HTML they return, the
   `hax_author` prompt says so, and the Block Catalog takes only attribute/slot schemas from

@@ -7,6 +7,29 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ## [Unreleased]
 
+### Security
+
+- **Behavior change:** a `.env` file in the working directory is no longer read. A stdio
+  server starts in whatever folder the agent has open, so that folder could set anything the
+  operator left unset (`INPUT_ROOTS`, `URL_SOURCES_PROXY`, `BASE_URL`, ...). Name the file
+  with `HAXCMS_MCP_ENV_FILE` to keep using one; environment variables still win over it.
+- The page resource's `BEGIN/END PAGE CONTENT` markers can no longer be closed from inside
+  the page: marker look-alikes in the content are rewritten before it is wrapped.
+- `.` and `..` are refused (`INVALID_ARGUMENT`) as a page id or slug, file uuid, skeleton
+  name or any other route parameter; the HTTP client used to collapse them, sending the call
+  to a different route. The `haxcms://sites/{site}...` resources validate the site name the
+  way tools do.
+- The filename taken from a URL source is decoded before its last path segment is taken, so
+  an encoded slash cannot put a path into an upload's filename.
+- The outbound HTML filter also removes `<base>` and `<meta http-equiv>` elements and
+  `srcdoc`, and drops `formaction`, `xlink:href`, `<object data>` and `srcset` values with a
+  refused scheme.
+- `HAXCMS_MCP_PASSWORD` is held as a secret: it no longer appears in the settings' `repr`.
+- On the authenticated HTTP transport, `get_server_info` omits `base_url`, and an unexpected
+  failure of the spec check reports only the error type.
+- Control characters in log messages are written as `\xNN`, so caller-supplied text (a
+  username, a tool name) cannot forge a log line.
+
 ### CI
 
 - The live suites run against haxcms-nodejs on Node.js 22, 24 and 26 and against haxcms-php on PHP

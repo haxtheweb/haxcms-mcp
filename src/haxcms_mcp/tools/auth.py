@@ -144,16 +144,20 @@ def register_auth_tools(
         says whether the instance serves the same HAXcms API spec this server was built against
         (`match`, `mismatch` — tools may misbehave — or `unavailable`). `instance_mcp_policy`
         is what the instance itself allows over MCP (`enabled`, `read_only`); this is the one
-        tool that still answers when the instance has MCP turned off.
+        tool that still answers when the instance has MCP turned off. `base_url` is omitted
+        when the server is shared over authenticated HTTP.
         """
         info: dict[str, Any] = {
             "name": "haxcms-mcp",
             "version": __version__,
-            "base_url": settings.base_url,
             "read_only": settings.read_only,
             "transport": settings.transport,
             "no_auth": settings.no_auth,
         }
+        if not settings.per_caller_auth:
+            # Security: remote callers must not learn the instance's internal address
+            # (the same rule client/retry.py applies to connection errors)
+            info["base_url"] = settings.base_url
         haxcms_info: dict[str, Any] = {}
         try:
             haxcms_info["version"] = await system_api.version(client)

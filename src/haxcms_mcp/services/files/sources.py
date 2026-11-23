@@ -34,6 +34,7 @@ import httpx
 
 from haxcms_mcp.config import Settings
 from haxcms_mcp.errors import ErrorCode, HaxcmsMcpError
+from haxcms_mcp.services.conversion import safe_filename
 from haxcms_mcp.services.files.ssrf import guarded_fetch
 
 # the HAXcms upload limit (HAXCMS_UPLOAD_LIMIT default, API-REF §6) — sources larger than
@@ -170,7 +171,9 @@ async def _resolve_url(source: str, settings: Settings) -> SourceFile:
     if status_code >= 400:
         raise _source_error(f"fetching {source} returned HTTP {status_code}")
 
-    basename = unquote(Path(urlparse(source).path).name)
+    # Security: decode BEFORE taking the last segment, so an encoded slash (`..%2F..%2Fx`)
+    # cannot smuggle a path into the upload's filename; "." / ".." fall back to "download".
+    basename = safe_filename(unquote(urlparse(source).path), "")
     filename = basename or "download"
     content_type = headers.get("content-type", "")
     mimetype = (

@@ -7,11 +7,28 @@ Never log tokens or passwords. Outbound requests are logged at DEBUG as ``METHOD
 from __future__ import annotations
 
 import logging
+import re
 import sys
 
 ROOT_LOGGER_NAME = "haxcms_mcp"
 
 _FORMAT = "%(asctime)s %(levelname)-7s %(name)s: %(message)s"
+
+# C0 controls (CR and LF included) and DEL; tab is left alone
+_CONTROL_RE = re.compile(r"[\x00-\x08\x0a-\x1f\x7f]")
+
+
+class SingleLineFormatter(logging.Formatter):
+    """Security: log messages carry caller-supplied text (usernames, tool names, upstream
+    error text). Control characters in the message are written as `\\xNN`, so a value with
+    a newline in it cannot forge a second log line. Tracebacks are appended after the
+    message by `logging.Formatter.format` and keep their line breaks."""
+
+    def formatMessage(self, record: logging.LogRecord) -> str:  # noqa: N802 - stdlib name
+        record.message = _CONTROL_RE.sub(
+            lambda match: f"\\x{ord(match.group()):02x}", record.message
+        )
+        return super().formatMessage(record)
 
 
 def configure_logging(level: str = "INFO") -> None:
@@ -30,7 +47,7 @@ def configure_logging(level: str = "INFO") -> None:
         logger.removeHandler(handler)
         handler.close()
     handler = logging.StreamHandler(sys.stderr)
-    handler.setFormatter(logging.Formatter(_FORMAT))
+    handler.setFormatter(SingleLineFormatter(_FORMAT))
     logger.addHandler(handler)
 
 

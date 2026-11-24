@@ -274,7 +274,8 @@ Phase that verified it and how (file:line in haxcms-nodejs, or a live-instance o
   else falls to the full form path requiring `haxcms_form_token`, which `validateRequestToken`
   accepts only when `process.env.haxcms_middleware === "node-cli"` (`isCLI()`, HAXCMS.js L3675-3677)
   — false under any live server. Live probes: a git/tags-only manifest body → 403
-  `{data:{message:'Authentication required'}}` with site.json byte-identical; git keys smuggled
+  `{data:{message:'Authentication required'}}` (now `'invalid request token'`, matching
+  haxcms-php, since haxcms-nodejs's haxtheweb/issues#3394 parity fix) with site.json byte-identical; git keys smuggled
   alongside `manifest-title` → 200, title written, git keys SILENTLY IGNORED. Consequence:
   `metadata.site.tags` and `metadata.site.git` are not writable through the 26.8.1 API →
   `update_site_info(tags=...)` and `configure_site_git` fail fast UNSUPPORTED.

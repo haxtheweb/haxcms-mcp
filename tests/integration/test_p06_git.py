@@ -7,7 +7,9 @@ site.json)". Outcome recorded here and in PROGRESS.md: NO route persists them.
 * A body carrying ONLY git dash keys is not a scoped-details payload (detection looks for
   manifest-title / homePageId / sw / forceUpgrade), so it falls through to the full form
   path, whose `validateRequestToken` needs a `haxcms_form_token` no reachable route mints
-  (it passes only under `haxcms_middleware=node-cli`) -> 403 'Authentication required'.
+  (it passes only under `haxcms_middleware=node-cli`) -> 403 'invalid request token' (the same
+  message haxcms-php's saveManifest gives; haxcms-nodejs said 'Authentication required' before
+  its parity fix in haxtheweb/issues#3394).
 * Smuggling git keys ALONGSIDE a real scoped key takes the scoped path, which writes only
   its four known fields and silently IGNORES the git keys.
 
@@ -43,7 +45,7 @@ async def test_git_only_body_hits_the_form_token_wall(
     )
     assert response.status_code == 403
     body = response.json()
-    assert body["data"]["message"] == "Authentication required"
+    assert body["data"]["message"] == "invalid request token"
     # nothing was written — the git block (and the whole manifest) is unchanged
     assert haxcms.read_site_json(site) == before
 

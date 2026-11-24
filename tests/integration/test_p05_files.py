@@ -23,8 +23,9 @@ PROGRESS.md:
   withoutEnlargement`, so a 120x80 png scaled to the `sm` preset (480x480) stays 120x80.
 * `delete` removes the disk file AND the files.json record (FileStorage.delete ->
   removeRecord), so a later `get` is NOT_FOUND.
-* a disallowed extension is HTTP 500 'File type not allowed' (-> UPSTREAM_ERROR); a rename
-  that changes the extension is HTTP 400 (-> INVALID_ARGUMENT).
+* a disallowed extension is HTTP 400 'File type not allowed' (-> INVALID_ARGUMENT; it was
+  HTTP 500 before haxcms-nodejs 24775b35d); a rename that changes the extension is also
+  HTTP 400 (-> INVALID_ARGUMENT).
 * `nodeId` loads the page but upload no longer appends to `page.metadata.files` (#3043) —
   that set is rebuilt from a content path-scan on page SAVE (see the functional suite).
 """
@@ -256,10 +257,11 @@ async def test_server_accepts_alternate_multipart_field(client: HaxcmsClient, si
 
 
 async def test_disallowed_extension_rejected(mcp: McpTestClient, site: str) -> None:
-    """T5.7: a disallowed extension is refused upstream (HTTP 500 -> UPSTREAM_ERROR)."""
+    """T5.7: a disallowed extension is refused upstream (HTTP 400 -> INVALID_ARGUMENT)."""
     payload = base64.b64encode(SONGLINE_1.read_bytes()).decode("ascii")
     err = await mcp.call_error("upload_file", source=f"base64:archive.zip:{payload}", site=site)
-    assert "UPSTREAM_ERROR" in err
+    assert "INVALID_ARGUMENT" in err
+    assert "File type not allowed" in err
 
 
 async def test_rename_cannot_change_extension(mcp: McpTestClient, site: str) -> None:

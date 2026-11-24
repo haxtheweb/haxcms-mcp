@@ -40,6 +40,11 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ### Fixed
 
+- Vendored HAXcms specs re-synced to haxcms-nodejs `main` (eb6c198db: new import-md/odt/odp and
+  odt/odp-to-html actions, optional site `title`, imported page `created`/`updated`), so the
+  server no longer reports a spec mismatch against current HAXcms. An upload with a disallowed
+  extension now comes back as `INVALID_ARGUMENT` (HAXcms answers 400, not 500), and
+  `convert_pptx_to_html` returns one `<h1>` per slide with no `data-slide-number` wrapper.
 - `whoami` no longer forwards the HAXcms session body verbatim: that body echoes the bearer
   token (`jwt`), so the tool put a live credential into the model context. `session` is now
   `{authenticated, user}` only.

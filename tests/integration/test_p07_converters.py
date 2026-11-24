@@ -2,8 +2,9 @@
 
 Expected strings are the LIVE 26.8.1 outputs (probed in Phase 7), not the spec's
 examples: htmlToMd renders setext headings, xlsxToCsv echoes sheetNames/selectedSheet
-as extras, pptxToHtml wraps slides in `<div class="slide" data-slide-number=...>` and
-carries the (here empty) extracted-images map in `files`.
+as extras, pptxToHtml emits each slide as `<h1>title</h1>` plus its content, in presentation
+order (no per-slide wrapper since haxcms-nodejs 9da98813b, the shape the .odp importer gives),
+and carries the (here empty) extracted-images map in `files`.
 
 The two Chrome operations (htmlToPdf, docxToPdf) need a Chrome/Chromium on the SERVER
 (puppeteer-core; PUPPETEER_EXECUTABLE_PATH or a system install). Without one the route
@@ -116,12 +117,17 @@ async def test_pdf_to_html_extracts_the_text(mcp: McpTestClient) -> None:
     assert "path integral formulation" in result["text"]
 
 
-async def test_pptx_to_html_one_section_per_slide(mcp: McpTestClient) -> None:
+async def test_pptx_to_html_one_heading_per_slide(mcp: McpTestClient) -> None:
     result = await mcp.call("convert_pptx_to_html", source=str(SLIDES))
     assert result["mimetype"] == "text/html"
-    for number, title in [(1, "Introduction"), (2, "Methods"), (3, "Results")]:
-        assert f'data-slide-number="{number}"' in result["text"]
-        assert f"<h1>{title}</h1>" in result["text"]
+    text = result["text"]
+    headings = [f"<h1>{title}</h1>" for title in ("Introduction", "Methods", "Results")]
+    for heading in headings:
+        assert text.count(heading) == 1
+    # one h1 per slide, in presentation order
+    assert text.count("<h1>") == len(headings)
+    positions = [text.index(heading) for heading in headings]
+    assert positions == sorted(positions)
     # the extracted-images map rides along (the fixture's slides carry no images)
     assert result["files"] == {}
 

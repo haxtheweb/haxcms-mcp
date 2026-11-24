@@ -15,7 +15,7 @@ Fixture contracts (source-verified against ../haxcms-nodejs):
   Safety" without); the H3 folds into its H2's content stream (importHtmlToItems only
   nests childTag = h(level+1)). The inline image is a real PNG (Songline_1) so the
   createSite path can materialize it as a site file.
-* slides.pptx — three titled slides (pptx-in-html-out emits one section per slide).
+* slides.pptx — three titled slides (the converter emits one `<h1>` title per slide).
 * workbook.xlsx — importXlsx reads the FIRST sheet and requires a header row with
   `title,slug,parent,content` columns (getHeaderLookup); title and slug are mandatory
   per row and slugs must be unique. The second sheet exercises convertXlsxToCsv's

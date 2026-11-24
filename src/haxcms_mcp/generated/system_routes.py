@@ -706,6 +706,56 @@ def import_pdf() -> Route:
     )
 
 
+def import_md() -> Route:
+    """POST /system/api/v1/actions/import-md"""
+    return Route(
+        "importMd",
+        "POST",
+        "/system/api/v1/actions/import-md",
+        "bearer+user",
+    )
+
+
+def import_odt() -> Route:
+    """POST /system/api/v1/actions/import-odt"""
+    return Route(
+        "importOdt",
+        "POST",
+        "/system/api/v1/actions/import-odt",
+        "bearer+user",
+    )
+
+
+def odt_to_html() -> Route:
+    """POST /system/api/v1/actions/odt-to-html"""
+    return Route(
+        "odtToHtml",
+        "POST",
+        "/system/api/v1/actions/odt-to-html",
+        "bearer+user",
+    )
+
+
+def import_odp() -> Route:
+    """POST /system/api/v1/actions/import-odp"""
+    return Route(
+        "importOdp",
+        "POST",
+        "/system/api/v1/actions/import-odp",
+        "bearer+user",
+    )
+
+
+def odp_to_html() -> Route:
+    """POST /system/api/v1/actions/odp-to-html"""
+    return Route(
+        "odpToHtml",
+        "POST",
+        "/system/api/v1/actions/odp-to-html",
+        "bearer+user",
+    )
+
+
 def html_to_docx() -> Route:
     """POST /system/api/v1/actions/html-to-docx"""
     return Route(
@@ -1054,6 +1104,11 @@ OPERATIONS: dict[str, tuple[str, str, str]] = {
     "importHtml": ("POST", "/system/api/v1/actions/import-html", "bearer+user"),
     "importXlsx": ("POST", "/system/api/v1/actions/import-xlsx", "bearer+user"),
     "importPdf": ("POST", "/system/api/v1/actions/import-pdf", "bearer+user"),
+    "importMd": ("POST", "/system/api/v1/actions/import-md", "bearer+user"),
+    "importOdt": ("POST", "/system/api/v1/actions/import-odt", "bearer+user"),
+    "odtToHtml": ("POST", "/system/api/v1/actions/odt-to-html", "bearer+user"),
+    "importOdp": ("POST", "/system/api/v1/actions/import-odp", "bearer+user"),
+    "odpToHtml": ("POST", "/system/api/v1/actions/odp-to-html", "bearer+user"),
     "htmlToDocx": ("POST", "/system/api/v1/actions/html-to-docx", "bearer+user"),
     "mdToHtml": ("POST", "/system/api/v1/actions/md-to-html", "bearer+user"),
     "htmlToMd": ("POST", "/system/api/v1/actions/html-to-md", "bearer+user"),

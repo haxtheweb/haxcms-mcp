@@ -319,7 +319,7 @@ async def upload_file(
     The multipart field is `file-upload` (the server also accepts `upload`, `file` or
     `files[]` via multer `.any()`, in that preferred order); `nodeId` optionally associates
     the upload with a page. Upload limit defaults to 50mb (`HAXCMS_UPLOAD_LIMIT`); a
-    disallowed extension is refused with HTTP 500 'File type not allowed' (-> UPSTREAM_ERROR).
+    disallowed extension is refused with HTTP 400 'File type not allowed' (-> INVALID_ARGUMENT).
     """
     files = {"file-upload": (filename, content, mimetype)}
     data = {"nodeId": node_id} if node_id else None

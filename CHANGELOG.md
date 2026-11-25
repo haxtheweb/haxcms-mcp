@@ -7,6 +7,8 @@ hand-written from `git log` for the initial release (PLAN T9.6).
 
 ## [Unreleased]
 
+## [26.11.0] - 2026-11-25
+
 ### Security
 
 - **Behavior change:** a `.env` file in the working directory is no longer read. A stdio

@@ -132,7 +132,7 @@ class Settings(BaseSettings):
 
     # --- Test-only -------------------------------------------------------------
     test_haxcms_dir: Path | None = None
-    test_haxcms_version: str = "26.8.1"
+    test_haxcms_version: str = "26.11.0"
     test_keep_runtime: bool = False
 
     @field_validator("base_url")

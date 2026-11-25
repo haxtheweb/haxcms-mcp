@@ -392,7 +392,7 @@ stops before it starts and says how to set one; `-m unit` runs need no target. T
 published release on purpose, name it instead:
 
 ```bash
-export HAXCMS_MCP_TEST_HAXCMS_VERSION=26.8.1   # installs @haxtheweb/haxcms-nodejs@26.8.1 from npm
+export HAXCMS_MCP_TEST_HAXCMS_VERSION=26.11.0   # installs @haxtheweb/haxcms-nodejs@26.11.0 from npm
 ```
 
 Every run's header says which HAXcms it is testing (`haxcms target: ...`, with the checkout's

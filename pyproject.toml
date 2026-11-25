@@ -1,6 +1,6 @@
 [project]
 name = "haxcms-mcp"
-version = "0.1.0"
+version = "26.11.0"
 description = "MCP server that lets an AI agent operate a self-hosted HAXcms NodeJS instance like a human author."
 readme = "README.md"
 license = "Apache-2.0"
